@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>joshthedev888.github.io</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --color-accent-h: 153; 
+            --color-accent-s: 84%; 
+            --color-accent-l: 31%; 
+            
+            --spacing-ratio: 1.5; 
+            
+            --border-radius-base: 8px;
+            
+            --font-primary: 'Inter', sans-serif;
+            
+            --shadow-level: 1;
+            
+            --font-size-base: 16px;
+            
+            --line-height-ratio: 1.5;
+            
+            --transition-duration: 300ms;
+        }
+
+        .text-accent { color: hsl(var(--color-accent-h), var(--color-accent-s), var(--color-accent-l)); }
+        .bg-accent { background-color: hsl(var(--color-accent-h), var(--color-accent-s), var(--color-accent-l)); }
+        .border-accent { border-color: hsl(var(--color-accent-h), var(--color-accent-s), var(--color-accent-l)); }
+        .hover\:bg-accent-dark:hover { background-color: hsl(var(--color-accent-h), var(--color-accent-s), calc(var(--color-accent-l) - 5%)); }
+        
+        .rounded-token { border-radius: var(--border-radius-base); }
+
+        #token-output {
+            padding: calc(1rem * var(--spacing-ratio));
+        }
+        
+        .shadow-token {
+            box-shadow: 
+                0 calc(3px * var(--shadow-level)) calc(6px * var(--shadow-level)) rgba(0, 0, 0, calc(0.1 * var(--shadow-level))),
+                0 calc(1px * var(--shadow-level)) calc(3px * var(--shadow-level)) rgba(0, 0, 0, calc(0.06 * var(--shadow-level)));
+        }
+
+        body {
+            font-family: var(--font-primary); 
+            font-size: var(--font-size-base); 
+            line-height: var(--line-height-ratio); 
+            scroll-behavior: smooth;
+        }
+
+        nav a {
+            font-size: calc(var(--font-size-base) * 0.95);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-bg': '#ffffff',
+                        'secondary-bg': '#f1f5f9',
+                        'text-dark': '#0f172a',
+                        'text-muted': '#64748b',
+                    },
+                    fontFamily: {
+                        sans: ['var(--font-primary)', 'sans-serif'], 
+                        serif: ['Lora', 'serif'],
+                        inter: ['Inter', 'sans-serif'],
+                        montserrat: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-primary-bg text-text-dark min-h-screen">
+
+    <nav class="sticky top-0 z-50 bg-primary-bg rounded-b-token shadow-md shadow-token transition-token-duration">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="#hero" class="text-2xl font-bold text-accent hover:text-accent-dark transition transition-token-duration">
+                    josh.github.io
+                </a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#design-token-playground" class="text-text-dark hover:text-accent transition transition-token-duration">Ontwerp Tokens</a>
+                    <a href="#projects" class="text-text-dark hover:text-accent transition transition-token-duration">Projecten</a>
+                </div>
+                <button id="menu-button" class="md:hidden text-text-dark focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-primary-bg border-t border-slate-200">
+            <a href="#design-token-playground" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Ontwerp Tokens</a>
+            <a href="#projects" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Projecten</a>
+            <a href="#contact" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Contact</a>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <section id="hero" class="py-16 md:py-32 flex justify-center">
+            <div class="space-y-6 text-center max-w-4xl">
+                <p class="text-accent text-lg font-semibold uppercase tracking-widest transition-token-duration">
+                    Welkom bij
+                </p>
+                <h1 class="text-5xl md:text-7xl font-extrabold leading-tight">
+                    josh.github.io
+                </h1>
+                <h2 class="text-3xl md:text-4xl text-text-muted font-light">
+                    Een random guy die random website dingen maakt
+                </h2>
+
+                <div class="flex justify-center space-x-4 pt-6">
+                    <a href="#projects" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-token shadow-token text-white bg-accent hover:bg-accent-dark transition transition-token-duration">
+                        Bekijk mijn projecten
+                    </a>
+                    <a href="#design-token-playground" class="inline-flex items-center px-6 py-3 border border-accent text-base font-medium rounded-token text-accent hover:bg-slate-50 transition transition-token-duration">
+                        Bekijk Thema's
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="design-token-playground" class="pt-16">
+            <h2 class="text-4xl font-bold mb-8 text-center border-b-2 border-accent pb-2 inline-block mx-auto w-auto transition-token-duration">
+                Ontwerp Token Speeltuin (10 Opties)
+            </h2>
+            <p class="text-center text-text-muted mb-12 max-w-xl mx-auto">
+                Pas alle 10 tokens aan om de site aan te passen en te zien hoe de elementen reageren.
+            </p>
+
+            <div class="max-w-6xl mx-auto bg-secondary-bg p-8 rounded-token shadow-xl shadow-token border border-slate-200 space-y-8">
+                
+                <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                    
+                    <div class="col-span-1">
+                        <label for="color-hue" class="block text-sm font-medium text-text-dark mb-2">
+                            1. Accentkleur (Tint)
+                            <span id="hue-value" class="font-bold text-accent ml-2 transition-token-duration">153</span>
+                        </label>
+                        <input type="range" id="color-hue" min="0" max="360" value="153" step="1" oninput="updateTokens()"
+                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-text-muted mt-2">
+                            De primaire kleur (0-360° op het kleurenwiel).
+                        </p>
+                    </div>
+                    
+                    <div class="col-span-1">
+                        <label for="color-saturation" class="block text-sm font-medium text-text-dark mb-2">
+                            2. Kleur Levendigheid
+                            <span id="saturation-value" class="font-bold text-accent ml-2 transition-token-duration">84</span>%
+                        </label>
+                        <input type="range" id="color-saturation" min="0" max="100" value="84" step="1" oninput="updateTokens()"
+                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-text-muted mt-2">
+                            Hoe intens of gedempt de accentkleur is (0% grijs).
+                        </p>
+                    </div>
+
+                    <div class="col-span-1">
+                        <label for="color-lightness" class="block text-sm font-medium text-text-dark mb-2">
+                            3. Kleur Helderheid
+                            <span id="lightness-value" class="font-bold text-accent ml-2 transition-token-duration">31</span>%
+                        </label>
+                        <input type="range" id="color-lightness" min="10" max="90" value="31" step="1" oninput="updateTokens()"
+                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-text-muted mt-2">
+                            Hoe licht of donker de accentkleur is (100% wit).
+                        </p>
+                    </div>
+
+                    <div class="col-span-1">
+                        <label for="spacing-ratio" class="block text-sm font-medium text-text-dark mb-2">
+                            4. Ruimte Schaal (Ratio)
+                            <span id="ratio-value" class="font-bold text-accent ml-2 transition-token-duration">1.50</span>
+                        </label>
+                        <input type="range" id="spacing-ratio" min="1.0" max="2.0" value="1.5" step="0.05" oninput="updateTokens()"
+                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-text-muted mt-2">
+                            Multipliceert de opvulling voor alle elementen.
+                        </p>
+                    </div>
+
+                    <div class="col-span-1">
+                        <label for="border-radius" class="block text-sm font-medium text-text-dark mb-2">
+                            5. Hoek Afronding (Radius)
+                            <span id="radius-value" class="font-bold text-accent ml-2 transition-token-duration">8</span> px
+                        </label>
+                        <input type="range" id="border-radius" min="0" max="20" value="8" step="1" oninput="updateTokens()"
+                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-text-muted mt-2">
+                            De afronding van de hoeken (0px scherp, 20px zeer rond).
+                        </p>
+                    </div>
+                    
+                    <div class="col-span-1">
+                        <label for="font-family" class="block text-sm font-medium text-text-dark mb-2">
+                            6. Lettertype Stijl (Familie)
+                        </label>
+                        <select id="font-family" onchange="updateTokens()"
+                                class="w-full p-2 bg-primary-bg rounded-token border border-slate-300 focus:border-accent focus:ring-accent transition transition-token-duration text-text-dark">
+                            <option value="'Inter', sans-serif">Inter (Standaard)</option>
+                            <option value="'Montserrat', sans-serif">Montserrat (Modern)</option>
+                            <option value="'Lora', serif">Lora (Klassiek Serif)</option>
+                        </select>
+                        <p class="text-xs text-text-muted mt-2">
+                            Bepaalt het primaire lettertype van de hele site.
+                        </p>
+                    </div>
+                    
+                    <div class="col-span-1">
+                        <label for="shadow-level" class="block text-sm font-medium text-text-dark mb-2">
+                            7. Schaduw Diepte
+                            <span id="shadow-value" class="font-bold text-accent ml-2 transition-token-duration">1.0</span>
+                        </label>
+                        <input type="range" id="shadow-level" min="0" max="3" value="1.0" step="0.1" oninput="updateTokens()"
+                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-text-muted mt-2">
+                            De intensiteit van de schaduw achter kaarten en knoppen.
+                        </p>
+                    </div>
+                    
+                    <div class="col-span-1">
+                        <label for="font-size-base" class="block text-sm font-medium text-text-dark mb-2">
+                            8. Basis Tekstgrootte
+                            <span id="font-size-value" class="font-bold text-accent ml-2 transition-token-duration">16</span> px
+                        </label>
+                        <input type="range" id="font-size-base" min="12" max="20" value="16" step="1" oninput="updateTokens()"
+                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-text-muted mt-2">
+                            De basis lettergrootte, alle andere tekst schaalt mee.
+                        </p>
+                    </div>
+                    
+                    <div class="col-span-1">
+                        <label for="line-height-ratio" class="block text-sm font-medium text-text-dark mb-2">
+                            9. Regelafstand
+                            <span id="line-height-value" class="font-bold text-accent ml-2 transition-token-duration">1.50</span>
+                        </label>
+                        <input type="range" id="line-height-ratio" min="1.2" max="2.0" value="1.5" step="0.05" oninput="updateTokens()"
+                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-text-muted mt-2">
+                            De verticale ruimte tussen regels tekst (leessnelheid).
+                        </p>
+                    </div>
+
+                    <div class="col-span-1">
+                        <label for="transition-duration" class="block text-sm font-medium text-text-dark mb-2">
+                            10. Animatie Snelheid
+                            <span id="duration-value" class="font-bold text-accent ml-2 transition-token-duration">300</span> ms
+                        </label>
+                        <input type="range" id="transition-duration" min="100" max="1000" value="300" step="50" oninput="updateTokens()"
+                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                        <p class="text-xs text-text-muted mt-2">
+                            Hoe snel knoppen en hover-effecten reageren.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <h4 class="text-lg font-semibold mb-3 text-text-dark">Token Demonstratie Element:</h4>
+                    <div id="token-output" class="bg-primary-bg rounded-token border border-accent shadow-token transition-all transition-token-duration">
+                        <p class="text-text-dark font-medium">De opvulling, hoeken, schaduw en kleur van dit element zijn allemaal dynamisch. (Let ook op de tekstgrootte en regelafstand hier).</p>
+                        <button class="px-4 py-2 mt-3 text-white bg-accent rounded-token hover:bg-accent-dark shadow-token transition transition-token-duration">
+                            Thema Knop
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="pt-16">
+            <h2 class="text-4xl font-bold mb-12 text-center border-b-2 border-accent pb-2 inline-block mx-auto w-auto transition-token-duration">
+                Uitgelichte Projecten
+            </h2>
+            <div class="space-y-12">
+                <div class="bg-secondary-bg p-6 md:p-8 rounded-token shadow-token flex flex-col lg:flex-row gap-6 lg:gap-8 items-start border border-slate-200 transition-token-duration">
+                    <div class="lg:w-1/3 w-full h-48 bg-slate-300 rounded-token flex items-center justify-center shrink-0">
+                        <span class="text-text-muted">Project Mockup Plaatsaanduiding</span>
+                    </div>
+                    <div class="lg:w-2/3 space-y-4">
+                        <h3 class="text-2xl font-bold text-accent transition-token-duration">Real-Time Analyse Dashboard</h3>
+                        <p class="text-text-muted">
+                            Binnenkort beschikbaar
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">JavaScript</span>
+                            <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">TailwindCSS</span>
+                        </div>
+                        <div class="flex space-x-4 mt-4">
+                            <a href="project-1.html" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-token text-white bg-accent hover:bg-accent-dark shadow-sm shadow-token transition transition-token-duration">
+                                <span data-lucide="folder-open" class="w-5 h-5 mr-2"></span>
+                                <span>Bekijk Project Details</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-secondary-bg p-6 md:p-8 rounded-token shadow-token flex flex-col lg:flex-row gap-6 lg:gap-8 items-start border border-slate-200 transition-token-duration">
+                    <div class="lg:w-1/3 w-full h-48 bg-slate-300 rounded-token flex items-center justify-center shrink-0">
+                        <span class="text-text-muted">Project Mockup Plaatsaanduiding</span>
+                    </div>
+                    <div class="lg:w-2/3 space-y-4">
+                        <h3 class="text-2xl font-bold text-accent transition-token-duration">E-Commerce API Service</h3>
+                        <p class="text-text-muted">
+                            Binnenkort beschikbaar
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">JavaScript</span>
+                        </div>
+                        <div class="flex space-x-4 mt-4">
+                            <a href="project-2.html" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-token text-white bg-accent hover:bg-accent-dark shadow-sm shadow-token transition transition-token-duration">
+                                <span data-lucide="folder-open" class="w-5 h-5 mr-2"></span>
+                                <span>Bekijk Project Details</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-secondary-bg py-6 border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-text-muted">
+            &copy; 2024 Het Digitale Canvas. Alle rechten voorbehouden. Gebouwd met 10 Ontwerp Tokens en Tailwind CSS.
+        </div>
+    </footer>
+
+    <script>
+        function updateTokens() {
+            const root = document.documentElement;
+            
+            const hueInput = document.getElementById('color-hue');
+            const hue = hueInput.value;
+            root.style.setProperty('--color-accent-h', hue);
+            document.getElementById('hue-value').textContent = hue;
+
+            const saturationInput = document.getElementById('color-saturation');
+            const saturation = saturationInput.value;
+            root.style.setProperty('--color-accent-s', `${saturation}%`);
+            document.getElementById('saturation-value').textContent = saturation;
+            
+            const lightnessInput = document.getElementById('color-lightness');
+            const lightness = lightnessInput.value;
+            root.style.setProperty('--color-accent-l', `${lightness}%`);
+            document.getElementById('lightness-value').textContent = lightness;
+
+            const ratioInput = document.getElementById('spacing-ratio');
+            const ratio = parseFloat(ratioInput.value).toFixed(2);
+            root.style.setProperty('--spacing-ratio', ratio);
+            document.getElementById('ratio-value').textContent = ratio;
+
+            const radiusInput = document.getElementById('border-radius');
+            const radius = radiusInput.value;
+            root.style.setProperty('--border-radius-base', `${radius}px`);
+            document.getElementById('radius-value').textContent = radius;
+            
+            const fontInput = document.getElementById('font-family');
+            const selectedFont = fontInput.value;
+            root.style.setProperty('--font-primary', selectedFont);
+            
+            const shadowInput = document.getElementById('shadow-level');
+            const shadow = parseFloat(shadowInput.value).toFixed(1);
+            root.style.setProperty('--shadow-level', shadow);
+            document.getElementById('shadow-value').textContent = shadow;
+
+            const fontSizeInput = document.getElementById('font-size-base');
+            const fontSize = fontSizeInput.value;
+            root.style.setProperty('--font-size-base', `${fontSize}px`);
+            document.getElementById('font-size-value').textContent = fontSize;
+            
+            const lineHeightInput = document.getElementById('line-height-ratio');
+            const lineHeight = parseFloat(lineHeightInput.value).toFixed(2);
+            root.style.setProperty('--line-height-ratio', lineHeight);
+            document.getElementById('line-height-value').textContent = lineHeight;
+            
+            const transitionInput = document.getElementById('transition-duration');
+            const transitionDuration = transitionInput.value;
+            root.style.setProperty('--transition-duration', `${transitionDuration}ms`);
+            document.getElementById('duration-value').textContent = transitionDuration;
+        }
+
+        window.onload = function() {
+            lucide.createIcons();
+            updateTokens();
+        };
+
+        document.getElementById('menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        const mobileLinks = document.querySelectorAll('#mobile-menu a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
