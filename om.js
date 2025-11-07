@@ -25,10 +25,10 @@ const keys = { a: { pressed: false }, d: { pressed: false }, w: { pressed: false
 
 const ENEMY_STATS = {
     1: { health: 100, speed: 2, jumpChance: 0.003, attackCooldown: 30, damage: 10 },
-    2: { health: 120, speed: 3, jumpChance: 0.005, attackCooldown: 25, damage: 12 },
-    3: { health: 140, speed: 4, jumpChance: 0.007, attackCooldown: 20, damage: 14 },
-    4: { health: 160, speed: 5, jumpChance: 0.010, attackCooldown: 15, damage: 16 },
-    5: { health: 180, speed: 6, jumpChance: 0.012, attackCooldown: 10, damage: 18 },
+    2: { health: 120, speed: 3, jumpChance: 0.005, attackCooldown: 28, damage: 10 },
+    3: { health: 140, speed: 4, jumpChance: 0.007, attackCooldown: 26, damage: 10 },
+    4: { health: 160, speed: 5, jumpChance: 0.010, attackCooldown: 24, damage: 10 },
+    5: { health: 180, speed: 6, jumpChance: 0.012, attackCooldown: 22, damage: 10 },
 };
 
 class Sprite {
