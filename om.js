@@ -36,7 +36,12 @@ const ENEMY_STATS = {
     2: { health: 120, speed: 3, jumpChance: 0.005, attackCooldown: 25, damage: 12 },
     3: { health: 140, speed: 4, jumpChance: 0.007, attackCooldown: 20, damage: 14 },
     4: { health: 160, speed: 5, jumpChance: 0.010, attackCooldown: 15, damage: 16 },
-    5: { health: 180, speed: 6, jumpChance: 0.012, attackCooldown: 10, damage: 18 }
+    5: { health: 180, speed: 6, jumpChance: 0.012, attackCooldown: 10, damage: 18 },
+    6: { health: 100, speed: 2, jumpChance: 0.012, attackCooldown: 30, damage: 10),
+    7: { health: 120, speed: 3, jumpChance: 0.005, attackCooldown: 25, damage: 12 },
+    8: { health: 140, speed: 4, jumpChance: 0.007, attackCooldown: 20, damage: 14 },
+    9: { health: 160, speed: 5, jumpChance: 0.010, attackCooldown: 15, damage: 16 },
+    10: { health: 180, speed: 6, jumpChance: 0.012, attackCooldown: 10, damage: 18 },
 };
 
 class Sprite {
@@ -205,6 +210,16 @@ function setupNewGame(startLevel = 1) {
     game.level = startLevel;
     game.timer = INITIAL_TIME;
     game.isRunning = true;
+
+    if (game.level > 5) {
+        enemy2 = new Fighter({
+            position: { x: canvas.width - 135, y: 0},
+            velocity: { x: 0, y: 0 },
+            color: '#1565c0',
+            isEnemy: true,
+            stats: currentEnemyStats
+        });
+    }
     
     levelDisplay.textContent = `Level ${game.level}`;
     playerHealthBar.style.width = '100%';
