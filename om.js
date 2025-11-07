@@ -27,9 +27,14 @@ const ENEMY_STATS = {
     1: { health: 100, speed: 2, jumpChance: 0.003, attackCooldown: 60, damage: 5 },
     2: { health: 120, speed: 2, jumpChance: 0.005, attackCooldown: 56, damage: 5 },
     3: { health: 140, speed: 2, jumpChance: 0.007, attackCooldown: 52, damage: 5 },
-    4: { health: 160, speed: 2, jumpChance: 0.010, attackCooldown: 48, damage: 5 },
-    5: { health: 180, speed: 2, jumpChance: 0.012, attackCooldown: 44, damage: 5 },
+    4: { health: 160, speed: 2, jumpChance: 0.01, attackCooldown: 48, damage: 5 },
+    5: { health: 180, speed: 2, jumpChance: 0.012, attackCooldown: 44, damage: 5 }
 };
+
+let sharpener = null;
+let sharpenerActive = false;
+let sharpenerTimer = 0;
+let sharpenerSpawnCooldown = 0;
 
 class Sprite {
     constructor({ position }) {
@@ -71,7 +76,6 @@ class Fighter extends Sprite {
         this.lineWidth = 3;
         this.stats = stats;
     }
-
     drawStickman() {
         ctx.strokeStyle = this.lineColor;
         ctx.lineWidth = this.lineWidth;
@@ -81,7 +85,6 @@ class Fighter extends Sprite {
         const legLength = this.height * 0.3;
         const armLength = this.height * 0.2;
         const headRadius = this.width / 2;
-
         ctx.beginPath();
         ctx.arc(x, y + headRadius, headRadius, 0, Math.PI * 2, false);
         ctx.stroke();
@@ -102,12 +105,11 @@ class Fighter extends Sprite {
         ctx.moveTo(x - armLength, armY);
         ctx.lineTo(x + armLength, armY);
         ctx.stroke();
-
         if (this.isAttacking) {
             ctx.fillStyle = '#ffc107';
-            ctx.strokeStyle = '#ffc107'; 
+            ctx.strokeStyle = '#ffc107';
             ctx.lineWidth = 4;
-            const attackDirection = this.isEnemy ? -1 : 1; 
+            const attackDirection = this.isEnemy ? -1 : 1;
             const pencilStart = { x: x + (attackDirection * (armLength + 5)), y: armY };
             const pencilEnd = { x: pencilStart.x + (attackDirection * 50), y: armY - 10 };
             ctx.beginPath();
@@ -123,7 +125,6 @@ class Fighter extends Sprite {
             ctx.fill();
         }
     }
-
     update() {
         this.drawStickman();
         super.update();
@@ -141,11 +142,10 @@ class Fighter extends Sprite {
             }
         }
     }
-
     attack() {
         if (this.currentCooldown === 0) {
             this.isAttacking = true;
-            this.currentCooldown = this.stats.attackCooldown; 
+            this.currentCooldown = this.stats.attackCooldown;
         }
     }
 }
@@ -173,10 +173,8 @@ function setupNewGame(startLevel = 1) {
         isEnemy: false,
         stats: playerStats
     });
-
     const enemyLevel = ((startLevel - 1) % 5) + 1;
     const currentEnemyStats = ENEMY_STATS[enemyLevel];
-
     enemy = new Fighter({
         position: { x: canvas.width - 150, y: 0 },
         velocity: { x: 0, y: 0 },
@@ -184,7 +182,6 @@ function setupNewGame(startLevel = 1) {
         isEnemy: true,
         stats: currentEnemyStats
     });
-
     if (startLevel > 5) {
         const secondEnemyStats = ENEMY_STATS[enemyLevel];
         enemy2 = new Fighter({
@@ -197,17 +194,18 @@ function setupNewGame(startLevel = 1) {
     } else {
         enemy2 = null;
     }
-
     game.level = startLevel;
     game.timer = INITIAL_TIME;
     game.isRunning = true;
 
-    levelDisplay.textContent = `Level ${game.level}`;
+    if (game.level < 6) {
+        levelDisplay.textContent = `Level ${game.level}`;
+    } else {
+        levelDisplay.textContent = `Level ${game.level}. Nu met twee josh.ai.Potloodcechters`;
+    }
     playerHealthBar.style.width = '100%';
     enemyHealthBar.style.width = '100%';
-
     messageBox.style.display = 'none';
-
     clearInterval(timerIntervalId);
     timerIntervalId = setInterval(handleTimer, 1000);
 }
@@ -225,10 +223,8 @@ function endGame(reason) {
     cancelAnimationFrame(gameLoopId);
     game.isRunning = false;
     clearInterval(timerIntervalId);
-
     let titleText = 'Spel Voorbij!';
     let subtitleText = 'Helaas, je hebt verloren.';
-    
     if (reason === 'Tijd op') {
         titleText = 'Tijd op';
         subtitleText = 'Niet snel genoeg. Probeer opnieuw';
@@ -237,13 +233,13 @@ function endGame(reason) {
         subtitleText = `josh.ai.Potloodvechter was te sterk op Level ${game.level}.`;
     } else if (reason === 'EnemyDied') {
         if (game.level < MAX_LEVEL) {
-            titleText = `Level ${game.level} VOLTOOID!`;
-            subtitleText = 'Klaar voor de volgende sterkere josh.ai.Potloodvechter?';
+            titleText = `Level ${game.level} Gewonnen`;
+            subtitleText = 'josh.ai.Potloodvechter wordt sterker de volgende keer';
             startButton.textContent = `Ga naar Level ${game.level + 1}`;
             startButton.onclick = () => {
                 setupNewGame(game.level + 1);
                 animate(0);
-            }
+            };
         } else {
             titleText = 'gefeliciteerd';
             subtitleText = 'Je hebt VOOR NU josh.ai.Potloodvechter verslagen.';
@@ -251,14 +247,13 @@ function endGame(reason) {
             startButton.onclick = () => {
                 setupNewGame(1);
                 animate(0);
-            }
+            };
         }
         messageBox.style.display = 'flex';
         messageSubtitle.textContent = subtitleText;
         document.querySelector('.message-text').textContent = titleText;
         return;
     }
-
     messageBox.style.display = 'flex';
     messageSubtitle.textContent = subtitleText;
     document.querySelector('.message-text').textContent = titleText;
@@ -266,14 +261,14 @@ function endGame(reason) {
     startButton.onclick = () => {
         setupNewGame(1);
         animate(0);
-    }
+    };
 }
 
 function enemyAI(fighter) {
     const enemyStats = fighter.stats;
     const distance = player.position.x - fighter.position.x;
-    const pursuitRange = 250; 
-    const attackRange = 100; 
+    const pursuitRange = 250;
+    const attackRange = 100;
     fighter.velocity.x = 0;
     if (Math.abs(distance) > pursuitRange) {
         fighter.velocity.x = distance < 0 ? -enemyStats.speed : enemyStats.speed;
@@ -310,6 +305,30 @@ function handleAttacks() {
     });
 }
 
+function spawnSharpener() {
+    if (game.level < 6) return;
+    const chance = 0.01;
+    if (!sharpener && Math.random() < chance && sharpenerSpawnCooldown <= 0) {
+        sharpener = {
+            x: Math.random() * (canvas.width - 60) + 30,
+            y: canvas.height - 90,
+            width: 30,
+            height: 30,
+            collected: false
+        };
+        sharpenerSpawnCooldown = 900;
+    }
+}
+
+function drawSharpener() {
+    if (!sharpener || sharpener.collected) return;
+    ctx.fillStyle = '#9e9e9e';
+    ctx.fillRect(sharpener.x, sharpener.y, sharpener.width, sharpener.height);
+    ctx.strokeStyle = '#fdd835';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(sharpener.x, sharpener.y, sharpener.width, sharpener.height);
+}
+
 function animate(currentTime) {
     gameLoopId = requestAnimationFrame(animate);
     const deltaTime = currentTime - lastTime;
@@ -318,12 +337,35 @@ function animate(currentTime) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#6d4c41';
     ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+    if (sharpenerSpawnCooldown > 0) sharpenerSpawnCooldown--;
+    spawnSharpener();
+    drawSharpener();
+    if (sharpener && !sharpener.collected) {
+        if (
+            player.position.x < sharpener.x + sharpener.width &&
+            player.position.x + player.width > sharpener.x &&
+            player.position.y < sharpener.y + sharpener.height &&
+            player.position.y + player.height > sharpener.y
+        ) {
+            sharpener.collected = true;
+            sharpenerActive = true;
+            sharpenerTimer = 600;
+            player.attackBox.damage *= 1.5;
+        }
+    }
+    if (sharpenerActive) {
+        sharpenerTimer--;
+        if (sharpenerTimer <= 0) {
+            sharpenerActive = false;
+            player.attackBox.damage /= 1.5;
+        }
+    }
     player.update();
     enemy.update();
-    if (enemy2) enemy2.update();
+    if (enemy2) { enemy2.update(); }
     if (game.isRunning) {
         enemyAI(enemy);
-        if (enemy2) enemyAI(enemy2);
+        if (enemy2) { enemyAI(enemy2) };
     }
     handleAttacks();
     if (player.health <= 0) {
@@ -337,9 +379,9 @@ function animate(currentTime) {
     if (keys.d.pressed) player.velocity.x = playerSpeed;
 }
 
-window.addEventListener('keydown', (event) => {
+window.addEventListener('keydown', e => {
     if (!game.isRunning) return;
-    switch (event.key) {
+    switch (e.key) {
         case 'a':
         case 'A':
             keys.a.pressed = true;
@@ -361,8 +403,8 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
-window.addEventListener('keyup', (event) => {
-    switch (event.key) {
+window.addEventListener('keyup', e => {
+    switch (e.key) {
         case 'a':
         case 'A':
             keys.a.pressed = false;
