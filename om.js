@@ -169,6 +169,7 @@ const ctx = canvas.getContext('2d');
 canvas.width = 750;
 canvas.height = 400;
 
+// UI ELEMENTEN OPHALEN
 const playerHealthBar = document.getElementById('playerHealth');
 const enemyHealthBar = document.getElementById('enemyHealth');
 const timerDisplay = document.getElementById('timer');
@@ -207,7 +208,8 @@ const hostStatus = document.getElementById('hostStatus');
 const joinStatus = document.getElementById('joinStatus');
 const gamePinDisplay = document.getElementById('gamePinDisplay');
 const playersJoined = document.getElementById('playersJoined');
-const pinInput = document.getElementById('pinInput'); // ⬅️ DEZE REGEL IS TOEGEVOEGD!
+const pinInput = document.getElementById('pinInput'); // ✅ GECORRIGEERDE/TOEGEVOEGDE REGEL
+const disconnectAndMenuButton = document.getElementById('disconnectAndMenuButton'); // ✅ NIEUWE KNOP
 
 const INITIAL_TIME = 60;
 
@@ -231,6 +233,7 @@ let game = {
 const SERVER_URL = 'https://joshthedev888-server.onrender.com';
 const socket = io(SERVER_URL); 
 
+// FUNCTIES
 function showMainMenu() {
     hostGameForm.style.display = 'none';
     joinGameForm.style.display = 'none';
@@ -249,6 +252,24 @@ function showMainMenu() {
         playOptionsDiv.style.display = 'none';
         nameStatus.style.display = 'block';
     }
+}
+
+function disconnectAndGoToMenu() {
+    if (game.isMultiplayer && game.matchID) {
+        // Laat de server weten dat we weggaan (zodat de tegenstander een bericht krijgt)
+        socket.emit('leaveGame', game.matchID);
+    }
+    
+    // Reset de lokale spelstatus
+    game.isRunning = false;
+    game.isMultiplayer = false;
+    game.isHost = false;
+    game.matchID = null;
+    cancelAnimationFrame(gameLoopId);
+    clearInterval(timerIntervalId);
+    
+    // Ga terug naar het hoofdmenu
+    showMainMenu();
 }
 
 
@@ -310,7 +331,7 @@ socket.on('gameCreated', (pin, totalMatches) => {
 
 socket.on('playerJoined', (player2Name) => {
     player2NameDisplay.textContent = player2Name;
-    playersJoined.textContent = `VS: ${player2Name}. Start de match!`;
+    playersJoined.textContent = `VS: ${player2Name}. Host kan de match starten!`;
 });
 
 socket.on('joinStatus', (message) => {
@@ -350,7 +371,8 @@ socket.on('opponentAttacked', () => {
 });
 
 socket.on('opponentDisconnected', () => {
-    game.score[game.playerSide] = game.totalMatches;
+    // Stel de score in alsof de tegenstander de serie verloor
+    game.score[game.playerSide === 'p1' ? 'player1' : 'player2'] = game.totalMatches;
     endMatch('OpponentDisconnected');
 });
 
@@ -493,6 +515,7 @@ function endMatch(reason) {
     } else if (reason === 'OpponentDisconnected') {
         titleText = 'Tegenstander Verlaten';
         subtitleText = 'De tegenstander heeft de verbinding verbroken. Spel voorbij.';
+        // Geen timeout! We wachten op de speler om handmatig terug te keren.
     } else if (reason === 'SeriesEnded') {
         const winnerName = game.score.player1 > game.score.player2 ? player1NameDisplay.textContent : player2NameDisplay.textContent;
         titleText = 'Einde Spel Serie!';
@@ -509,13 +532,18 @@ function endMatch(reason) {
     if (!game.isMultiplayer) {
         setTimeout(showMainMenu, 3000); 
     } else if (reason === 'OpponentDisconnected' || reason === 'SeriesEnded' || game.score.player1 >= maxScoreNeeded || game.score.player2 >= maxScoreNeeded) {
-        setTimeout(showMainMenu, 5000); 
-    } else {
-        setTimeout(() => {}, 5000); 
+        if (reason !== 'OpponentDisconnected') { // Alleen teruggaan bij disconnect als de speler op de knop drukt, anders 5s wachten
+            setTimeout(showMainMenu, 5000); 
+        }
+    } else if (game.isMultiplayer) {
+        // Wachten op start van volgende match
+        messageSubtitle.textContent += ' Wachten op Host om volgende match te starten...';
+        // Dit zorgt ervoor dat de Host de optie heeft om de volgende match te starten
     }
 }
 
 
+// EVENT LISTENERS
 usernameInput.addEventListener('input', showMainMenu);
 
 window.addEventListener('keydown', e => {
@@ -609,4 +637,5 @@ function joinGame(pin) {
     joinGameForm.style.display = 'none';
 }
 
+disconnectAndMenuButton.addEventListener('click', disconnectAndGoToMenu); // ⬅️ NIEUWE LISTENER
 document.addEventListener('DOMContentLoaded', showMainMenu);
