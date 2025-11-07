@@ -178,7 +178,6 @@ const player2NameDisplay = document.getElementById('player2Name');
 
 const messageBox = document.getElementById('messageBox');
 const messageSubtitle = document.getElementById('messageSubtitle');
-const menuOptions = document.getElementById('menuOptions');
 const hostGameForm = document.getElementById('hostGameForm');
 const joinGameForm = document.getElementById('joinGameForm');
 const waitingScreen = document.getElementById('waitingScreen');
@@ -208,7 +207,7 @@ const hostStatus = document.getElementById('hostStatus');
 const joinStatus = document.getElementById('joinStatus');
 const gamePinDisplay = document.getElementById('gamePinDisplay');
 const playersJoined = document.getElementById('playersJoined');
-
+const pinInput = document.getElementById('pinInput'); // ⬅️ DEZE REGEL IS TOEGEVOEGD!
 
 const INITIAL_TIME = 60;
 
@@ -292,7 +291,7 @@ socket.on('publicGamesUpdate', (gamesData) => {
         gamesData.forEach(g => {
             const gameDiv = document.createElement('div');
             gameDiv.className = 'p-3 bg-white rounded-lg shadow-md border border-blue-200';
-            gameDiv.innerHTML = `<p class="font-bold text-lg text-blue-800">${g.name}</p><p class="text-sm text-gray-600">Host: ${g.hostName}</p><p class="text-xs text-gray-500">1/2 Spelers</p>`;
+            gameDiv.innerHTML = `<p class="font-bold text-lg text-blue-800">${g.gameName || 'Naamloos Spel'}</p><p class="text-sm text-gray-600">Host: ${g.hostName}</p><p class="text-xs text-gray-500">1/2 Spelers</p>`;
             mainListDiv.appendChild(gameDiv);
         });
         noPublicGames.style.display = 'none';
