@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Om - josh.github.io</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
         body {
@@ -23,6 +24,7 @@
             padding: 20px;
             max-width: 800px;
             width: 95%;
+            position: relative;
         }
         canvas {
             background-color: #e0f7fa;
@@ -68,7 +70,7 @@
             line-height: 1;
         }
         .message-box {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
@@ -78,6 +80,7 @@
             justify-content: center;
             align-items: center;
             z-index: 10;
+            border-radius: 12px;
         }
         .message-content {
             background: rgba(255, 255, 255, 0.95);
@@ -92,7 +95,7 @@
             color: #333;
             margin-bottom: 20px;
         }
-        .start-button {
+        .start-button, .join-button, .host-button {
             background-color: #4caf50;
             color: white;
             padding: 12px 25px;
@@ -102,41 +105,39 @@
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
+            margin: 5px;
         }
-        .start-button:hover {
+        .start-button:hover, .join-button:hover, .host-button:hover {
             background-color: #43a047;
             transform: translateY(-2px);
+        }
+        .input-group input {
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            padding: 8px;
+            margin-right: 10px;
+            width: 150px;
         }
     </style>
 </head>
 <body>
-
-<a href="index.html" style="text-align=center;">
-    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="256" height="256" viewBox="0 0 256 256" xml:space="preserve">
-        <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
-	        <path d="M 69.313 54.442 c -0.397 0 -0.798 -0.118 -1.147 -0.363 c -0.904 -0.636 -1.122 -1.883 -0.487 -2.786 l 10.118 -14.399 L 67.679 22.495 c -0.635 -0.904 -0.417 -2.151 0.487 -2.786 c 0.904 -0.637 2.151 -0.417 2.786 0.486 l 10.926 15.549 c 0.484 0.69 0.484 1.61 0 2.3 L 70.952 53.592 C 70.563 54.146 69.943 54.442 69.313 54.442 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
-	        <path d="M 57.693 30.092 c 1.104 0 2 -0.896 2 -2 V 2 c 0 -1.104 -0.896 -2 -2 -2 H 9.759 C 9.746 0 9.735 0.003 9.722 0.004 C 9.685 0.004 9.648 0.012 9.611 0.015 c -0.122 0.009 -0.24 0.027 -0.354 0.057 C 9.211 0.083 9.168 0.098 9.124 0.113 C 9.011 0.151 8.903 0.198 8.8 0.255 C 8.775 0.269 8.747 0.274 8.723 0.289 c -0.012 0.007 -0.02 0.018 -0.031 0.025 c -0.13 0.083 -0.252 0.177 -0.36 0.287 C 8.313 0.62 8.299 0.643 8.281 0.662 C 8.196 0.757 8.12 0.859 8.053 0.969 C 8.029 1.009 8.008 1.05 7.987 1.091 C 7.935 1.192 7.893 1.297 7.858 1.407 C 7.845 1.449 7.83 1.489 7.82 1.532 C 7.783 1.683 7.759 1.838 7.759 2 v 69.787 c 0 0.17 0.028 0.333 0.068 0.49 c 0.011 0.043 0.025 0.083 0.039 0.124 c 0.04 0.123 0.091 0.239 0.152 0.35 c 0.019 0.033 0.034 0.068 0.054 0.1 c 0.086 0.135 0.185 0.26 0.3 0.371 c 0.022 0.021 0.047 0.037 0.07 0.058 c 0.102 0.09 0.214 0.169 0.333 0.237 c 0.021 0.012 0.037 0.03 0.058 0.042 l 31.016 16.213 C 40.139 89.925 40.457 90 40.775 90 c 0.359 0 0.718 -0.097 1.036 -0.289 c 0.598 -0.362 0.964 -1.012 0.964 -1.711 V 73.787 h 14.918 c 1.104 0 2 -0.896 2 -2 V 45 c 0 -1.104 -0.896 -2 -2 -2 s -2 0.896 -2 2 v 24.787 H 42.775 V 18.213 c 0 -0.745 -0.414 -1.428 -1.074 -1.772 L 17.902 4 h 37.791 v 24.092 C 55.693 29.196 56.589 30.092 57.693 30.092 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
-	        <path d="M 80.241 38.894 H 47.536 c -1.104 0 -2 -0.896 -2 -2 s 0.896 -2 2 -2 h 32.705 c 1.104 0 2 0.896 2 2 S 81.346 38.894 80.241 38.894 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
-        </g>
-    </svg>
-</a>
     
 <div class="game-container">
     <div class="ui-bar">
         <div class="flex flex-col items-start w-1/3">
-            <span class="text-white text-sm mb-1">Jij</span>
+            <span id="player1Name" class="text-white text-sm mb-1">Jij</span>
             <div class="health-bar-container">
                 <div id="playerHealth" class="health-bar" style="width: 100%;"></div>
             </div>
         </div>
 
         <div class="flex flex-col items-center gap-2">
-            <div id="levelDisplay" class="level-display">Level 1</div>
+            <div id="scoreDisplay" class="level-display">Score: 0-0</div>
             <div id="timer" class="timer text-xl">60s</div>
         </div>
         
         <div class="flex flex-col items-end w-1/3">
-            <span class="text-white text-sm mb-1">josh.ai.Potloodvechter (AI)</span>
+            <span id="player2Name" class="text-white text-sm mb-1">Tegenstander</span>
             <div class="health-bar-container">
                 <div id="enemyHealth" class="health-bar" style="width: 100%; background-color: #1e88e5;"></div>
             </div>
@@ -150,13 +151,54 @@
         <div>Springen: <span class="bg-gray-200 p-1 rounded font-bold">W</span></div>
         <div>Aanvallen: <span class="bg-gray-200 p-1 rounded font-bold">J</span> (Steek), <span class="bg-gray-200 p-1 rounded font-bold">K</span> (Slag)</div>
     </div>
+
+    <div class="mt-8">
+        <h3 class="text-xl font-bold text-center mb-4 text-gray-800">Publieke Spellen (Max 5)</h3>
+        <div id="publicGamesList" class="flex flex-wrap justify-center gap-4 p-4 bg-gray-100 rounded-lg border border-gray-300">
+            <p class="text-gray-500" id="noPublicGames">Geen openbare spellen beschikbaar.</p>
+        </div>
+    </div>
 </div>
 
-<div id="messageBox" class="message-box">
+<div id="messageBox" class="message-box" style="display: flex;">
     <div class="message-content">
-        <div class="message-text">Om</div>
-        <p id="messageSubtitle" class="text-gray-600 mb-4 text-lg">Versla de CPU in Level 1!</p>
-        <button id="startButton" class="start-button">Start Spel</button>
+        <div class="message-text">Om Multiplayer</div>
+        <p id="messageSubtitle" class="text-gray-600 mb-4 text-lg">Kies een optie om te beginnen</p>
+        
+        <div id="menuOptions">
+            <div class="mb-4">
+                <input type="text" id="usernameInput" placeholder="Gebruikersnaam" class="p-2 border rounded" maxlength="15">
+            </div>
+
+            <button id="showHostButton" class="host-button">Host Spel</button>
+            <button id="showJoinButton" class="join-button">Join met PIN</button>
+            <button id="soloPlayButton" class="start-button">Speel Solo (Tegen AI)</button>
+        </div>
+
+        <div id="hostGameForm" style="display: none;">
+            <input type="text" id="gameNameInput" placeholder="Naam van Spel" class="p-2 border rounded mb-3 w-full">
+            <input type="number" id="matchCountInput" placeholder="# Matches (1-10)" min="1" max="10" value="3" class="p-2 border rounded mb-3 w-full">
+            <label class="block text-gray-600 mb-2 text-left">
+                <input type="checkbox" id="publicCheckbox" class="mr-2"> Publiek Spel (Iedereen kan joinen)
+            </label>
+            <button id="hostConfirmButton" class="host-button">Maak Spel aan</button>
+            <button id="backToMenuHost" class="start-button" style="background-color: #9e9e9e;">Terug</button>
+            <p id="hostStatus" class="mt-2 text-red-500"></p>
+        </div>
+
+        <div id="joinGameForm" style="display: none;">
+            <input type="text" id="pinInput" placeholder="Voer PIN in" class="p-2 border rounded mb-3 w-full" maxlength="6">
+            <button id="joinConfirmButton" class="join-button">Join Spel</button>
+            <button id="backToMenuJoin" class="start-button" style="background-color: #9e9e9e;">Terug</button>
+            <p id="joinStatus" class="mt-2 text-red-500"></p>
+        </div>
+        
+        <div id="waitingScreen" style="display: none;">
+            <p id="waitingMessage" class="text-lg text-blue-600 font-bold mb-4"></p>
+            <p id="gamePinDisplay" class="text-xl font-mono text-green-700 bg-green-100 p-2 rounded inline-block"></p>
+            <p id="playersJoined" class="mt-2 text-gray-700"></p>
+        </div>
+
     </div>
 </div>
 
