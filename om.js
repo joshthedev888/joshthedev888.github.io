@@ -175,6 +175,7 @@ const timerDisplay = document.getElementById('timer');
 const scoreDisplay = document.getElementById('scoreDisplay');
 const player1NameDisplay = document.getElementById('player1Name');
 const player2NameDisplay = document.getElementById('player2Name');
+
 const messageBox = document.getElementById('messageBox');
 const messageSubtitle = document.getElementById('messageSubtitle');
 const menuOptions = document.getElementById('menuOptions');
@@ -185,13 +186,21 @@ const publicGamesList = document.getElementById('publicGamesList');
 const noPublicGames = document.getElementById('noPublicGames');
 
 const usernameInput = document.getElementById('usernameInput');
+const playOptionsDiv = document.getElementById('playOptions');
+const nameStatus = document.getElementById('nameStatus');
 const showHostButton = document.getElementById('showHostButton');
 const showJoinButton = document.getElementById('showJoinButton');
 const soloPlayButton = document.getElementById('soloPlayButton');
+const showPublicGamesButton = document.getElementById('showPublicGamesButton');
+const publicGameSelectScreen = document.getElementById('publicGameSelectScreen');
+const publicGamesListDisplay = document.getElementById('publicGamesListDisplay');
+const refreshPublicGamesButton = document.getElementById('refreshPublicGamesButton');
+
 const hostConfirmButton = document.getElementById('hostConfirmButton');
 const joinConfirmButton = document.getElementById('joinConfirmButton');
 const backToMenuHost = document.getElementById('backToMenuHost');
 const backToMenuJoin = document.getElementById('backToMenuJoin');
+const backToMenuPublic = document.getElementById('backToMenuPublic');
 const gameNameInput = document.getElementById('gameNameInput');
 const matchCountInput = document.getElementById('matchCountInput');
 const publicCheckbox = document.getElementById('publicCheckbox');
@@ -223,14 +232,73 @@ let game = {
 const SERVER_URL = 'https://joshthedev888-server.onrender.com';
 const socket = io(SERVER_URL); 
 
+function showMainMenu() {
+    hostGameForm.style.display = 'none';
+    joinGameForm.style.display = 'none';
+    waitingScreen.style.display = 'none';
+    publicGameSelectScreen.style.display = 'none';
+    
+    messageBox.style.display = 'flex';
+    document.querySelector('.message-text').textContent = 'Om Multiplayer';
+    messageSubtitle.textContent = 'Kies een optie om te beginnen';
+
+    const name = usernameInput.value.trim();
+    if (name.length > 0) {
+        playOptionsDiv.style.display = 'block';
+        nameStatus.style.display = 'none';
+    } else {
+        playOptionsDiv.style.display = 'none';
+        nameStatus.style.display = 'block';
+    }
+}
+
+
+function renderPublicGames(gamesData) {
+    publicGamesListDisplay.innerHTML = '';
+    
+    if (gamesData.length === 0) {
+        publicGamesListDisplay.innerHTML = '<p class="text-gray-500">Geen openbare spellen beschikbaar. Host er één!</p>';
+        return;
+    }
+
+    gamesData.forEach(g => {
+        const gameButton = document.createElement('button');
+        gameButton.textContent = `${g.gameName || 'Naamloos Spel'} (Host: ${g.hostName})`;
+        gameButton.className = 'join-button w-full mb-2 p-2 text-sm';
+        gameButton.style.backgroundColor = '#00796b';
+        gameButton.style.display = 'block';
+        
+        gameButton.addEventListener('click', () => {
+            if (!usernameInput.value.trim()) { alert("Voer eerst een gebruikersnaam in."); return; }
+            joinGame(g.pin);
+        });
+        publicGamesListDisplay.appendChild(gameButton);
+    });
+}
+
+
 socket.on('connect', () => {
     console.log('Connected to server with ID:', socket.id);
     socket.emit('requestPublicGames');
-    if (!game.isRunning) showMenu(); 
+    if (!game.isRunning) showMainMenu(); 
 });
 
 socket.on('publicGamesUpdate', (gamesData) => {
     renderPublicGames(gamesData);
+    
+    const mainListDiv = document.getElementById('publicGamesList');
+    mainListDiv.innerHTML = '';
+    if (gamesData.length > 0) {
+        gamesData.forEach(g => {
+            const gameDiv = document.createElement('div');
+            gameDiv.className = 'p-3 bg-white rounded-lg shadow-md border border-blue-200';
+            gameDiv.innerHTML = `<p class="font-bold text-lg text-blue-800">${g.name}</p><p class="text-sm text-gray-600">Host: ${g.hostName}</p><p class="text-xs text-gray-500">1/2 Spelers</p>`;
+            mainListDiv.appendChild(gameDiv);
+        });
+        noPublicGames.style.display = 'none';
+    } else {
+        noPublicGames.style.display = 'block';
+    }
 });
 
 socket.on('gameCreated', (pin, totalMatches) => {
@@ -292,44 +360,6 @@ socket.on('seriesEnded', (finalScore) => {
     endMatch('SeriesEnded');
 });
 
-function showMenu() {
-    messageBox.style.display = 'flex';
-    document.querySelector('.message-text').textContent = 'Om Multiplayer';
-    messageSubtitle.textContent = 'Kies een optie om te beginnen';
-    menuOptions.style.display = 'block';
-    hostGameForm.style.display = 'none';
-    joinGameForm.style.display = 'none';
-    waitingScreen.style.display = 'none';
-    game.isMultiplayer = false;
-    game.isHost = false;
-    game.score = { player1: 0, player2: 0 };
-    scoreDisplay.textContent = `Score: 0-0`;
-}
-
-function renderPublicGames(gamesData) {
-    publicGamesList.innerHTML = '';
-    if (gamesData.length === 0) {
-        noPublicGames.style.display = 'block';
-    } else {
-        noPublicGames.style.display = 'none';
-        gamesData.forEach(g => {
-            const gameDiv = document.createElement('div');
-            gameDiv.className = 'p-3 bg-white rounded-lg shadow-md border border-blue-200';
-            gameDiv.innerHTML = `
-                <p class="font-bold text-lg text-blue-800">${g.name}</p>
-                <p class="text-sm text-gray-600">Host: ${g.hostName}</p>
-                <p class="text-xs text-gray-500">${g.currentPlayers}/2 Spelers</p>
-                <button data-pin="${g.pin}" class="join-button mt-2 px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600">Join</button>
-            `;
-            gameDiv.querySelector('.join-button').addEventListener('click', (e) => {
-                if (!usernameInput.value.trim()) { alert("Voer eerst een gebruikersnaam in."); return; }
-                joinGame(e.target.dataset.pin);
-            });
-            publicGamesList.appendChild(gameDiv);
-        });
-    }
-}
-
 function initializeFighters(playerData, opponentData, playerIsP1) {
     const playerStats = { health: 100, attackCooldown: 30, damage: 15, name: playerData.name };
     const opponentStats = { health: 100, attackCooldown: 30, damage: 15, name: opponentData.name };
@@ -350,9 +380,9 @@ function initializeFighters(playerData, opponentData, playerIsP1) {
 }
 
 function displayWaitingScreen(message, pin, role) {
-    menuOptions.style.display = 'none';
     hostGameForm.style.display = 'none';
     joinGameForm.style.display = 'none';
+    publicGameSelectScreen.style.display = 'none';
     waitingScreen.style.display = 'block';
     
     document.getElementById('waitingMessage').textContent = `${message}`;
@@ -478,14 +508,16 @@ function endMatch(reason) {
     const maxScoreNeeded = Math.ceil(game.totalMatches / 2);
 
     if (!game.isMultiplayer) {
-        setTimeout(showMenu, 3000);
-    } else if (game.score.player1 >= maxScoreNeeded || game.score.player2 >= maxScoreNeeded) {
-        setTimeout(showMenu, 5000); 
+        setTimeout(showMainMenu, 3000); 
+    } else if (reason === 'OpponentDisconnected' || reason === 'SeriesEnded' || game.score.player1 >= maxScoreNeeded || game.score.player2 >= maxScoreNeeded) {
+        setTimeout(showMainMenu, 5000); 
     } else {
-        setTimeout(() => {}, 5000);
+        setTimeout(() => {}, 5000); 
     }
 }
 
+
+usernameInput.addEventListener('input', showMainMenu);
 
 window.addEventListener('keydown', e => {
     if (!game.isRunning) return;
@@ -523,17 +555,29 @@ soloPlayButton.addEventListener('click', () => {
 });
 
 showHostButton.addEventListener('click', () => {
-    menuOptions.style.display = 'none';
+    playOptionsDiv.style.display = 'none';
     hostGameForm.style.display = 'block';
 });
 
 showJoinButton.addEventListener('click', () => {
-    menuOptions.style.display = 'none';
+    playOptionsDiv.style.display = 'none';
     joinGameForm.style.display = 'block';
 });
 
-backToMenuHost.addEventListener('click', showMenu);
-backToMenuJoin.addEventListener('click', showMenu);
+showPublicGamesButton.addEventListener('click', () => {
+    playOptionsDiv.style.display = 'none';
+    publicGameSelectScreen.style.display = 'block';
+    socket.emit('requestPublicGames');
+});
+
+refreshPublicGamesButton.addEventListener('click', () => {
+    publicGamesListDisplay.innerHTML = '<p class="text-gray-500">Laden...</p>';
+    socket.emit('requestPublicGames');
+});
+
+backToMenuHost.addEventListener('click', showMainMenu);
+backToMenuJoin.addEventListener('click', showMainMenu);
+backToMenuPublic.addEventListener('click', showMainMenu); 
 
 hostConfirmButton.addEventListener('click', () => {
     if (!usernameInput.value.trim()) { hostStatus.textContent = 'Voer gebruikersnaam in.'; return; }
@@ -565,3 +609,5 @@ function joinGame(pin) {
     displayWaitingScreen(`Verbinden met spel PIN:`, pin, 'Speler');
     joinGameForm.style.display = 'none';
 }
+
+document.addEventListener('DOMContentLoaded', showMainMenu);
