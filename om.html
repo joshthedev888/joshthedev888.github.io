@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Om - josh.github.io</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/socket.io/socket.io.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        /* ... (rest van de CSS blijft hetzelfde) ... */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f4f8;
@@ -175,15 +176,22 @@
             <button id="soloPlayButton" class="start-button">Speel Solo (Tegen AI)</button>
         </div>
 
-        <div id="hostGameForm" style="display: none;">
-            <input type="text" id="gameNameInput" placeholder="Naam van Spel" class="p-2 border rounded mb-3 w-full">
-            <input type="number" id="matchCountInput" placeholder="# Matches (1-10)" min="1" max="10" value="3" class="p-2 border rounded mb-3 w-full">
-            <label class="block text-gray-600 mb-2 text-left">
-                <input type="checkbox" id="publicCheckbox" class="mr-2"> Publiek Spel (Iedereen kan joinen)
+        <div id="hostGameForm" style="display: none;" class="text-left max-w-xs mx-auto">
+            <label for="gameNameInput" class="block text-sm font-medium text-gray-700 mt-2">Naam van het Spel (Optioneel)</label>
+            <input type="text" id="gameNameInput" placeholder="Mijn Potlood Duel" class="p-2 border rounded mb-3 w-full">
+            
+            <label for="matchCountInput" class="block text-sm font-medium text-gray-700">Aantal Matches in de Serie (1-10)</label>
+            <input type="number" id="matchCountInput" placeholder="Beste van 3" min="1" max="10" value="3" class="p-2 border rounded mb-3 w-full">
+            
+            <label class="block text-gray-600 mb-4">
+                <input type="checkbox" id="publicCheckbox" class="mr-2"> Publiek Spel (Toon in lijst)
             </label>
-            <button id="hostConfirmButton" class="host-button">Maak Spel aan</button>
-            <button id="backToMenuHost" class="start-button" style="background-color: #9e9e9e;">Terug</button>
-            <p id="hostStatus" class="mt-2 text-red-500"></p>
+            
+            <div class="flex justify-between mt-4">
+                <button id="hostConfirmButton" class="host-button px-4 py-2 text-sm">Maak Spel aan</button>
+                <button id="backToMenuHost" class="start-button px-4 py-2 text-sm" style="background-color: #9e9e9e;">Terug</button>
+            </div>
+            <p id="hostStatus" class="mt-2 text-red-500 text-center"></p>
         </div>
 
         <div id="joinGameForm" style="display: none;">
