@@ -1,40 +1,4 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = 750;
-canvas.height = 400;
-
-const playerHealthBar = document.getElementById('playerHealth');
-const enemyHealthBar = document.getElementById('enemyHealth');
-const timerDisplay = document.getElementById('timer');
-const levelDisplay = document.getElementById('levelDisplay');
-const messageBox = document.getElementById('messageBox');
-const startButton = document.getElementById('startButton');
-const messageSubtitle = document.getElementById('messageSubtitle');
-
 const GRAVITY = 0.7;
-const MAX_LEVEL = 10;
-const INITIAL_TIME = 60;
-
-let player, enemy, enemy2;
-let gameLoopId;
-let game = { isRunning: false, level: 1, timer: INITIAL_TIME };
-let timerIntervalId;
-let lastTime = 0;
-
-const keys = { a: { pressed: false }, d: { pressed: false }, w: { pressed: false } };
-
-const ENEMY_STATS = {
-    1: { health: 100, speed: 2, jumpChance: 0.003, attackCooldown: 60, damage: 5 },
-    2: { health: 120, speed: 2, jumpChance: 0.005, attackCooldown: 56, damage: 5 },
-    3: { health: 140, speed: 2, jumpChance: 0.007, attackCooldown: 52, damage: 5 },
-    4: { health: 160, speed: 2, jumpChance: 0.01, attackCooldown: 48, damage: 5 },
-    5: { health: 180, speed: 2, jumpChance: 0.012, attackCooldown: 44, damage: 5 }
-};
-
-let sharpener = null;
-let sharpenerActive = false;
-let sharpenerTimer = 0;
-let sharpenerSpawnCooldown = 0;
 
 class Sprite {
     constructor({ position }) {
@@ -43,7 +7,7 @@ class Sprite {
         this.height = 150;
         this.velocity = { x: 0, y: 0 };
     }
-    update() {
+    update(ctx, canvas) {
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
         const floorY = canvas.height - 50 - this.height;
@@ -69,14 +33,16 @@ class Fighter extends Sprite {
             position: { x: this.position.x, y: this.position.y },
             width: 100,
             height: 50,
-            damage: stats.damage || 10
+            damage: stats.damage || 15
         };
         this.isEnemy = isEnemy;
         this.lineColor = color;
         this.lineWidth = 3;
         this.stats = stats;
+        this.name = stats.name;
     }
-    drawStickman() {
+
+    drawStickman(ctx) {
         ctx.strokeStyle = this.lineColor;
         ctx.lineWidth = this.lineWidth;
         const x = this.position.x + this.width / 2;
@@ -85,14 +51,17 @@ class Fighter extends Sprite {
         const legLength = this.height * 0.3;
         const armLength = this.height * 0.2;
         const headRadius = this.width / 2;
+
         ctx.beginPath();
         ctx.arc(x, y + headRadius, headRadius, 0, Math.PI * 2, false);
         ctx.stroke();
+
         const bodyTop = y + headRadius * 2;
         ctx.beginPath();
         ctx.moveTo(x, bodyTop);
         ctx.lineTo(x, bodyTop + bodyHeight);
         ctx.stroke();
+
         const bodyBottom = bodyTop + bodyHeight;
         ctx.beginPath();
         ctx.moveTo(x, bodyBottom);
@@ -100,22 +69,26 @@ class Fighter extends Sprite {
         ctx.moveTo(x, bodyBottom);
         ctx.lineTo(x + legLength * 0.4, bodyBottom + legLength);
         ctx.stroke();
+
         const armY = bodyTop + bodyHeight / 4;
         ctx.beginPath();
         ctx.moveTo(x - armLength, armY);
         ctx.lineTo(x + armLength, armY);
         ctx.stroke();
+
         if (this.isAttacking) {
             ctx.fillStyle = '#ffc107';
             ctx.strokeStyle = '#ffc107';
             ctx.lineWidth = 4;
-            const attackDirection = this.isEnemy ? -1 : 1;
+            const attackDirection = this.position.x < 375 ? 1 : -1; 
             const pencilStart = { x: x + (attackDirection * (armLength + 5)), y: armY };
             const pencilEnd = { x: pencilStart.x + (attackDirection * 50), y: armY - 10 };
+            
             ctx.beginPath();
             ctx.moveTo(pencilStart.x, pencilStart.y);
             ctx.lineTo(pencilEnd.x, pencilEnd.y);
             ctx.stroke();
+            
             ctx.fillStyle = '#6d4c41';
             ctx.beginPath();
             ctx.moveTo(pencilEnd.x, pencilEnd.y);
@@ -125,16 +98,19 @@ class Fighter extends Sprite {
             ctx.fill();
         }
     }
-    update() {
-        this.drawStickman();
-        super.update();
-        if (this.isEnemy) {
-            this.attackBox.position.x = this.position.x - this.attackBox.width + this.width / 2;
-            this.attackBox.position.y = this.position.y + 50;
-        } else {
-            this.attackBox.position.x = this.position.x + this.width / 2;
-            this.attackBox.position.y = this.position.y + 50;
+
+    update(ctx, canvas) {
+        this.drawStickman(ctx);
+        super.update(ctx, canvas);
+        
+        const attackDirection = this.position.x < 375 ? 1 : -1;
+        if (attackDirection === -1) { 
+             this.attackBox.position.x = this.position.x - this.attackBox.width + this.width / 2;
+        } else { 
+             this.attackBox.position.x = this.position.x + this.width / 2;
         }
+        this.attackBox.position.y = this.position.y + 50;
+
         if (this.currentCooldown > 0) {
             this.currentCooldown--;
             if (this.currentCooldown === 0) {
@@ -142,6 +118,7 @@ class Fighter extends Sprite {
             }
         }
     }
+
     attack() {
         if (this.currentCooldown === 0) {
             this.isAttacking = true;
@@ -164,260 +141,427 @@ function updateHealthBar(fighter, element) {
     element.style.width = healthPercentage + '%';
 }
 
-function setupNewGame(startLevel = 1) {
-    const playerStats = { health: 100, attackCooldown: 30, damage: 15 };
-    player = new Fighter({
-        position: { x: 100, y: 0 },
-        velocity: { x: 0, y: 0 },
-        color: '#c62828',
-        isEnemy: false,
-        stats: playerStats
-    });
-    const enemyLevel = ((startLevel - 1) % 5) + 1;
-    const currentEnemyStats = ENEMY_STATS[enemyLevel];
-    enemy = new Fighter({
-        position: { x: canvas.width - 150, y: 0 },
-        velocity: { x: 0, y: 0 },
-        color: '#1565c0',
-        isEnemy: true,
-        stats: currentEnemyStats
-    });
-    if (startLevel > 5) {
-        const secondEnemyStats = ENEMY_STATS[enemyLevel];
-        enemy2 = new Fighter({
-            position: { x: canvas.width - 350, y: 0 },
-            velocity: { x: 0, y: 0 },
-            color: '#1976d2',
-            isEnemy: true,
-            stats: secondEnemyStats
-        });
-    } else {
-        enemy2 = null;
-    }
-    game.level = startLevel;
-    game.timer = INITIAL_TIME;
-    game.isRunning = true;
+function enemyAI(fighter, player) {
+    const enemyStats = fighter.stats;
+    const distance = player.position.x - fighter.position.x;
+    const pursuitRange = 250;
+    const attackRange = 100;
 
-    if (game.level < 6) {
-        levelDisplay.textContent = `Level ${game.level}`;
-    } else {
-        levelDisplay.textContent = `Level ${game.level}. Nu met twee josh.ai.Potloodcechters`;
+    fighter.velocity.x = 0;
+
+    if (Math.abs(distance) > pursuitRange) {
+        fighter.velocity.x = distance < 0 ? -enemyStats.speed : enemyStats.speed;
+    } else if (Math.abs(distance) > attackRange) {
+        fighter.velocity.x = distance < 0 ? -enemyStats.speed * 0.7 : enemyStats.speed * 0.7;
     }
-    playerHealthBar.style.width = '100%';
-    enemyHealthBar.style.width = '100%';
-    messageBox.style.display = 'none';
-    clearInterval(timerIntervalId);
-    timerIntervalId = setInterval(handleTimer, 1000);
+
+    if (Math.random() < enemyStats.jumpChance && fighter.velocity.y === 0) {
+        fighter.velocity.y = -15;
+    }
+
+    if (Math.abs(distance) <= attackRange && fighter.currentCooldown === 0) {
+        fighter.attack();
+    }
+}
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 750;
+canvas.height = 400;
+
+const playerHealthBar = document.getElementById('playerHealth');
+const enemyHealthBar = document.getElementById('enemyHealth');
+const timerDisplay = document.getElementById('timer');
+const scoreDisplay = document.getElementById('scoreDisplay');
+const player1NameDisplay = document.getElementById('player1Name');
+const player2NameDisplay = document.getElementById('player2Name');
+const messageBox = document.getElementById('messageBox');
+const messageSubtitle = document.getElementById('messageSubtitle');
+const menuOptions = document.getElementById('menuOptions');
+const hostGameForm = document.getElementById('hostGameForm');
+const joinGameForm = document.getElementById('joinGameForm');
+const waitingScreen = document.getElementById('waitingScreen');
+const publicGamesList = document.getElementById('publicGamesList');
+const noPublicGames = document.getElementById('noPublicGames');
+
+const usernameInput = document.getElementById('usernameInput');
+const showHostButton = document.getElementById('showHostButton');
+const showJoinButton = document.getElementById('showJoinButton');
+const soloPlayButton = document.getElementById('soloPlayButton');
+const hostConfirmButton = document.getElementById('hostConfirmButton');
+const joinConfirmButton = document.getElementById('joinConfirmButton');
+const backToMenuHost = document.getElementById('backToMenuHost');
+const backToMenuJoin = document.getElementById('backToMenuJoin');
+const gameNameInput = document.getElementById('gameNameInput');
+const matchCountInput = document.getElementById('matchCountInput');
+const publicCheckbox = document.getElementById('publicCheckbox');
+const hostStatus = document.getElementById('hostStatus');
+const joinStatus = document.getElementById('joinStatus');
+const gamePinDisplay = document.getElementById('gamePinDisplay');
+const playersJoined = document.getElementById('playersJoined');
+
+
+const INITIAL_TIME = 60;
+
+let player, opponent; 
+let gameLoopId;
+let timerIntervalId;
+let keys = { a: { pressed: false }, d: { pressed: false }, w: { pressed: false }, j: { pressed: false }, k: { pressed: false } };
+
+let game = {
+    isRunning: false,
+    isMultiplayer: false,
+    isHost: false, 
+    username: '',
+    matchID: null,
+    score: { player1: 0, player2: 0 },
+    totalMatches: 1,
+    timer: INITIAL_TIME,
+    playerSide: 'p1'
+};
+
+const SERVER_URL = 'http://localhost:3000'; 
+const socket = io(SERVER_URL); 
+
+socket.on('connect', () => {
+    console.log('Connected to server with ID:', socket.id);
+    socket.emit('requestPublicGames');
+    if (!game.isRunning) showMenu(); 
+});
+
+socket.on('publicGamesUpdate', (gamesData) => {
+    renderPublicGames(gamesData);
+});
+
+socket.on('gameCreated', (pin, totalMatches) => {
+    game.matchID = pin;
+    game.totalMatches = totalMatches;
+    game.isHost = true;
+    game.playerSide = 'p1';
+    displayWaitingScreen(`Wachten op speler. PIN:`, pin, 'Host (Speler 1)');
+});
+
+socket.on('playerJoined', (player2Name) => {
+    player2NameDisplay.textContent = player2Name;
+    playersJoined.textContent = `VS: ${player2Name}. Start de match!`;
+});
+
+socket.on('joinStatus', (message) => {
+    joinStatus.textContent = message;
+});
+
+socket.on('matchStart', (playerData1, playerData2) => {
+    const myData = (playerData1.id === socket.id) ? playerData1 : playerData2;
+    const opponentData = (playerData1.id !== socket.id) ? playerData1 : playerData2;
+    
+    game.playerSide = (playerData1.id === socket.id) ? 'p1' : 'p2';
+    
+    initializeFighters(myData, opponentData, game.playerSide === 'p1');
+    
+    game.timer = INITIAL_TIME;
+    player.health = player.maxHealth;
+    opponent.health = opponent.maxHealth;
+    updateHealthBar(player, playerHealthBar);
+    updateHealthBar(opponent, enemyHealthBar);
+    
+    startMatch(); 
+});
+
+socket.on('opponentMoved', (moveData) => {
+    if (opponent) {
+        opponent.position.x = moveData.x;
+        opponent.position.y = moveData.y;
+        opponent.velocity.x = moveData.vx;
+        opponent.velocity.y = moveData.vy;
+    }
+});
+
+socket.on('opponentAttacked', () => {
+    if (opponent) {
+        opponent.attack();
+    }
+});
+
+socket.on('opponentDisconnected', () => {
+    game.score[game.playerSide] = game.totalMatches;
+    endMatch('OpponentDisconnected');
+});
+
+socket.on('seriesEnded', (finalScore) => {
+    game.score = { player1: finalScore.p1, player2: finalScore.p2 };
+    endMatch('SeriesEnded');
+});
+
+function showMenu() {
+    messageBox.style.display = 'flex';
+    document.querySelector('.message-text').textContent = 'Om Multiplayer';
+    messageSubtitle.textContent = 'Kies een optie om te beginnen';
+    menuOptions.style.display = 'block';
+    hostGameForm.style.display = 'none';
+    joinGameForm.style.display = 'none';
+    waitingScreen.style.display = 'none';
+    game.isMultiplayer = false;
+    game.isHost = false;
+    game.score = { player1: 0, player2: 0 };
+    scoreDisplay.textContent = `Score: 0-0`;
+}
+
+function renderPublicGames(gamesData) {
+    publicGamesList.innerHTML = '';
+    if (gamesData.length === 0) {
+        noPublicGames.style.display = 'block';
+    } else {
+        noPublicGames.style.display = 'none';
+        gamesData.forEach(g => {
+            const gameDiv = document.createElement('div');
+            gameDiv.className = 'p-3 bg-white rounded-lg shadow-md border border-blue-200';
+            gameDiv.innerHTML = `
+                <p class="font-bold text-lg text-blue-800">${g.name}</p>
+                <p class="text-sm text-gray-600">Host: ${g.hostName}</p>
+                <p class="text-xs text-gray-500">${g.currentPlayers}/2 Spelers</p>
+                <button data-pin="${g.pin}" class="join-button mt-2 px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600">Join</button>
+            `;
+            gameDiv.querySelector('.join-button').addEventListener('click', (e) => {
+                if (!usernameInput.value.trim()) { alert("Voer eerst een gebruikersnaam in."); return; }
+                joinGame(e.target.dataset.pin);
+            });
+            publicGamesList.appendChild(gameDiv);
+        });
+    }
+}
+
+function initializeFighters(playerData, opponentData, playerIsP1) {
+    const playerStats = { health: 100, attackCooldown: 30, damage: 15, name: playerData.name };
+    const opponentStats = { health: 100, attackCooldown: 30, damage: 15, name: opponentData.name };
+
+    const p1Pos = { x: 100, y: 0 };
+    const p2Pos = { x: canvas.width - 150, y: 0 };
+
+    if (playerIsP1) {
+        player = new Fighter({ position: p1Pos, velocity: { x: 0, y: 0 }, color: '#c62828', isEnemy: false, stats: playerStats });
+        opponent = new Fighter({ position: p2Pos, velocity: { x: 0, y: 0 }, color: '#1565c0', isEnemy: true, stats: opponentStats });
+    } else {
+        player = new Fighter({ position: p2Pos, velocity: { x: 0, y: 0 }, color: '#1565c0', isEnemy: true, stats: playerStats });
+        opponent = new Fighter({ position: p1Pos, velocity: { x: 0, y: 0 }, color: '#c62828', isEnemy: false, stats: opponentStats });
+    }
+
+    player1NameDisplay.textContent = playerData.name;
+    player2NameDisplay.textContent = opponentData.name;
+}
+
+function displayWaitingScreen(message, pin, role) {
+    menuOptions.style.display = 'none';
+    hostGameForm.style.display = 'none';
+    joinGameForm.style.display = 'none';
+    waitingScreen.style.display = 'block';
+    
+    document.getElementById('waitingMessage').textContent = `${message}`;
+    gamePinDisplay.textContent = pin;
+    playersJoined.textContent = `${role}. Wachten op tegenstander...`;
+    messageBox.style.display = 'flex';
+}
+
+function animate(currentTime) {
+    gameLoopId = requestAnimationFrame(animate);
+
+    ctx.fillStyle = '#e0f7fa';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#6d4c41';
+    ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+
+    player.update(ctx, canvas);
+    opponent.update(ctx, canvas);
+
+    player.velocity.x = 0;
+    const playerSpeed = 8;
+    if (keys.a.pressed) player.velocity.x = -playerSpeed;
+    if (keys.d.pressed) player.velocity.x = playerSpeed;
+    
+    if (game.isMultiplayer) {
+        socket.emit('playerMovement', { 
+            x: player.position.x, 
+            y: player.position.y, 
+            vx: player.velocity.x, 
+            vy: player.velocity.y 
+        });
+    }
+
+    if (!game.isMultiplayer) {
+        const aiPlayer = opponent;
+        const humanPlayer = player;
+        aiPlayer.stats = { speed: 2, jumpChance: 0.005, attackCooldown: 60 };
+        enemyAI(aiPlayer, humanPlayer); 
+    }
+
+    if (player.isAttacking && player.currentCooldown > 0) {
+        if (rectangularCollision({ rectangle1: player, rectangle2: opponent })) {
+            opponent.health -= player.attackBox.damage;
+            player.isAttacking = false;
+        }
+    }
+    if (opponent.isAttacking && opponent.currentCooldown > 0) {
+        if (rectangularCollision({ rectangle1: opponent, rectangle2: player })) {
+            player.health -= opponent.attackBox.damage;
+            opponent.isAttacking = false;
+        }
+    }
+
+    updateHealthBar(player, playerHealthBar);
+    updateHealthBar(opponent, enemyHealthBar);
+
+    if (player.health <= 0 || opponent.health <= 0) {
+        endMatch(player.health <= 0 ? 'PlayerDied' : 'OpponentDied');
+    }
 }
 
 function handleTimer() {
     if (!game.isRunning) return;
     game.timer--;
     timerDisplay.textContent = `${game.timer}s`;
+    
     if (game.timer <= 0) {
-        endGame('Tijd op');
+        endMatch('Tijd op');
     }
 }
 
-function endGame(reason) {
+function startMatch() {
+    game.isRunning = true;
+    messageBox.style.display = 'none';
+    
+    game.timer = INITIAL_TIME;
+    player.health = player.maxHealth;
+    opponent.health = opponent.maxHealth;
+
+    clearInterval(timerIntervalId);
+    timerIntervalId = setInterval(handleTimer, 1000);
+    
+    scoreDisplay.textContent = `Score: ${game.score.player1}-${game.score.player2} / ${game.totalMatches}`;
+    animate(0); 
+}
+
+function endMatch(reason) {
     cancelAnimationFrame(gameLoopId);
     game.isRunning = false;
     clearInterval(timerIntervalId);
-    let titleText = 'Spel Voorbij!';
-    let subtitleText = 'Helaas, je hebt verloren.';
-    if (reason === 'Tijd op') {
-        titleText = 'Tijd op';
-        subtitleText = 'Niet snel genoeg. Probeer opnieuw';
+    
+    let titleText, subtitleText;
+    let mySide = game.playerSide;
+
+    if (reason === 'Tijd op' || (player.health <= 0 && opponent.health <= 0)) {
+        titleText = 'Gelijkspel!';
+        subtitleText = 'Tijd op of dubbele K.O. Nieuwe match in 5 seconden...';
+        if (game.isMultiplayer) socket.emit('matchEnded', 'draw', game.matchID);
     } else if (reason === 'PlayerDied') {
         titleText = 'Je bent verslagen';
-        subtitleText = `josh.ai.Potloodvechter was te sterk op Level ${game.level}.`;
-    } else if (reason === 'EnemyDied') {
-        if (game.level < MAX_LEVEL) {
-            titleText = `Level ${game.level} Gewonnen`;
-            subtitleText = 'josh.ai.Potloodvechter wordt sterker de volgende keer';
-            startButton.textContent = `Ga naar Level ${game.level + 1}`;
-            startButton.onclick = () => {
-                setupNewGame(game.level + 1);
-                animate(0);
-            };
-        } else {
-            titleText = 'gefeliciteerd';
-            subtitleText = 'Je hebt VOOR NU josh.ai.Potloodvechter verslagen.';
-            startButton.textContent = 'Speel Opnieuw (Level 1)';
-            startButton.onclick = () => {
-                setupNewGame(1);
-                animate(0);
-            };
-        }
-        messageBox.style.display = 'flex';
-        messageSubtitle.textContent = subtitleText;
-        document.querySelector('.message-text').textContent = titleText;
-        return;
+        subtitleText = `${opponent.name} wint deze ronde. Nieuwe match in 5 seconden...`;
+        game.score[mySide === 'p1' ? 'player2' : 'player1']++;
+        if (game.isMultiplayer) socket.emit('matchEnded', 'loss', game.matchID);
+    } else if (reason === 'OpponentDied') {
+        titleText = 'Overwinning!';
+        subtitleText = `Je hebt ${opponent.name} verslagen. Nieuwe match in 5 seconden...`;
+        game.score[mySide === 'p1' ? 'player1' : 'player2']++;
+        if (game.isMultiplayer) socket.emit('matchEnded', 'win', game.matchID);
+    } else if (reason === 'OpponentDisconnected') {
+        titleText = 'Tegenstander Verlaten';
+        subtitleText = 'De tegenstander heeft de verbinding verbroken. Spel voorbij.';
+    } else if (reason === 'SeriesEnded') {
+        const winnerName = game.score.player1 > game.score.player2 ? player1NameDisplay.textContent : player2NameDisplay.textContent;
+        titleText = 'Einde Spel Serie!';
+        subtitleText = `${winnerName} heeft de serie gewonnen met ${game.score.player1}-${game.score.player2}.`;
     }
-    messageBox.style.display = 'flex';
-    messageSubtitle.textContent = subtitleText;
+
+    scoreDisplay.textContent = `Score: ${game.score.player1}-${game.score.player2}`;
     document.querySelector('.message-text').textContent = titleText;
-    startButton.textContent = 'Opnieuw starten (Level 1)';
-    startButton.onclick = () => {
-        setupNewGame(1);
-        animate(0);
-    };
-}
+    messageSubtitle.textContent = subtitleText;
+    messageBox.style.display = 'flex';
+    
+    const maxScoreNeeded = Math.ceil(game.totalMatches / 2);
 
-function enemyAI(fighter) {
-    const enemyStats = fighter.stats;
-    const distance = player.position.x - fighter.position.x;
-    const pursuitRange = 250;
-    const attackRange = 100;
-    fighter.velocity.x = 0;
-    if (Math.abs(distance) > pursuitRange) {
-        fighter.velocity.x = distance < 0 ? -enemyStats.speed : enemyStats.speed;
-    } else if (Math.abs(distance) > attackRange) {
-        fighter.velocity.x = distance < 0 ? -enemyStats.speed * 0.7 : enemyStats.speed * 0.7;
-    }
-    if (Math.random() < enemyStats.jumpChance && fighter.velocity.y === 0) {
-        fighter.velocity.y = -15;
-    }
-    if (Math.abs(distance) <= attackRange && fighter.currentCooldown === 0) {
-        fighter.attack();
+    if (!game.isMultiplayer) {
+        setTimeout(showMenu, 3000);
+    } else if (game.score.player1 >= maxScoreNeeded || game.score.player2 >= maxScoreNeeded) {
+        setTimeout(showMenu, 5000); 
+    } else {
+        setTimeout(() => {}, 5000);
     }
 }
 
-function handleAttacks() {
-    const enemies = [enemy, enemy2].filter(Boolean);
-    if (player.isAttacking && player.currentCooldown > 0) {
-        enemies.forEach(e => {
-            if (rectangularCollision({ rectangle1: player, rectangle2: e })) {
-                e.health -= player.attackBox.damage;
-                updateHealthBar(e, enemyHealthBar);
-                player.isAttacking = false;
-            }
-        });
-    }
-    enemies.forEach(e => {
-        if (e.isAttacking && e.currentCooldown > 0) {
-            if (rectangularCollision({ rectangle1: e, rectangle2: player })) {
-                player.health -= e.attackBox.damage;
-                updateHealthBar(player, playerHealthBar);
-                e.isAttacking = false;
-            }
-        }
-    });
-}
-
-function spawnSharpener() {
-    if (game.level < 6) return;
-    const chance = 0.01;
-    if (!sharpener && Math.random() < chance && sharpenerSpawnCooldown <= 0) {
-        sharpener = {
-            x: Math.random() * (canvas.width - 60) + 30,
-            y: canvas.height - 90,
-            width: 30,
-            height: 30,
-            collected: false
-        };
-        sharpenerSpawnCooldown = 900;
-    }
-}
-
-function drawSharpener() {
-    if (!sharpener || sharpener.collected) return;
-    ctx.fillStyle = '#9e9e9e';
-    ctx.fillRect(sharpener.x, sharpener.y, sharpener.width, sharpener.height);
-    ctx.strokeStyle = '#fdd835';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(sharpener.x, sharpener.y, sharpener.width, sharpener.height);
-}
-
-function animate(currentTime) {
-    gameLoopId = requestAnimationFrame(animate);
-    const deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
-    ctx.fillStyle = '#e0f7fa';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#6d4c41';
-    ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
-    if (sharpenerSpawnCooldown > 0) sharpenerSpawnCooldown--;
-    spawnSharpener();
-    drawSharpener();
-    if (sharpener && !sharpener.collected) {
-        if (
-            player.position.x < sharpener.x + sharpener.width &&
-            player.position.x + player.width > sharpener.x &&
-            player.position.y < sharpener.y + sharpener.height &&
-            player.position.y + player.height > sharpener.y
-        ) {
-            sharpener.collected = true;
-            sharpenerActive = true;
-            sharpenerTimer = 600;
-            player.attackBox.damage *= 1.5;
-        }
-    }
-    if (sharpenerActive) {
-        sharpenerTimer--;
-        if (sharpenerTimer <= 0) {
-            sharpenerActive = false;
-            player.attackBox.damage /= 1.5;
-        }
-    }
-    player.update();
-    enemy.update();
-    if (enemy2) { enemy2.update(); }
-    if (game.isRunning) {
-        enemyAI(enemy);
-        if (enemy2) { enemyAI(enemy2) };
-    }
-    handleAttacks();
-    if (player.health <= 0) {
-        endGame('PlayerDied');
-    } else if (enemy.health <= 0 && (!enemy2 || enemy2.health <= 0)) {
-        endGame('EnemyDied');
-    }
-    player.velocity.x = 0;
-    const playerSpeed = 8;
-    if (keys.a.pressed) player.velocity.x = -playerSpeed;
-    if (keys.d.pressed) player.velocity.x = playerSpeed;
-}
 
 window.addEventListener('keydown', e => {
     if (!game.isRunning) return;
-    switch (e.key) {
-        case 'a':
-        case 'A':
-            keys.a.pressed = true;
-            break;
-        case 'd':
-        case 'D':
-            keys.d.pressed = true;
-            break;
-        case 'w':
-        case 'W':
-            if (player.velocity.y === 0) player.velocity.y = -20;
-            break;
+    switch (e.key.toLowerCase()) {
+        case 'a': keys.a.pressed = true; break;
+        case 'd': keys.d.pressed = true; break;
+        case 'w': if (player.velocity.y === 0) player.velocity.y = -20; break;
         case 'j':
-        case 'J':
         case 'k':
-        case 'K':
             player.attack();
+            if (game.isMultiplayer) socket.emit('playerAttack');
             break;
     }
 });
 
 window.addEventListener('keyup', e => {
-    switch (e.key) {
-        case 'a':
-        case 'A':
-            keys.a.pressed = false;
-            break;
-        case 'd':
-        case 'D':
-            keys.d.pressed = false;
-            break;
+    if (!game.isRunning) return;
+    switch (e.key.toLowerCase()) {
+        case 'a': keys.a.pressed = false; break;
+        case 'd': keys.d.pressed = false; break;
     }
 });
 
-messageSubtitle.textContent = `Versla josh.ai.Potloodvechter in level 1. Er zijn ${MAX_LEVEL} levels.`;
-startButton.addEventListener('click', () => {
-    setupNewGame(game.level);
-    animate(0);
+soloPlayButton.addEventListener('click', () => {
+    if (!usernameInput.value.trim()) { alert("Voer een gebruikersnaam in."); return; }
+    game.username = usernameInput.value.trim();
+    game.isMultiplayer = false;
+    game.totalMatches = 1;
+    
+    initializeFighters({name: game.username}, {name: 'josh.ai.Potloodvechter'}, true); 
+    player1NameDisplay.textContent = game.username;
+    player2NameDisplay.textContent = 'josh.ai.Potloodvechter';
+    
+    startMatch();
 });
+
+showHostButton.addEventListener('click', () => {
+    menuOptions.style.display = 'none';
+    hostGameForm.style.display = 'block';
+});
+
+showJoinButton.addEventListener('click', () => {
+    menuOptions.style.display = 'none';
+    joinGameForm.style.display = 'block';
+});
+
+backToMenuHost.addEventListener('click', showMenu);
+backToMenuJoin.addEventListener('click', showMenu);
+
+hostConfirmButton.addEventListener('click', () => {
+    if (!usernameInput.value.trim()) { hostStatus.textContent = 'Voer gebruikersnaam in.'; return; }
+    const gameName = gameNameInput.value.trim() || `${usernameInput.value.trim()}'s Game`;
+    const matches = parseInt(matchCountInput.value);
+    const isPublic = publicCheckbox.checked;
+
+    if (matches < 1 || matches > 10) { hostStatus.textContent = 'Matches moeten tussen 1 en 10 zijn.'; return; }
+
+    game.username = usernameInput.value.trim();
+    game.totalMatches = matches;
+    game.isMultiplayer = true;
+
+    socket.emit('createGame', { hostName: game.username, gameName, totalMatches: matches, isPublic });
+    hostGameForm.style.display = 'none';
+});
+
+joinConfirmButton.addEventListener('click', () => {
+    const pin = pinInput.value.trim().toUpperCase();
+    if (!usernameInput.value.trim()) { alert("Voer een gebruikersnaam in."); return; }
+    if (pin.length !== 6) { joinStatus.textContent = 'PIN moet 6 tekens zijn.'; return; }
+    joinGame(pin);
+});
+
+function joinGame(pin) {
+    game.username = usernameInput.value.trim();
+    game.isMultiplayer = true;
+    socket.emit('joinGame', { pin, playerName: game.username });
+    displayWaitingScreen(`Verbinden met spel PIN:`, pin, 'Speler');
+    joinGameForm.style.display = 'none';
+}
