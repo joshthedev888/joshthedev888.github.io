@@ -637,5 +637,5 @@ function joinGame(pin) {
     joinGameForm.style.display = 'none';
 }
 
-disconnectAndMenuButton.addEventListener('click', disconnectAndGoToMenu); // ⬅️ NIEUWE LISTENER
+disconnectAndMenuButton.addEventListener('click', disconnectAndGoToMenu); 
 document.addEventListener('DOMContentLoaded', showMainMenu);
