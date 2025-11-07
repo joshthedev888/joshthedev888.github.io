@@ -220,7 +220,7 @@ let game = {
     playerSide: 'p1'
 };
 
-const SERVER_URL = 'http://localhost:3000'; 
+const SERVER_URL = 'https://joshthedev888-server.onrender.com';
 const socket = io(SERVER_URL); 
 
 socket.on('connect', () => {
