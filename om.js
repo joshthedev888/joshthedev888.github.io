@@ -274,19 +274,30 @@ function showMainMenu() {
     publicGameSelectScreen.style.display = 'none';
     
     messageBox.style.display = 'flex';
-    gameElements.classList.add('hidden'); // Verberg de game UI
+    gameElements.classList.add('hidden');
     document.querySelector('.message-text').textContent = 'Om Multiplayer';
-    messageSubtitle.textContent = 'Kies een optie om te beginnen';
     
     nextRoundButtonContainer.style.display = 'none';
 
     const name = usernameInput.value.trim();
+    
     if (name.length > 0) {
-        playOptionsDiv.style.display = 'block';
-        nameStatus.style.display = 'none';
+        playOptionsDiv.style.display = 'flex';
+        messageSubtitle.textContent = 'Kies een optie om te beginnen';
+        nameStatus.textContent = 'Je naam is ingevoerd. Kies een actie.';
+        nameStatus.classList.remove('text-red-500', 'font-bold', 'hidden');
+        nameStatus.classList.add('text-gray-600', 'mb-4');
+        nameStatus.style.display = 'block';
+        usernameInput.style.marginBottom = '10px';
+        
     } else {
         playOptionsDiv.style.display = 'none';
+        messageSubtitle.textContent = 'Voer je naam in om te starten';
+        nameStatus.textContent = 'Voer een gebruikersnaam in om de opties te zien.';
+        nameStatus.classList.add('text-red-500', 'font-bold');
+        nameStatus.classList.remove('text-gray-600', 'mb-4', 'hidden');
         nameStatus.style.display = 'block';
+        usernameInput.style.marginBottom = '20px';
     }
 }
 
@@ -522,7 +533,7 @@ function handleTimer() {
 function startMatch() {
     game.isRunning = true;
     messageBox.style.display = 'none';
-    gameElements.classList.remove('hidden'); // Toon de game UI
+    gameElements.classList.remove('hidden'); 
     
     game.timer = INITIAL_TIME;
     player.health = player.maxHealth;
@@ -628,11 +639,11 @@ function endMatch(reason) {
              setTimeout(showMainMenu, 5000); 
         }
     } else if (!game.isMultiplayer && !game.isSolo) {
-         setTimeout(showMainMenu, 3000); 
+          setTimeout(showMainMenu, 3000); 
     }
     
     if (!game.isMultiplayer && !game.isSolo && !restartMatch) {
-        gameElements.classList.add('hidden'); // Verberg de game UI na afloop van een niet-multiplayer/solo game
+        gameElements.classList.add('hidden'); 
     }
 }
 
