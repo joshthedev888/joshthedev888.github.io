@@ -1,4 +1,11 @@
 const GRAVITY = 0.7;
+const INITIAL_AI_SPEED = 3.5;
+const MAX_AI_SPEED = 7;
+const INITIAL_JUMP_CHANCE = 0.005;
+const MAX_JUMP_CHANCE = 0.03;
+const BASE_ATTACK_DAMAGE = 15;
+const MAX_AI_ATTACK_DAMAGE = 25;
+const AI_DIFFICULTY_FACTOR = 0.05;
 
 class Sprite {
     constructor({ position }) {
@@ -80,7 +87,7 @@ class Fighter extends Sprite {
             ctx.fillStyle = '#ffc107';
             ctx.strokeStyle = '#ffc107';
             ctx.lineWidth = 4;
-            const attackDirection = this.position.x < 375 ? 1 : -1; 
+            const attackDirection = this.position.x < 375 ? 1 : -1;
             const pencilStart = { x: x + (attackDirection * (armLength + 5)), y: armY };
             const pencilEnd = { x: pencilStart.x + (attackDirection * 50), y: armY - 10 };
             
@@ -141,6 +148,23 @@ function updateHealthBar(fighter, element) {
     element.style.width = healthPercentage + '%';
 }
 
+function calculateAIStats(currentLevel) {
+    const levelFactor = Math.min(1, currentLevel * AI_DIFFICULTY_FACTOR);
+    
+    const speed = INITIAL_AI_SPEED + (MAX_AI_SPEED - INITIAL_AI_SPEED) * levelFactor;
+    const jumpChance = INITIAL_JUMP_CHANCE + (MAX_JUMP_CHANCE - INITIAL_JUMP_CHANCE) * levelFactor;
+    const damage = BASE_ATTACK_DAMAGE + (MAX_AI_ATTACK_DAMAGE - BASE_ATTACK_DAMAGE) * levelFactor;
+
+    return {
+        speed: speed,
+        jumpChance: jumpChance,
+        attackCooldown: 60 - Math.floor(levelFactor * 40),
+        damage: Math.round(damage),
+        health: 100,
+        name: `josh.ai.Potloodvechter Lvl ${currentLevel}`
+    };
+}
+
 function enemyAI(fighter, player) {
     const enemyStats = fighter.stats;
     const distance = player.position.x - fighter.position.x;
@@ -156,7 +180,7 @@ function enemyAI(fighter, player) {
     }
 
     if (Math.random() < enemyStats.jumpChance && fighter.velocity.y === 0) {
-        fighter.velocity.y = -15;
+        fighter.velocity.y = -20;
     }
 
     if (Math.abs(distance) <= attackRange && fighter.currentCooldown === 0) {
@@ -169,7 +193,6 @@ const ctx = canvas.getContext('2d');
 canvas.width = 750;
 canvas.height = 400;
 
-// UI ELEMENTEN OPHALEN
 const playerHealthBar = document.getElementById('playerHealth');
 const enemyHealthBar = document.getElementById('enemyHealth');
 const timerDisplay = document.getElementById('timer');
@@ -208,12 +231,13 @@ const hostStatus = document.getElementById('hostStatus');
 const joinStatus = document.getElementById('joinStatus');
 const gamePinDisplay = document.getElementById('gamePinDisplay');
 const playersJoined = document.getElementById('playersJoined');
-const pinInput = document.getElementById('pinInput'); // ✅ GECORRIGEERDE/TOEGEVOEGDE REGEL
-const disconnectAndMenuButton = document.getElementById('disconnectAndMenuButton'); // ✅ NIEUWE KNOP
+const pinInput = document.getElementById('pinInput');
+const disconnectAndMenuButton = document.getElementById('disconnectAndMenuButton');
+const nextRoundButton = document.getElementById('nextRoundButton');
 
 const INITIAL_TIME = 60;
 
-let player, opponent; 
+let player, opponent;
 let gameLoopId;
 let timerIntervalId;
 let keys = { a: { pressed: false }, d: { pressed: false }, w: { pressed: false }, j: { pressed: false }, k: { pressed: false } };
@@ -221,20 +245,27 @@ let keys = { a: { pressed: false }, d: { pressed: false }, w: { pressed: false }
 let game = {
     isRunning: false,
     isMultiplayer: false,
-    isHost: false, 
+    isSolo: false,
+    isHost: false,
     username: '',
     matchID: null,
     score: { player1: 0, player2: 0 },
     totalMatches: 1,
     timer: INITIAL_TIME,
-    playerSide: 'p1'
+    playerSide: 'p1',
+    currentLevel: 1,
+    matchesNeededForNextLevel: 1
 };
 
 const SERVER_URL = 'https://joshthedev888-server.onrender.com';
-const socket = io(SERVER_URL); 
+const socket = io(SERVER_URL);
 
-// FUNCTIES
 function showMainMenu() {
+    game.isSolo = false;
+    game.currentLevel = 1;
+    game.matchesNeededForNextLevel = 1;
+    game.score = { player1: 0, player2: 0 };
+    
     hostGameForm.style.display = 'none';
     joinGameForm.style.display = 'none';
     waitingScreen.style.display = 'none';
@@ -243,6 +274,8 @@ function showMainMenu() {
     messageBox.style.display = 'flex';
     document.querySelector('.message-text').textContent = 'Om Multiplayer';
     messageSubtitle.textContent = 'Kies een optie om te beginnen';
+    
+    nextRoundButtonContainer.style.display = 'none';
 
     const name = usernameInput.value.trim();
     if (name.length > 0) {
@@ -256,11 +289,9 @@ function showMainMenu() {
 
 function disconnectAndGoToMenu() {
     if (game.isMultiplayer && game.matchID) {
-        // Laat de server weten dat we weggaan (zodat de tegenstander een bericht krijgt)
         socket.emit('leaveGame', game.matchID);
     }
     
-    // Reset de lokale spelstatus
     game.isRunning = false;
     game.isMultiplayer = false;
     game.isHost = false;
@@ -268,7 +299,6 @@ function disconnectAndGoToMenu() {
     cancelAnimationFrame(gameLoopId);
     clearInterval(timerIntervalId);
     
-    // Ga terug naar het hoofdmenu
     showMainMenu();
 }
 
@@ -300,7 +330,7 @@ function renderPublicGames(gamesData) {
 socket.on('connect', () => {
     console.log('Connected to server with ID:', socket.id);
     socket.emit('requestPublicGames');
-    if (!game.isRunning) showMainMenu(); 
+    if (!game.isRunning && !game.isSolo) showMainMenu(); 
 });
 
 socket.on('publicGamesUpdate', (gamesData) => {
@@ -309,7 +339,7 @@ socket.on('publicGamesUpdate', (gamesData) => {
     const mainListDiv = document.getElementById('publicGamesList');
     mainListDiv.innerHTML = '';
     if (gamesData.length > 0) {
-        gamesData.forEach(g => {
+        gamesData.slice(0, 5).forEach(g => {
             const gameDiv = document.createElement('div');
             gameDiv.className = 'p-3 bg-white rounded-lg shadow-md border border-blue-200';
             gameDiv.innerHTML = `<p class="font-bold text-lg text-blue-800">${g.gameName || 'Naamloos Spel'}</p><p class="text-sm text-gray-600">Host: ${g.hostName}</p><p class="text-xs text-gray-500">1/2 Spelers</p>`;
@@ -332,6 +362,9 @@ socket.on('gameCreated', (pin, totalMatches) => {
 socket.on('playerJoined', (player2Name) => {
     player2NameDisplay.textContent = player2Name;
     playersJoined.textContent = `VS: ${player2Name}. Host kan de match starten!`;
+    document.getElementById('waitingMessage').textContent = 'Klaar om te beginnen:';
+    gamePinDisplay.textContent = 'Start de match hieronder.';
+    nextRoundButtonContainer.style.display = game.isHost ? 'block' : 'none';
 });
 
 socket.on('joinStatus', (message) => {
@@ -371,7 +404,6 @@ socket.on('opponentAttacked', () => {
 });
 
 socket.on('opponentDisconnected', () => {
-    // Stel de score in alsof de tegenstander de serie verloor
     game.score[game.playerSide === 'p1' ? 'player1' : 'player2'] = game.totalMatches;
     endMatch('OpponentDisconnected');
 });
@@ -383,7 +415,13 @@ socket.on('seriesEnded', (finalScore) => {
 
 function initializeFighters(playerData, opponentData, playerIsP1) {
     const playerStats = { health: 100, attackCooldown: 30, damage: 15, name: playerData.name };
-    const opponentStats = { health: 100, attackCooldown: 30, damage: 15, name: opponentData.name };
+    let opponentStats = { health: 100, attackCooldown: 30, damage: 15, name: opponentData.name };
+
+    if (game.isSolo) {
+        opponentStats = calculateAIStats(game.currentLevel);
+        opponentData.name = opponentStats.name;
+    }
+
 
     const p1Pos = { x: 100, y: 0 };
     const p2Pos = { x: canvas.width - 150, y: 0 };
@@ -396,6 +434,9 @@ function initializeFighters(playerData, opponentData, playerIsP1) {
         opponent = new Fighter({ position: p1Pos, velocity: { x: 0, y: 0 }, color: '#c62828', isEnemy: false, stats: opponentStats });
     }
 
+    player.attackBox.damage = playerStats.damage;
+    opponent.attackBox.damage = opponentStats.damage;
+    
     player1NameDisplay.textContent = playerData.name;
     player2NameDisplay.textContent = opponentData.name;
 }
@@ -405,6 +446,7 @@ function displayWaitingScreen(message, pin, role) {
     joinGameForm.style.display = 'none';
     publicGameSelectScreen.style.display = 'none';
     waitingScreen.style.display = 'block';
+    nextRoundButtonContainer.style.display = 'none';
     
     document.getElementById('waitingMessage').textContent = `${message}`;
     gamePinDisplay.textContent = pin;
@@ -437,10 +479,9 @@ function animate(currentTime) {
         });
     }
 
-    if (!game.isMultiplayer) {
+    if (game.isSolo) {
         const aiPlayer = opponent;
         const humanPlayer = player;
-        aiPlayer.stats = { speed: 2, jumpChance: 0.005, attackCooldown: 60 };
         enemyAI(aiPlayer, humanPlayer); 
     }
 
@@ -486,7 +527,12 @@ function startMatch() {
     clearInterval(timerIntervalId);
     timerIntervalId = setInterval(handleTimer, 1000);
     
-    scoreDisplay.textContent = `Score: ${game.score.player1}-${game.score.player2} / ${game.totalMatches}`;
+    if (game.isSolo) {
+        scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel})`;
+    } else {
+        scoreDisplay.textContent = `Score: ${game.score.player1}-${game.score.player2} / ${game.totalMatches}`;
+    }
+    
     animate(0); 
 }
 
@@ -497,53 +543,92 @@ function endMatch(reason) {
     
     let titleText, subtitleText;
     let mySide = game.playerSide;
+    let restartMatch = false;
+    nextRoundButtonContainer.style.display = 'none';
 
     if (reason === 'Tijd op' || (player.health <= 0 && opponent.health <= 0)) {
         titleText = 'Gelijkspel!';
-        subtitleText = 'Tijd op of dubbele K.O. Nieuwe match in 5 seconden...';
+        subtitleText = 'Tijd op of dubbele K.O.';
         if (game.isMultiplayer) socket.emit('matchEnded', 'draw', game.matchID);
-    } else if (reason === 'PlayerDied') {
-        titleText = 'Je bent verslagen';
-        subtitleText = `${opponent.name} wint deze ronde. Nieuwe match in 5 seconden...`;
+        restartMatch = true;
+    } else if (reason === 'PlayerDied' || (reason === 'Tijd op' && player.health <= opponent.health)) {
         game.score[mySide === 'p1' ? 'player2' : 'player1']++;
-        if (game.isMultiplayer) socket.emit('matchEnded', 'loss', game.matchID);
-    } else if (reason === 'OpponentDied') {
-        titleText = 'Overwinning!';
-        subtitleText = `Je hebt ${opponent.name} verslagen. Nieuwe match in 5 seconden...`;
+        titleText = 'Je bent verslagen';
+        subtitleText = `${opponent.name} wint deze ronde.`;
+
+    } else if (reason === 'OpponentDied' || (reason === 'Tijd op' && player.health > opponent.health)) {
         game.score[mySide === 'p1' ? 'player1' : 'player2']++;
-        if (game.isMultiplayer) socket.emit('matchEnded', 'win', game.matchID);
-    } else if (reason === 'OpponentDisconnected') {
+        titleText = 'Overwinning!';
+        subtitleText = `Je hebt ${opponent.name} verslagen.`;
+        restartMatch = true;
+    } 
+    
+    if (game.isSolo) {
+        if (reason === 'PlayerDied' || (reason === 'Tijd op' && player.health <= opponent.health)) {
+            titleText = `Game Over! (Lvl ${game.currentLevel})`;
+            subtitleText = 'Je bent verslagen. Terug naar menu in 5 seconden.';
+            restartMatch = false;
+            
+        } else if (restartMatch) {
+            if (game.score.player1 >= game.matchesNeededForNextLevel) {
+                game.currentLevel++;
+                game.matchesNeededForNextLevel += 1;
+                subtitleText = `De tegenstander is nu sterker (Lvl ${game.currentLevel}). Nieuwe match in 5 seconden...`;
+            } else {
+                 subtitleText = `Nog ${game.matchesNeededForNextLevel - game.score.player1} overwinning(en) tot Level ${game.currentLevel + 1}. Nieuwe match in 5 seconden...`;
+            }
+        }
+    }
+    else if (reason === 'OpponentDisconnected') {
         titleText = 'Tegenstander Verlaten';
         subtitleText = 'De tegenstander heeft de verbinding verbroken. Spel voorbij.';
-        // Geen timeout! We wachten op de speler om handmatig terug te keren.
-    } else if (reason === 'SeriesEnded') {
-        const winnerName = game.score.player1 > game.score.player2 ? player1NameDisplay.textContent : player2NameDisplay.textContent;
-        titleText = 'Einde Spel Serie!';
-        subtitleText = `${winnerName} heeft de serie gewonnen met ${game.score.player1}-${game.score.player2}.`;
+        restartMatch = false;
+    } else if (reason === 'SeriesEnded' || game.score.player1 >= Math.ceil(game.totalMatches / 2) || game.score.player2 >= Math.ceil(game.totalMatches / 2)) {
+         const winnerName = game.score.player1 > game.score.player2 ? player1NameDisplay.textContent : player2NameDisplay.textContent;
+         titleText = 'Einde Spel Serie!';
+         subtitleText = `${winnerName} heeft de serie gewonnen met ${game.score.player1}-${game.score.player2}.`;
+         restartMatch = false;
+    }
+    
+    if (game.isSolo) {
+        scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel})`;
+    } else {
+        scoreDisplay.textContent = `Score: ${game.score.player1}-${game.score.player2}`;
     }
 
-    scoreDisplay.textContent = `Score: ${game.score.player1}-${game.score.player2}`;
     document.querySelector('.message-text').textContent = titleText;
     messageSubtitle.textContent = subtitleText;
     messageBox.style.display = 'flex';
     
-    const maxScoreNeeded = Math.ceil(game.totalMatches / 2);
-
-    if (!game.isMultiplayer) {
-        setTimeout(showMainMenu, 3000); 
-    } else if (reason === 'OpponentDisconnected' || reason === 'SeriesEnded' || game.score.player1 >= maxScoreNeeded || game.score.player2 >= maxScoreNeeded) {
-        if (reason !== 'OpponentDisconnected') { // Alleen teruggaan bij disconnect als de speler op de knop drukt, anders 5s wachten
+    if (game.isSolo) {
+        if (titleText.includes('Game Over!')) {
             setTimeout(showMainMenu, 5000); 
+        } else if (restartMatch) {
+            setTimeout(() => {
+                const newAiStats = calculateAIStats(game.currentLevel);
+                initializeFighters(
+                    {name: game.username}, 
+                    {name: newAiStats.name}, 
+                    true
+                );
+                startMatch();
+            }, 5000);
         }
-    } else if (game.isMultiplayer) {
-        // Wachten op start van volgende match
+    } else if (game.isMultiplayer && restartMatch) {
         messageSubtitle.textContent += ' Wachten op Host om volgende match te starten...';
-        // Dit zorgt ervoor dat de Host de optie heeft om de volgende match te starten
+        if (game.isHost) {
+            nextRoundButtonContainer.style.display = 'block';
+        }
+    } else if (game.isMultiplayer && !restartMatch) {
+        if (reason !== 'OpponentDisconnected') { 
+             setTimeout(showMainMenu, 5000); 
+        }
+    } else if (!game.isMultiplayer && !game.isSolo) {
+         setTimeout(showMainMenu, 3000); 
     }
 }
 
 
-// EVENT LISTENERS
 usernameInput.addEventListener('input', showMainMenu);
 
 window.addEventListener('keydown', e => {
@@ -570,13 +655,16 @@ window.addEventListener('keyup', e => {
 
 soloPlayButton.addEventListener('click', () => {
     if (!usernameInput.value.trim()) { alert("Voer een gebruikersnaam in."); return; }
+    
     game.username = usernameInput.value.trim();
     game.isMultiplayer = false;
-    game.totalMatches = 1;
+    game.isSolo = true; 
+    game.totalMatches = 999; 
+    game.currentLevel = 1;
+    game.score = { player1: 0, player2: 0 }; 
     
-    initializeFighters({name: game.username}, {name: 'josh.ai.Potloodvechter'}, true); 
-    player1NameDisplay.textContent = game.username;
-    player2NameDisplay.textContent = 'josh.ai.Potloodvechter';
+    const aiStatsLvl1 = calculateAIStats(1);
+    initializeFighters({name: game.username}, {name: aiStatsLvl1.name}, true);
     
     startMatch();
 });
@@ -617,6 +705,7 @@ hostConfirmButton.addEventListener('click', () => {
     game.username = usernameInput.value.trim();
     game.totalMatches = matches;
     game.isMultiplayer = true;
+    game.isSolo = false;
 
     socket.emit('createGame', { hostName: game.username, gameName, totalMatches: matches, isPublic });
     hostGameForm.style.display = 'none';
@@ -632,10 +721,21 @@ joinConfirmButton.addEventListener('click', () => {
 function joinGame(pin) {
     game.username = usernameInput.value.trim();
     game.isMultiplayer = true;
+    game.isSolo = false;
     socket.emit('joinGame', { pin, playerName: game.username });
     displayWaitingScreen(`Verbinden met spel PIN:`, pin, 'Speler');
     joinGameForm.style.display = 'none';
 }
 
 disconnectAndMenuButton.addEventListener('click', disconnectAndGoToMenu); 
+
+nextRoundButton.addEventListener('click', () => {
+    if (game.isHost && game.isMultiplayer && game.matchID) {
+        socket.emit('hostStartNextMatch', game.matchID);
+        nextRoundButtonContainer.style.display = 'none';
+        document.querySelector('.message-text').textContent = 'Match gestart!';
+        messageSubtitle.textContent = 'Verbinden...';
+    }
+});
+
 document.addEventListener('DOMContentLoaded', showMainMenu);
