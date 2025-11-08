@@ -80,6 +80,7 @@
             line-height: 1;
         }
         
+        /* KRITIEKE STIJLEN VOOR CENTRERING */
         .message-box {
             position: absolute;
             top: 50%;
@@ -107,6 +108,7 @@
             width: auto; 
             min-width: 350px;
         }
+        /* EINDE KRITIEKE STIJLEN */
         
         .message-text {
             font-size: 2.5rem;
@@ -234,10 +236,8 @@
         
         <div id="usernameSection" class="flex flex-col items-center justify-center w-full mb-4">
             <input type="text" id="usernameInput" placeholder="Voer hier je gebruikersnaam in..." class="p-2 border rounded text-center" maxlength="15">
-            
             <p id="nameStatus" class="mt-2 text-red-500 font-bold hidden">Voer een gebruikersnaam in om de opties te zien.</p>
-
-            </div>
+        </div>
         
 
         <div id="playOptions" style="display: none;" class="flex flex-wrap justify-center gap-4 mt-2">
@@ -260,15 +260,17 @@
             
             <div class="flex justify-between mt-4">
                 <button id="hostConfirmButton" class="host-button px-4 py-2 text-sm">Maak Spel aan</button>
-                <button id="backToMenuHost" class="start-button px-4 py-2 text-sm" style="background-color: #9e9e9e;">Terug</button>
+                <button id="backToMenuHost" class="start-button px-4 py-2 text-sm" style="background-color: #9e9e9e; min-width: 100px;">Terug</button>
             </div>
             <p id="hostStatus" class="mt-2 text-red-500 text-center"></p>
         </div>
 
         <div id="joinGameForm" style="display: none;">
             <input type="text" id="pinInput" placeholder="Voer PIN in" class="p-2 border rounded mb-3 w-full" maxlength="6">
-            <button id="joinConfirmButton" class="join-button">Join Spel</button>
-            <button id="backToMenuJoin" class="start-button" style="background-color: #9e9e9e;">Terug</button>
+            <div class="flex justify-center gap-4 mt-4">
+                <button id="joinConfirmButton" class="join-button px-4 py-2 text-sm">Join Spel</button>
+                <button id="backToMenuJoin" class="start-button px-4 py-2 text-sm" style="background-color: #9e9e9e; min-width: 100px;">Terug</button>
+            </div>
             <p id="joinStatus" class="mt-2 text-red-500"></p>
         </div>
         
@@ -277,8 +279,10 @@
             <div id="publicGamesListDisplay" class="max-h-64 overflow-y-auto p-3 border rounded mb-4 bg-gray-50">
                 <p class="text-gray-500">Laden...</p>
             </div>
-            <button id="refreshPublicGamesButton" class="join-button px-4 py-2 text-sm">Vernieuw Lijst</button>
-            <button id="backToMenuPublic" class="start-button px-4 py-2 text-sm" style="background-color: #9e9e9e;">Terug</button>
+            <div class="flex justify-center gap-4 mt-4">
+                <button id="refreshPublicGamesButton" class="join-button px-4 py-2 text-sm" style="min-width: 150px;">Vernieuw Lijst</button>
+                <button id="backToMenuPublic" class="start-button px-4 py-2 text-sm" style="background-color: #9e9e9e; min-width: 100px;">Terug</button>
+            </div>
             <p id="publicGameStatus" class="mt-2 text-red-500"></p>
         </div>
 
@@ -286,7 +290,7 @@
             <p id="waitingMessage" class="text-lg text-blue-600 font-bold mb-4"></p>
             <p id="gamePinDisplay" class="text-xl font-mono text-green-700 bg-green-100 p-2 rounded inline-block"></p>
             <p id="playersJoined" class="mt-2 text-gray-700"></p>
-            <button id="disconnectAndMenuButton" class="host-button mt-4" style="background-color: #f44336;">Verbinding verbreken & Terug naar Menu</button>
+            <button id="disconnectAndMenuButton" class="host-button mt-4" style="background-color: #f44336; min-width: 250px;">Verbinding verbreken & Terug naar Menu</button>
         </div>
 
         <div id="nextRoundButtonContainer" style="display: none;" class="mt-4">
