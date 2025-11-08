@@ -199,6 +199,7 @@ const timerDisplay = document.getElementById('timer');
 const scoreDisplay = document.getElementById('scoreDisplay');
 const player1NameDisplay = document.getElementById('player1Name');
 const player2NameDisplay = document.getElementById('player2Name');
+const gameElements = document.getElementById('gameElements');
 
 const messageBox = document.getElementById('messageBox');
 const messageSubtitle = document.getElementById('messageSubtitle');
@@ -234,6 +235,7 @@ const playersJoined = document.getElementById('playersJoined');
 const pinInput = document.getElementById('pinInput');
 const disconnectAndMenuButton = document.getElementById('disconnectAndMenuButton');
 const nextRoundButton = document.getElementById('nextRoundButton');
+const nextRoundButtonContainer = document.getElementById('nextRoundButtonContainer');
 
 const INITIAL_TIME = 60;
 
@@ -272,6 +274,7 @@ function showMainMenu() {
     publicGameSelectScreen.style.display = 'none';
     
     messageBox.style.display = 'flex';
+    gameElements.classList.add('hidden'); // Verberg de game UI
     document.querySelector('.message-text').textContent = 'Om Multiplayer';
     messageSubtitle.textContent = 'Kies een optie om te beginnen';
     
@@ -519,6 +522,7 @@ function handleTimer() {
 function startMatch() {
     game.isRunning = true;
     messageBox.style.display = 'none';
+    gameElements.classList.remove('hidden'); // Toon de game UI
     
     game.timer = INITIAL_TIME;
     player.health = player.maxHealth;
@@ -625,6 +629,10 @@ function endMatch(reason) {
         }
     } else if (!game.isMultiplayer && !game.isSolo) {
          setTimeout(showMainMenu, 3000); 
+    }
+    
+    if (!game.isMultiplayer && !game.isSolo && !restartMatch) {
+        gameElements.classList.add('hidden'); // Verberg de game UI na afloop van een niet-multiplayer/solo game
     }
 }
 
