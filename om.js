@@ -222,9 +222,6 @@ const refreshPublicGamesButton = document.getElementById('refreshPublicGamesButt
 
 const hostConfirmButton = document.getElementById('hostConfirmButton');
 const joinConfirmButton = document.getElementById('joinConfirmButton');
-const backToMenuHost = document.getElementById('backToMenuHost');
-const backToMenuJoin = document.getElementById('backToMenuJoin');
-const backToMenuPublic = document.getElementById('backToMenuPublic');
 const gameNameInput = document.getElementById('gameNameInput');
 const matchCountInput = document.getElementById('matchCountInput');
 const publicCheckbox = document.getElementById('publicCheckbox');
@@ -262,7 +259,11 @@ let game = {
 const SERVER_URL = 'https://joshthedev888-server.onrender.com';
 const socket = io(SERVER_URL);
 
-function showMainMenu() {
+function goToIndexHtml() {
+    window.location.href = 'index.html';
+}
+
+function showStartScreen() {
     game.isSolo = false;
     game.currentLevel = 1;
     game.matchesNeededForNextLevel = 1;
@@ -313,7 +314,7 @@ function disconnectAndGoToMenu() {
     cancelAnimationFrame(gameLoopId);
     clearInterval(timerIntervalId);
     
-    showMainMenu();
+    goToIndexHtml();
 }
 
 
@@ -344,7 +345,7 @@ function renderPublicGames(gamesData) {
 socket.on('connect', () => {
     console.log('Connected to server with ID:', socket.id);
     socket.emit('requestPublicGames');
-    if (!game.isRunning && !game.isSolo) showMainMenu(); 
+    if (!game.isRunning && !game.isSolo) showStartScreen(); 
 });
 
 socket.on('publicGamesUpdate', (gamesData) => {
@@ -596,12 +597,12 @@ function endMatch(reason) {
     }
     else if (reason === 'OpponentDisconnected') {
         titleText = 'Tegenstander Verlaten';
-        subtitleText = 'De tegenstander heeft de verbinding verbroken. Spel voorbij.';
+        subtitleText = 'De tegenstander heeft de verbinding verbroken. Spel voorbij. Terug naar menu in 5 seconden.';
         restartMatch = false;
     } else if (reason === 'SeriesEnded' || game.score.player1 >= Math.ceil(game.totalMatches / 2) || game.score.player2 >= Math.ceil(game.totalMatches / 2)) {
          const winnerName = game.score.player1 > game.score.player2 ? player1NameDisplay.textContent : player2NameDisplay.textContent;
          titleText = 'Einde Spel Serie!';
-         subtitleText = `${winnerName} heeft de serie gewonnen met ${game.score.player1}-${game.score.player2}.`;
+         subtitleText = `${winnerName} heeft de serie gewonnen met ${game.score.player1}-${game.score.player2}. Terug naar menu in 5 seconden.`;
          restartMatch = false;
     }
     
@@ -617,7 +618,7 @@ function endMatch(reason) {
     
     if (game.isSolo) {
         if (titleText.includes('Game Over!')) {
-            setTimeout(showMainMenu, 5000); 
+            setTimeout(goToIndexHtml, 5000); 
         } else if (restartMatch) {
             setTimeout(() => {
                 const newAiStats = calculateAIStats(game.currentLevel);
@@ -635,11 +636,9 @@ function endMatch(reason) {
             nextRoundButtonContainer.style.display = 'block';
         }
     } else if (game.isMultiplayer && !restartMatch) {
-        if (reason !== 'OpponentDisconnected') { 
-             setTimeout(showMainMenu, 5000); 
-        }
+        setTimeout(goToIndexHtml, 5000);
     } else if (!game.isMultiplayer && !game.isSolo) {
-          setTimeout(showMainMenu, 3000); 
+        setTimeout(showStartScreen, 3000);
     }
     
     if (!game.isMultiplayer && !game.isSolo && !restartMatch) {
@@ -648,7 +647,7 @@ function endMatch(reason) {
 }
 
 
-usernameInput.addEventListener('input', showMainMenu);
+usernameInput.addEventListener('input', showStartScreen);
 
 window.addEventListener('keydown', e => {
     if (!game.isRunning) return;
@@ -709,10 +708,6 @@ refreshPublicGamesButton.addEventListener('click', () => {
     socket.emit('requestPublicGames');
 });
 
-backToMenuHost.addEventListener('click', showMainMenu);
-backToMenuJoin.addEventListener('click', showMainMenu);
-backToMenuPublic.addEventListener('click', showMainMenu); 
-
 hostConfirmButton.addEventListener('click', () => {
     if (!usernameInput.value.trim()) { hostStatus.textContent = 'Voer gebruikersnaam in.'; return; }
     const gameName = gameNameInput.value.trim() || `${usernameInput.value.trim()}'s Game`;
@@ -757,4 +752,4 @@ nextRoundButton.addEventListener('click', () => {
     }
 });
 
-document.addEventListener('DOMContentLoaded', showMainMenu);
+document.addEventListener('DOMContentLoaded', showStartScreen);
