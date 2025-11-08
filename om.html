@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f4f8;
@@ -94,33 +94,73 @@
             border-radius: 12px;
         }
         .message-content {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px 40px;
-            border-radius: 10px;
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            background: #ffffff;
+            padding: 40px 50px;
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 90%;
         }
         .message-text {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 20px;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+        #messageSubtitle {
+            font-size: 1.1rem;
+            color: #4a5568;
+            margin-bottom: 25px !important;
         }
         .start-button, .join-button, .host-button {
-            background-color: #4caf50;
+            background-color: #00796b;
             color: white;
-            padding: 12px 25px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            padding: 14px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            margin: 5px;
+            transition: all 0.2s ease;
+            margin: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
         }
         .start-button:hover, .join-button:hover, .host-button:hover {
-            background-color: #43a047;
-            transform: translateY(-2px);
+            background-color: #004d40;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+        }
+        .host-button {
+            background-color: #4caf50;
+        }
+        .host-button:hover {
+            background-color: #388e3c;
+        }
+        .join-button {
+            background-color: #1e88e5;
+        }
+        .join-button:hover {
+            background-color: #1565c0;
+        }
+        #usernameInput {
+            border: 2px solid #cbd5e0 !important;
+            border-radius: 8px !important;
+            padding: 10px !important;
+            font-size: 1rem !important;
+            width: 80% !important;
+            max-width: 300px !important;
+            transition: border-color 0.2s;
+        }
+        #usernameInput:focus {
+            outline: none;
+            border-color: #1e88e5 !important;
+            box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.2);
         }
         .input-group input {
             border: 2px solid #ccc;
@@ -179,26 +219,26 @@
     </div>
 
     <div id="credits">
-        &copy; Josh Sharma (Ontwikkelaar) | Ideeën door Om Battacharya & Tijn Beerthuizen.
+        &copy; 2025 Josh Sharma (Ontwikkelaar) | Ideeën door Om Battacharya & Tijn Beerthuizen.
     </div>
 </div>
 
 <div id="messageBox" class="message-box" style="display: flex;">
     <div class="message-content">
         <div class="message-text">Om Multiplayer</div>
-        <p id="messageSubtitle" class="text-gray-600 mb-4 text-lg">Kies een optie om te beginnen</p>
+        <p id="messageSubtitle" class="text-gray-600 mb-4 text-lg">Voer je naam in om te starten</p>
         
-        <div class="mb-4">
+        <div class="mb-4 w-full">
             <input type="text" id="usernameInput" placeholder="Voer hier je gebruikersnaam in..." class="p-2 border rounded text-center" maxlength="15">
         </div>
         
         <p id="nameStatus" class="mt-2 mb-4 text-red-500 font-bold">Voer een gebruikersnaam in om de opties te zien.</p>
 
-        <div id="playOptions" style="display: none;">
+        <div id="playOptions" style="display: none;" class="flex flex-wrap justify-center gap-4 mt-2">
             <button id="showHostButton" class="host-button">Host Spel</button>
             <button id="showJoinButton" class="join-button">Join met PIN</button>
-            <button id="showPublicGamesButton" class="join-button" style="background-color: #00796b;">Kies Publiek Spel</button>
-            <button id="soloPlayButton" class="start-button">Speel Solo (Tegen AI)</button>
+            <button id="showPublicGamesButton" class="join-button">Kies Publiek Spel</button>
+            <button id="soloPlayButton" class="start-button" style="background-color: #00796b;">Speel Solo (AI)</button>
         </div>
 
         <div id="hostGameForm" style="display: none;" class="text-left max-w-xs mx-auto">
