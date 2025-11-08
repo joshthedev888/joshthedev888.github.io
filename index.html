@@ -27,9 +27,6 @@
             --line-height-ratio: 1.5;
             
             --transition-duration: 300ms;
-            
-            --water-light-x: 50%;
-            --water-light-y: 50%;
         }
 
         .text-accent { color: hsl(var(--color-accent-h), var(--color-accent-s), var(--color-accent-l)); }
@@ -54,8 +51,9 @@
             font-size: var(--font-size-base); 
             line-height: var(--line-height-ratio); 
             scroll-behavior: smooth;
-            background-color: #f0f4f8; 
+            background-color: #0f172a; 
             min-height: 200vh;
+            overflow-x: hidden;
         }
 
         nav a {
@@ -66,63 +64,22 @@
             transition-duration: var(--transition-duration);
         }
 
-        #water-background {
+        #water-background-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100vh; 
-            pointer-events: none; 
             z-index: 1; 
             background-color: #0f172a; 
+            pointer-events: none; 
         }
         
-        #water-surface {
-            position: absolute;
-            top: 0;
-            left: 0;
+        #water-canvas {
+            display: block;
             width: 100%;
             height: 100%;
-            
-            background: radial-gradient(circle at var(--water-light-x) var(--water-light-y), rgba(255,255,255,0.4) 0%, rgba(20, 40, 60, 0.4) 100%);
-            overflow: hidden;
-            
-            transition: background 0.1s linear; 
-        }
-
-        #water-surface::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="t" /><feDisplacementMap in="SourceGraphic" in2="t" scale="10" xChannelSelector="R" yChannelSelector="G" /></filter><rect width="100%" height="100%" fill="%230f172a" filter="url(%23n)" /></svg>') repeat;
-            opacity: 0.8;
-            animation: wave-move 100s linear infinite;
-        }
-
-        #water-surface::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><filter id="n2"><feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="4" result="t2" /><feDisplacementMap in="SourceGraphic" in2="t2" scale="15" xChannelSelector="R" yChannelSelector="G" /></filter><rect width="100%" height="100%" fill="%231e3a8a" filter="url(%23n2)" /></svg>') repeat;
-            opacity: 0.6;
-            mix-blend-mode: overlay; 
-            animation: wave-move-fast 50s linear infinite reverse;
-        }
-
-        @keyframes wave-move {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-100px, -100px); }
-        }
-
-        @keyframes wave-move-fast {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(150px, 150px); }
+            object-fit: cover;
         }
 
         #page-content {
@@ -136,7 +93,6 @@
         nav {
             background-color: #ffffff;
         }
-
 
     </style>
     <script>
@@ -162,9 +118,12 @@
 </head>
 <body class="bg-primary-bg text-text-dark min-h-screen">
 
-    <div id="water-background">
-        <div id="water-surface">
-        </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/examples/js/objects/Water.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/examples/js/objects/Sky.js"></script>
+
+    <div id="water-background-container">
     </div>
     
     <div id="page-content">
@@ -199,13 +158,13 @@
                 
                 <div class="space-y-6 text-center max-w-4xl">
                     <p class="text-accent text-lg font-semibold uppercase tracking-widest transition-token-duration">
-                        De website is nu
+                        Eindelijk! Een
                     </p>
                     <h1 class="text-5xl md:text-7xl font-extrabold leading-tight">
-                        Vol met dynamisch Water
+                        Werkende Dynamische Water Vloer
                     </h1>
                     <h2 class="text-3xl md:text-4xl text-text-muted font-light">
-                        De glans op het water beweegt mee met uw muis.
+                        De waterreflectie op de achtergrond gebruikt nu WebGL voor echt 3D-effect.
                     </h2>
 
                     <div class="flex justify-center space-x-4 pt-6">
@@ -444,7 +403,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             initMobileMenu();
             initTokens();
-            initWaterSurfaceInteraction(); 
+            initWaterSimulation(); 
         });
 
         const root = document.documentElement.style;
@@ -565,34 +524,121 @@
             });
         }
         
-        function initWaterSurfaceInteraction() {
-            const pageContent = document.getElementById('page-content');
-            const root = document.documentElement.style;
-            
-            if (!pageContent) return;
+        function initWaterSimulation() {
+            const container = document.getElementById('water-background-container');
+            if (!container) return;
 
-            const updateWaterLight = (e) => {
-                const rect = pageContent.getBoundingClientRect();
+            let scene, camera, renderer, water, sun;
+            let mouseX = 0, mouseY = 0;
+            let windowHalfX = window.innerWidth / 2;
+            let windowHalfY = window.innerHeight / 2;
+            const clock = new THREE.Clock();
+
+            function init() {
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                container.appendChild(renderer.domElement);
+
+                scene = new THREE.Scene();
+
+                camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.5, 3000000);
+                camera.position.set(0, 5, 20); 
                 
-                let mouseX = e.clientX - rect.left;
-                let mouseY = e.clientY - rect.top;
+                sun = new THREE.Vector3();
 
-                let lightXPercent = (mouseX / rect.width) * 100;
-                let lightYPercent = (mouseY / rect.height) * 100;
+                const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
 
-                lightYPercent = Math.min(Math.max(lightYPercent, 0), 100); 
+                water = new THREE.Water(
+                    waterGeometry,
+                    {
+                        textureWidth: 512,
+                        textureHeight: 512,
+                        waterNormals: new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/textures/waternormals.jpg', function (texture) {
+                            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                        }),
+                        alpha: 0.9, 
+                        sunDirection: new THREE.Vector3(),
+                        sunColor: 0xffffff,
+                        waterColor: 0x001e0f, 
+                        distortionScale: 3.7,
+                        fog: false 
+                    }
+                );
+                water.rotation.x = -Math.PI / 2;
+                scene.add(water);
 
-                root.setProperty('--water-light-x', `${lightXPercent.toFixed(2)}%`);
-                root.setProperty('--water-light-y', `${lightYPercent.toFixed(2)}%`);
-            };
+                const sky = new THREE.Sky();
+                sky.scale.setScalar(10000);
+                scene.add(sky);
 
-            pageContent.addEventListener('mousemove', updateWaterLight);
-            
-            pageContent.addEventListener('touchmove', (e) => {
-                if (e.touches.length > 0) {
-                    updateWaterLight(e.touches[0]);
-                }
-            });
+                const skyUniforms = sky.material.uniforms;
+
+                skyUniforms['turbidity'].value = 10;
+                skyUniforms['rayleigh'].value = 2;
+                skyUniforms['mieCoefficient'].value = 0.005;
+                skyUniforms['mieDirectionalG'].value = 0.8;
+
+                const parameters = {
+                    elevation: 2,
+                    azimuth: 180
+                };
+
+                const pmremGenerator = new THREE.PMREMGenerator(renderer);
+                const phi = THREE.MathUtils.degToRad(90 - parameters.elevation);
+                const theta = THREE.MathUtils.degToRad(parameters.azimuth);
+
+                sun.setFromSphericalCoords(1, phi, theta);
+
+                sky.material.uniforms['sunPosition'].value.copy(sun);
+                water.material.uniforms['sunDirection'].value.copy(sun).normalize();
+
+                scene.environment = pmremGenerator.fromScene(sky).texture;
+                
+                window.addEventListener('resize', onWindowResize);
+                document.addEventListener('mousemove', onDocumentMouseMove);
+
+                animate();
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                render();
+            }
+
+            function render() {
+                const delta = clock.getDelta();
+                const time = clock.elapsedTime;
+                
+                camera.position.x += (mouseX - camera.position.x) * 0.005;
+                camera.position.y += (-mouseY - camera.position.y) * 0.005;
+
+                camera.position.y = THREE.MathUtils.clamp(camera.position.y, 5, 100);
+                
+                camera.lookAt(scene.position);
+
+                water.material.uniforms['time'].value += 1.0 / 60.0; 
+
+                renderer.render(scene, camera);
+            }
+
+            function onDocumentMouseMove(event) {
+                mouseX = (event.clientX - windowHalfX) * 0.05;
+                mouseY = (event.clientY - windowHalfY) * 0.05;
+            }
+
+            function onWindowResize() {
+                windowHalfX = window.innerWidth / 2;
+                windowHalfY = window.innerHeight / 2;
+
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            init();
         }
     </script>
 </body>
