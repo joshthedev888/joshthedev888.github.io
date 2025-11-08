@@ -27,6 +27,9 @@
             --line-height-ratio: 1.5;
             
             --transition-duration: 300ms;
+            
+            --water-light-x: 50%;
+            --water-light-y: 50%;
         }
 
         .text-accent { color: hsl(var(--color-accent-h), var(--color-accent-s), var(--color-accent-l)); }
@@ -51,12 +54,90 @@
             font-size: var(--font-size-base); 
             line-height: var(--line-height-ratio); 
             scroll-behavior: smooth;
+            background-color: #f0f4f8; 
+            min-height: 200vh;
         }
 
         nav a {
             font-size: calc(var(--font-size-base) * 0.95);
         }
         
+        .transition-token-duration {
+            transition-duration: var(--transition-duration);
+        }
+
+        #water-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh; 
+            pointer-events: none; 
+            z-index: 1; 
+            background-color: #0f172a; 
+        }
+        
+        #water-surface {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            
+            background: radial-gradient(circle at var(--water-light-x) var(--water-light-y), rgba(255,255,255,0.4) 0%, rgba(20, 40, 60, 0.4) 100%);
+            overflow: hidden;
+            
+            transition: background 0.1s linear; 
+        }
+
+        #water-surface::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="t" /><feDisplacementMap in="SourceGraphic" in2="t" scale="10" xChannelSelector="R" yChannelSelector="G" /></filter><rect width="100%" height="100%" fill="%230f172a" filter="url(%23n)" /></svg>') repeat;
+            opacity: 0.8;
+            animation: wave-move 100s linear infinite;
+        }
+
+        #water-surface::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><filter id="n2"><feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="4" result="t2" /><feDisplacementMap in="SourceGraphic" in2="t2" scale="15" xChannelSelector="R" yChannelSelector="G" /></filter><rect width="100%" height="100%" fill="%231e3a8a" filter="url(%23n2)" /></svg>') repeat;
+            opacity: 0.6;
+            mix-blend-mode: overlay; 
+            animation: wave-move-fast 50s linear infinite reverse;
+        }
+
+        @keyframes wave-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100px, -100px); }
+        }
+
+        @keyframes wave-move-fast {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(150px, 150px); }
+        }
+
+        #page-content {
+            position: relative;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.9); 
+            min-height: 200vh; 
+            box-shadow: 0 0 100px rgba(0,0,0,0.2);
+        }
+        
+        nav {
+            background-color: #ffffff;
+        }
+
+
     </style>
     <script>
         tailwind.config = {
@@ -81,358 +162,438 @@
 </head>
 <body class="bg-primary-bg text-text-dark min-h-screen">
 
-    <nav class="sticky top-0 z-50 bg-primary-bg rounded-b-token shadow-md shadow-token transition-token-duration">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <a href="#hero" class="text-2xl font-bold text-accent hover:text-accent-dark transition transition-token-duration">
-                    josh.github.io
-                </a>
-                <div class="hidden md:flex space-x-8">
-                    <a href="#design-token-playground" class="text-text-dark hover:text-accent transition transition-token-duration">Ontwerp Tokens</a>
-                    <a href="#projects" class="text-text-dark hover:text-accent transition transition-token-duration">Projecten</a>
-                    <a href="/en/index.html" class="inline-flex items-center text-text-dark hover:text-accent transition transition-token-duration border border-slate-300 px-3 py-1 rounded-full text-sm">
-                        <span data-lucide="globe" class="w-4 h-4 mr-1"></span>
-                        English (EN)
-                    </a>
-                </div>
-                <button id="menu-button" class="md:hidden text-text-dark focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <div id="mobile-menu" class="hidden md:hidden bg-primary-bg border-t border-slate-200">
-            <a href="#design-token-playground" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Ontwerp Tokens</a>
-            <a href="#projects" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Projecten</a>
-            <a href="#contact" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Contact</a>          
+    <div id="water-background">
+        <div id="water-surface">
         </div>
-                <button id="menu-button" class="md:hidden text-text-dark focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <div id="mobile-menu" class="hidden md:hidden bg-primary-bg border-t border-slate-200">
-            <a href="#design-token-playground" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Ontwerp Tokens</a>
-            <a href="#projects" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Projecten</a>
-            <a href="#contact" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Contact</a>
-        </div>
-    </nav>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
-
-        <section id="hero" class="py-16 md:py-32 flex justify-center">
-            
-            <div class="space-y-6 text-center max-w-4xl">
-                <p class="text-accent text-lg font-semibold uppercase tracking-widest transition-token-duration">
-                    Welkom bij
-                </p>
-                <h1 class="text-5xl md:text-7xl font-extrabold leading-tight">
-                    josh.github.io
-                </h1>
-                <h2 class="text-3xl md:text-4xl text-text-muted font-light">
-                    Een random guy die random website dingen maakt
-                </h2>
-
-                <div class="flex justify-center space-x-4 pt-6">
-                    <a href="#projects" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-token shadow-token text-white bg-accent hover:bg-accent-dark transition transition-token-duration">
-                        Bekijk mijn projecten
+    </div>
+    
+    <div id="page-content">
+        <nav class="sticky top-0 z-50 bg-primary-bg rounded-b-token shadow-md shadow-token transition-token-duration">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <a href="#hero" class="text-2xl font-bold text-accent hover:text-accent-dark transition transition-token-duration">
+                        josh.github.io
                     </a>
-                    <a href="#design-token-playground" class="inline-flex items-center px-6 py-3 border border-accent text-base font-medium rounded-token text-accent hover:bg-slate-50 transition transition-token-duration">
-                        Bekijk Thema's
-                    </a>
+                    <div class="hidden md:flex space-x-8">
+                        <a href="#design-token-playground" class="text-text-dark hover:text-accent transition transition-token-duration">Tokens</a>
+                        <a href="#projects" class="text-text-dark hover:text-accent transition transition-token-duration">Projecten</a>
+                    </div>
+                    <button id="menu-button" class="md:hidden text-text-dark focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
-        </section>
 
-        <section id="design-token-playground" class="pt-16">
-            <h2 class="text-4xl font-bold mb-8 text-center border-b-2 border-accent pb-2 inline-block mx-auto w-auto transition-token-duration">
-                Ontwerp Token Speeltuin (10 Opties)
-            </h2>
-            <p class="text-center text-text-muted mb-12 max-w-xl mx-auto">
-                Pas alle 10 tokens aan om de site aan te passen en te zien hoe de elementen reageren.
-            </p>
+            <div id="mobile-menu" class="hidden md:hidden bg-primary-bg border-t border-slate-200">
+                <a href="#design-token-playground" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Tokens</a>
+                <a href="#projects" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Projecten</a>
+                <a href="#contact" class="block px-4 py-2 text-text-dark hover:bg-slate-200 transition-token-duration">Contact</a> 
+            </div>
+        </nav>
 
-            <div class="max-w-6xl mx-auto bg-secondary-bg p-8 rounded-token shadow-xl shadow-token border border-slate-200 space-y-8">
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+            <section id="hero" class="py-16 md:py-32 flex justify-center">
                 
-                <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                    
-                    <div class="col-span-1">
-                        <label for="color-hue" class="block text-sm font-medium text-text-dark mb-2">
-                            1. Accentkleur (Tint)
-                            <span id="hue-value" class="font-bold text-accent ml-2 transition-token-duration">153</span>
-                        </label>
-                        <input type="range" id="color-hue" min="0" max="360" value="153" step="1" oninput="updateTokens()"
-                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-text-muted mt-2">
-                            De primaire kleur (0-360° op het kleurenwiel).
-                        </p>
-                    </div>
-                    
-                    <div class="col-span-1">
-                        <label for="color-saturation" class="block text-sm font-medium text-text-dark mb-2">
-                            2. Kleur Levendigheid
-                            <span id="saturation-value" class="font-bold text-accent ml-2 transition-token-duration">84</span>%
-                        </label>
-                        <input type="range" id="color-saturation" min="0" max="100" value="84" step="1" oninput="updateTokens()"
-                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-text-muted mt-2">
-                            Hoe intens of gedempt de accentkleur is (0% grijs).
-                        </p>
-                    </div>
+                <div class="space-y-6 text-center max-w-4xl">
+                    <p class="text-accent text-lg font-semibold uppercase tracking-widest transition-token-duration">
+                        De website is nu
+                    </p>
+                    <h1 class="text-5xl md:text-7xl font-extrabold leading-tight">
+                        Vol met dynamisch Water
+                    </h1>
+                    <h2 class="text-3xl md:text-4xl text-text-muted font-light">
+                        De glans op het water beweegt mee met uw muis.
+                    </h2>
 
-                    <div class="col-span-1">
-                        <label for="color-lightness" class="block text-sm font-medium text-text-dark mb-2">
-                            3. Kleur Helderheid
-                            <span id="lightness-value" class="font-bold text-accent ml-2 transition-token-duration">31</span>%
-                        </label>
-                        <input type="range" id="color-lightness" min="10" max="90" value="31" step="1" oninput="updateTokens()"
-                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-text-muted mt-2">
-                            Hoe licht of donker de accentkleur is (100% wit).
-                        </p>
-                    </div>
-
-                    <div class="col-span-1">
-                        <label for="spacing-ratio" class="block text-sm font-medium text-text-dark mb-2">
-                            4. Ruimte Schaal (Ratio)
-                            <span id="ratio-value" class="font-bold text-accent ml-2 transition-token-duration">1.50</span>
-                        </label>
-                        <input type="range" id="spacing-ratio" min="1.0" max="2.0" value="1.5" step="0.05" oninput="updateTokens()"
-                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-text-muted mt-2">
-                            Multipliceert de opvulling voor alle elementen.
-                        </p>
-                    </div>
-
-                    <div class="col-span-1">
-                        <label for="border-radius" class="block text-sm font-medium text-text-dark mb-2">
-                            5. Hoek Afronding (Radius)
-                            <span id="radius-value" class="font-bold text-accent ml-2 transition-token-duration">8</span> px
-                        </label>
-                        <input type="range" id="border-radius" min="0" max="20" value="8" step="1" oninput="updateTokens()"
-                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-text-muted mt-2">
-                            De afronding van de hoeken (0px scherp, 20px zeer rond).
-                        </p>
-                    </div>
-                    
-                    <div class="col-span-1">
-                        <label for="font-family" class="block text-sm font-medium text-text-dark mb-2">
-                            6. Lettertype Stijl (Familie)
-                        </label>
-                        <select id="font-family" onchange="updateTokens()"
-                                class="w-full p-2 bg-primary-bg rounded-token border border-slate-300 focus:border-accent focus:ring-accent transition transition-token-duration text-text-dark">
-                            <option value="'Inter', sans-serif">Inter (Standaard)</option>
-                            <option value="'Montserrat', sans-serif">Montserrat (Modern)</option>
-                            <option value="'Lora', serif">Lora (Klassiek Serif)</option>
-                        </select>
-                        <p class="text-xs text-text-muted mt-2">
-                            Bepaalt het primaire lettertype van de hele site.
-                        </p>
-                    </div>
-                    
-                    <div class="col-span-1">
-                        <label for="shadow-level" class="block text-sm font-medium text-text-dark mb-2">
-                            7. Schaduw Diepte
-                            <span id="shadow-value" class="font-bold text-accent ml-2 transition-token-duration">1.0</span>
-                        </label>
-                        <input type="range" id="shadow-level" min="0" max="3" value="1.0" step="0.1" oninput="updateTokens()"
-                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-text-muted mt-2">
-                            De intensiteit van de schaduw achter kaarten en knoppen.
-                        </p>
-                    </div>
-                    
-                    <div class="col-span-1">
-                        <label for="font-size-base" class="block text-sm font-medium text-text-dark mb-2">
-                            8. Basis Tekstgrootte
-                            <span id="font-size-value" class="font-bold text-accent ml-2 transition-token-duration">16</span> px
-                        </label>
-                        <input type="range" id="font-size-base" min="12" max="20" value="16" step="1" oninput="updateTokens()"
-                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-text-muted mt-2">
-                            De basis lettergrootte, alle andere tekst schaalt mee.
-                        </p>
-                    </div>
-                    
-                    <div class="col-span-1">
-                        <label for="line-height-ratio" class="block text-sm font-medium text-text-dark mb-2">
-                            9. Regelafstand
-                            <span id="line-height-value" class="font-bold text-accent ml-2 transition-token-duration">1.50</span>
-                        </label>
-                        <input type="range" id="line-height-ratio" min="1.2" max="2.0" value="1.5" step="0.05" oninput="updateTokens()"
-                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-text-muted mt-2">
-                            De verticale ruimte tussen regels tekst (leessnelheid).
-                        </p>
-                    </div>
-
-                    <div class="col-span-1">
-                        <label for="transition-duration" class="block text-sm font-medium text-text-dark mb-2">
-                            10. Animatie Snelheid
-                            <span id="duration-value" class="font-bold text-accent ml-2 transition-token-duration">300</span> ms
-                        </label>
-                        <input type="range" id="transition-duration" min="100" max="1000" value="300" step="50" oninput="updateTokens()"
-                               class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-text-muted mt-2">
-                            Hoe snel knoppen en hover-effecten reageren.
-                        </p>
+                    <div class="flex justify-center space-x-4 pt-6">
+                        <a href="#projects" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-token shadow-token text-white bg-accent hover:bg-accent-dark transition transition-token-duration">
+                            Bekijk mijn projecten
+                        </a>
+                        <a href="#design-token-playground" class="inline-flex items-center px-6 py-3 border border-accent text-base font-medium rounded-token text-accent hover:bg-slate-50 transition transition-token-duration">
+                            Bekijk Thema's
+                        </a>
                     </div>
                 </div>
+            </section>
+            
+            <section id="design-token-playground" class="pt-16">
+                <h2 class="text-4xl font-bold mb-8 text-center border-b-2 border-accent pb-2 inline-block mx-auto w-auto transition-token-duration">
+                    Ontwerp Token Speeltuin (10 Opties)
+                </h2>
+                <p class="text-center text-text-muted mb-12 max-w-xl mx-auto">
+                    Pas alle 10 tokens aan om de site aan te passen en te zien hoe de elementen reageren.
+                </p>
 
-                <div class="mt-8">
-                    <h4 class="text-lg font-semibold mb-3 text-text-dark">Token Demonstratie Element:</h4>
-                    <div id="token-output" class="bg-primary-bg rounded-token border border-accent shadow-token transition-all transition-token-duration">
-                        <p class="text-text-dark font-medium">De opvulling, hoeken, schaduw en kleur van dit element zijn allemaal dynamisch. (Let ook op de tekstgrootte en regelafstand hier).</p>
-                        <button class="px-4 py-2 mt-3 text-white bg-accent rounded-token hover:bg-accent-dark shadow-token transition transition-token-duration">
-                            Thema Knop
+                <div class="max-w-6xl mx-auto bg-secondary-bg p-8 rounded-token shadow-xl shadow-token border border-slate-200 space-y-8">
+                    
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                        
+                        <div class="col-span-1">
+                            <label for="color-hue" class="block text-sm font-medium text-text-dark mb-2">
+                                1. Accentkleur (Tint)
+                                <span id="hue-value" class="font-bold text-accent ml-2 transition-token-duration">153</span>
+                            </label>
+                            <input type="range" id="color-hue" min="0" max="360" value="153" step="1" oninput="updateTokens()"
+                                   class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-text-muted mt-2">
+                                De primaire kleur (0-360° op het kleurenwiel).
+                            </p>
+                        </div>
+                        
+                        <div class="col-span-1">
+                            <label for="color-saturation" class="block text-sm font-medium text-text-dark mb-2">
+                                2. Kleur Levendigheid
+                                <span id="saturation-value" class="font-bold text-accent ml-2 transition-token-duration">84</span>%
+                            </label>
+                            <input type="range" id="color-saturation" min="0" max="100" value="84" step="1" oninput="updateTokens()"
+                                   class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-text-muted mt-2">
+                                Hoe intens of gedempt de accentkleur is (0% grijs).
+                            </p>
+                        </div>
+
+                        <div class="col-span-1">
+                            <label for="color-lightness" class="block text-sm font-medium text-text-dark mb-2">
+                                3. Kleur Helderheid
+                                <span id="lightness-value" class="font-bold text-accent ml-2 transition-token-duration">31</span>%
+                            </label>
+                            <input type="range" id="color-lightness" min="10" max="90" value="31" step="1" oninput="updateTokens()"
+                                   class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-text-muted mt-2">
+                                Hoe licht of donker de accentkleur is (100% wit).
+                            </p>
+                        </div>
+
+                        <div class="col-span-1">
+                            <label for="spacing-ratio" class="block text-sm font-medium text-text-dark mb-2">
+                                4. Ruimte Schaal (Ratio)
+                                <span id="ratio-value" class="font-bold text-accent ml-2 transition-token-duration">1.50</span>
+                            </label>
+                            <input type="range" id="spacing-ratio" min="1.0" max="2.0" value="1.5" step="0.05" oninput="updateTokens()"
+                                   class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-text-muted mt-2">
+                                Multipliceert de opvulling voor alle elementen.
+                            </p>
+                        </div>
+
+                        <div class="col-span-1">
+                            <label for="border-radius" class="block text-sm font-medium text-text-dark mb-2">
+                                5. Hoek Afronding (Radius)
+                                <span id="radius-value" class="font-bold text-accent ml-2 transition-token-duration">8</span> px
+                            </label>
+                            <input type="range" id="border-radius" min="0" max="20" value="8" step="1" oninput="updateTokens()"
+                                   class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-text-muted mt-2">
+                                De afronding van de hoeken (0px scherp, 20px zeer rond).
+                            </p>
+                        </div>
+                        
+                        <div class="col-span-1">
+                            <label for="font-family" class="block text-sm font-medium text-text-dark mb-2">
+                                6. Lettertype Stijl (Familie)
+                            </label>
+                            <select id="font-family" onchange="updateTokens()"
+                                    class="w-full p-2 bg-primary-bg rounded-token border border-slate-300 focus:border-accent focus:ring-accent transition transition-token-duration text-text-dark">
+                                <option value="'Inter', sans-serif">Inter (Standaard)</option>
+                                <option value="'Montserrat', sans-serif">Montserrat (Modern)</option>
+                                <option value="'Lora', serif">Lora (Klassiek Serif)</option>
+                            </select>
+                            <p class="text-xs text-text-muted mt-2">
+                                Bepaalt het primaire lettertype van de hele site.
+                            </p>
+                        </div>
+                        
+                        <div class="col-span-1">
+                            <label for="shadow-level" class="block text-sm font-medium text-text-dark mb-2">
+                                7. Schaduw Diepte
+                                <span id="shadow-value" class="font-bold text-accent ml-2 transition-token-duration">1.0</span>
+                            </label>
+                            <input type="range" id="shadow-level" min="0" max="3" value="1.0" step="0.1" oninput="updateTokens()"
+                                   class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-text-muted mt-2">
+                                De intensiteit van de schaduw achter kaarten en knoppen.
+                            </p>
+                        </div>
+                        
+                        <div class="col-span-1">
+                            <label for="font-size-base" class="block text-sm font-medium text-text-dark mb-2">
+                                8. Basis Tekstgrootte
+                                <span id="font-size-value" class="font-bold text-accent ml-2 transition-token-duration">16</span> px
+                            </label>
+                            <input type="range" id="font-size-base" min="12" max="20" value="16" step="1" oninput="updateTokens()"
+                                   class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-text-muted mt-2">
+                                De basis lettergrootte, alle andere tekst schaalt mee.
+                            </p>
+                        </div>
+                        
+                        <div class="col-span-1">
+                            <label for="line-height-ratio" class="block text-sm font-medium text-text-dark mb-2">
+                                9. Regelafstand
+                                <span id="line-height-value" class="font-bold text-accent ml-2 transition-token-duration">1.50</span>
+                            </label>
+                            <input type="range" id="line-height-ratio" min="1.2" max="2.0" value="1.5" step="0.05" oninput="updateTokens()"
+                                   class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-text-muted mt-2">
+                                De verticale ruimte tussen regels tekst (leessnelheid).
+                            </p>
+                        </div>
+
+                        <div class="col-span-1">
+                            <label for="transition-duration" class="block text-sm font-medium text-text-dark mb-2">
+                                10. Animatie Snelheid
+                                <span id="duration-value" class="font-bold text-accent ml-2 transition-token-duration">300</span> ms
+                            </label>
+                            <input type="range" id="transition-duration" min="100" max="1000" value="300" step="50" oninput="updateTokens()"
+                                   class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                            <p class="text-xs text-text-muted mt-2">
+                                Hoe snel knoppen en hover-effecten reageren.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center pt-6">
+                        <button id="reset-tokens" class="inline-flex items-center px-6 py-3 border border-slate-400 text-base font-medium rounded-token text-text-muted hover:bg-slate-200 transition transition-token-duration">
+                            <span data-lucide="rotate-ccw" class="w-5 h-5 mr-2"></span>
+                            Reset Alle Tokens
                         </button>
                     </div>
+
+                    <div class="mt-8">
+                        <h4 class="text-lg font-semibold mb-3 text-text-dark">Token Demonstratie Element:</h4>
+                        <div id="token-output" class="bg-primary-bg rounded-token border border-accent shadow-token transition-all transition-token-duration">
+                            <p class="text-text-dark font-medium">De opvulling, hoeken, schaduw en kleur van dit element zijn allemaal dynamisch. (Let ook op de tekstgrootte en regelafstand hier).</p>
+                            <button class="px-4 py-2 mt-3 text-white bg-accent rounded-token hover:bg-accent-dark shadow-token transition transition-token-duration">
+                                Thema Knop
+                            </button>
+                        </div>
+                    </div>
                 </div>
+            </section>
+
+            <section id="projects" class="pt-16">
+                <h2 class="text-4xl font-bold mb-12 text-center border-b-2 border-accent pb-2 inline-block mx-auto w-auto transition-token-duration">
+                    Uitgelichte Projecten
+                </h2>
+                <div class="space-y-12">
+                    <div class="bg-secondary-bg p-6 md:p-8 rounded-token shadow-token flex flex-col lg:flex-row gap-6 lg:gap-8 items-start border border-slate-200 transition-token-duration">
+                        <div class="lg:w-1/3 w-full h-48 rounded-token overflow-hidden shrink-0">
+                            <img 
+                                src="img/om-game-img.png" 
+                                class="w-full h-full object-cover"
+                            >
+                        </div>
+                        <div class="lg:w-2/3 space-y-4">
+                            <h3 class="text-2xl font-bold text-accent transition-token-duration">Om</h3>
+                            <p class="text-text-muted">
+                                Om
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">Game</span>
+                                <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">JavaScript</span>
+                                <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">Node.js</span>
+                                <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">Socket.IO</span>
+                                <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">TailwindCSS</span>
+                            </div>
+                            <div class="flex space-x-4 mt-4">
+                                <a href="om.html" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-token text-white bg-accent hover:bg-accent-dark shadow-sm shadow-token transition transition-token-duration">
+                                    <span data-lucide="folder-open" class="w-5 h-5 mr-2"></span>
+                                    <span>Bekijk Project Details</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-secondary-bg p-6 md:p-8 rounded-token shadow-token flex flex-col lg:flex-row gap-6 lg:gap-8 items-start border border-slate-200 transition-token-duration">
+                        <div class="lg:w-1/3 w-full h-48 bg-slate-300 rounded-token flex items-center justify-center shrink-0">
+                            <span class="text-text-muted">Afbeelding komt hier</span>
+                        </div>
+                        <div class="lg:w-2/3 space-y-4">
+                            <h3 class="text-2xl font-bold text-accent transition-token-duration">Object Detectie</h3>
+                            <p class="text-text-muted">
+                                De pagina wordt binnenkort verhuist naar hier, maar je moet voor nu naar de andere site gaan.
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">JavaScript</span>
+                                <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">TensorFlow.js</span>
+                            </div>
+                            <div class="flex space-x-4 mt-4">
+                                <a href="https://josh-ai-nine.vercel.app" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-token text-white bg-accent hover:bg-accent-dark shadow-sm shadow-token transition transition-token-duration">
+                                    <span data-lucide="folder-open" class="w-5 h-5 mr-2"></span>
+                                    <span>Bekijk Project Details</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="bg-secondary-bg py-6 border-t border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-text-muted text-sm">
+                © 2025 joshthedev888.github.io. Alle rechten voorbehouden.
             </div>
-        </section>
-
-        <section id="projects" class="pt-16">
-            <h2 class="text-4xl font-bold mb-12 text-center border-b-2 border-accent pb-2 inline-block mx-auto w-auto transition-token-duration">
-                Uitgelichte Projecten
-            </h2>
-            <div class="space-y-12">
-                <div class="bg-secondary-bg p-6 md:p-8 rounded-token shadow-token flex flex-col lg:flex-row gap-6 lg:gap-8 items-start border border-slate-200 transition-token-duration">
-                    <div class="lg:w-1/3 w-full h-48 rounded-token overflow-hidden shrink-0">
-                        <img 
-                            src="img/om-game-img.png" 
-                            class="w-full h-full object-cover"
-                        >
-                    </div>
-                    <div class="lg:w-2/3 space-y-4">
-                        <h3 class="text-2xl font-bold text-accent transition-token-duration">Om</h3>
-                        <p class="text-text-muted">
-                            Om
-                        </p>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">Game</span>
-                            <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">JavaScript</span>
-                            <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">Node.js</span>
-                            <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">Socket.IO</span>
-                            <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">TailwindCSS</span>
-                        </div>
-                        <div class="flex space-x-4 mt-4">
-                            <a href="om.html" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-token text-white bg-accent hover:bg-accent-dark shadow-sm shadow-token transition transition-token-duration">
-                                <span data-lucide="folder-open" class="w-5 h-5 mr-2"></span>
-                                <span>Bekijk Project Details</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-secondary-bg p-6 md:p-8 rounded-token shadow-token flex flex-col lg:flex-row gap-6 lg:gap-8 items-start border border-slate-200 transition-token-duration">
-                    <div class="lg:w-1/3 w-full h-48 bg-slate-300 rounded-token flex items-center justify-center shrink-0">
-                        <span class="text-text-muted">Afbeelding komt hier</span>
-                    </div>
-                    <div class="lg:w-2/3 space-y-4">
-                        <h3 class="text-2xl font-bold text-accent transition-token-duration">Object Detectie</h3>
-                        <p class="text-text-muted">
-                            De pagina wordt binnenkort verhuist naar hier, maar je moet voor nu naar de andere site gaan.
-                        </p>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">JavaScript</span>
-                            <span class="bg-primary-bg text-sm px-3 py-1 rounded-full text-accent border border-accent shadow-sm shadow-token transition-token-duration">TensorFlow.js</span>
-                        </div>
-                        <div class="flex space-x-4 mt-4">
-                            <a href="https://josh-ai-nine.vercel.app" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-token text-white bg-accent hover:bg-accent-dark shadow-sm shadow-token transition transition-token-duration">
-                                <span data-lucide="folder-open" class="w-5 h-5 mr-2"></span>
-                                <span>Bekijk Project Details</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <footer class="bg-secondary-bg py-6 border-t border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-text-muted">
-            &copy; 2025 Josh Sharma.
-        </div>
-    </footer>
+        </footer>
+    </div>
 
     <script>
-        
-        function updateTokens() {
-            const root = document.documentElement;
-            
-            const hueInput = document.getElementById('color-hue');
-            const hue = hueInput.value;
-            root.style.setProperty('--color-accent-h', hue);
-            document.getElementById('hue-value').textContent = hue;
+        document.addEventListener('DOMContentLoaded', () => {
+            initMobileMenu();
+            initTokens();
+            initWaterSurfaceInteraction(); 
+        });
 
-            const saturationInput = document.getElementById('color-saturation');
-            const saturation = saturationInput.value;
-            root.style.setProperty('--color-accent-s', `${saturation}%`);
-            document.getElementById('saturation-value').textContent = saturation;
-            
-            const lightnessInput = document.getElementById('color-lightness');
-            const lightness = lightnessInput.value;
-            root.style.setProperty('--color-accent-l', `${lightness}%`);
-            document.getElementById('lightness-value').textContent = lightness;
-
-            const ratioInput = document.getElementById('spacing-ratio');
-            const ratio = parseFloat(ratioInput.value).toFixed(2);
-            root.style.setProperty('--spacing-ratio', ratio);
-            document.getElementById('ratio-value').textContent = ratio;
-
-            const radiusInput = document.getElementById('border-radius');
-            const radius = radiusInput.value;
-            root.style.setProperty('--border-radius-base', `${radius}px`);
-            document.getElementById('radius-value').textContent = radius;
-            
-            const fontInput = document.getElementById('font-family');
-            const selectedFont = fontInput.value;
-            root.style.setProperty('--font-primary', selectedFont);
-            
-            const shadowInput = document.getElementById('shadow-level');
-            const shadow = parseFloat(shadowInput.value).toFixed(1);
-            root.style.setProperty('--shadow-level', shadow);
-            document.getElementById('shadow-value').textContent = shadow;
-
-            const fontSizeInput = document.getElementById('font-size-base');
-            const fontSize = fontSizeInput.value;
-            root.style.setProperty('--font-size-base', `${fontSize}px`);
-            document.getElementById('font-size-value').textContent = fontSize;
-            
-            const lineHeightInput = document.getElementById('line-height-ratio');
-            const lineHeight = parseFloat(lineHeightInput.value).toFixed(2);
-            root.style.setProperty('--line-height-ratio', lineHeight);
-            document.getElementById('line-height-value').textContent = lineHeight;
-            
-            const transitionInput = document.getElementById('transition-duration');
-            const transitionDuration = transitionInput.value;
-            root.style.setProperty('--transition-duration', `${transitionDuration}ms`);
-            document.getElementById('duration-value').textContent = transitionDuration;
-        }
-
-        window.onload = function() {
-            lucide.createIcons();
-            updateTokens();
+        const root = document.documentElement.style;
+        const defaultTokens = {
+            'color-hue': 153,
+            'color-saturation': 84,
+            'color-lightness': 31,
+            'spacing-ratio': 1.5,
+            'border-radius': 8,
+            'font-family': "'Inter', sans-serif",
+            'shadow-level': 1.0,
+            'font-size-base': 16,
+            'line-height-ratio': 1.5,
+            'transition-duration': 300,
         };
 
-        document.getElementById('menu-button').addEventListener('click', function() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        });
+        function initTokens() {
+            for (const key in defaultTokens) {
+                const storedValue = localStorage.getItem(key);
+                if (storedValue !== null) {
+                    const element = document.getElementById(key.replace(/-/g, '_')); 
+                    const slider = document.getElementById(key);
+                    const value = key.includes('font-family') ? storedValue : parseFloat(storedValue);
 
-        const mobileLinks = document.querySelectorAll('#mobile-menu a');
-        mobileLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                document.getElementById('mobile-menu').classList.add('hidden');
+                    if (slider) slider.value = value;
+                    if (element) element.textContent = key.includes('font-family') ? storedValue.split(',')[0].replace(/'/g, '') : value.toFixed(key === 'shadow-level' || key === 'spacing-ratio' || key === 'line-height-ratio' ? 2 : 0);
+                    
+                    if (key.includes('font-family')) {
+                        root.setProperty(`--font-primary`, value);
+                    } else if (key.includes('hue') || key.includes('saturation') || key.includes('lightness')) {
+                        root.setProperty(`--color-accent-${key.split('-')[1].charAt(0)}`, value);
+                    } else {
+                        root.setProperty(`--${key.replace(/_/g, '-')}`, value + (key.includes('radius') || key.includes('size') ? 'px' : (key.includes('duration') ? 'ms' : '')));
+                    }
+                }
+            }
+            
+            document.getElementById('reset-tokens').addEventListener('click', resetTokens);
+            updateTokens(); 
+        }
+
+        function updateTokens() {
+            const hue = document.getElementById('color-hue').value;
+            const sat = document.getElementById('color-saturation').value;
+            const light = document.getElementById('color-lightness').value;
+            const ratio = parseFloat(document.getElementById('spacing-ratio').value).toFixed(2);
+            const radius = document.getElementById('border-radius').value;
+            const fontFamily = document.getElementById('font-family').value;
+            const shadow = parseFloat(document.getElementById('shadow-level').value).toFixed(1);
+            const fontSize = document.getElementById('font-size-base').value;
+            const lineHeight = parseFloat(document.getElementById('line-height-ratio').value).toFixed(2);
+            const duration = document.getElementById('transition-duration').value;
+
+            root.setProperty('--color-accent-h', hue);
+            root.setProperty('--color-accent-s', sat + '%');
+            root.setProperty('--color-accent-l', light + '%');
+            root.setProperty('--spacing-ratio', ratio);
+            root.setProperty('--border-radius-base', radius + 'px');
+            root.setProperty('--font-primary', fontFamily);
+            root.setProperty('--shadow-level', shadow);
+            root.setProperty('--font-size-base', fontSize + 'px');
+            root.setProperty('--line-height-ratio', lineHeight);
+            root.setProperty('--transition-duration', duration + 'ms');
+
+            document.getElementById('hue-value').textContent = hue;
+            document.getElementById('saturation-value').textContent = sat;
+            document.getElementById('lightness-value').textContent = light;
+            document.getElementById('ratio-value').textContent = ratio;
+            document.getElementById('radius-value').textContent = radius;
+            document.getElementById('shadow-value').textContent = shadow;
+            document.getElementById('font-size-value').textContent = fontSize;
+            document.getElementById('line-height-value').textContent = lineHeight;
+            document.getElementById('duration-value').textContent = duration;
+
+            localStorage.setItem('color-hue', hue);
+            localStorage.setItem('color-saturation', sat);
+            localStorage.setItem('color-lightness', light);
+            localStorage.setItem('spacing-ratio', ratio);
+            localStorage.setItem('border-radius', radius);
+            localStorage.setItem('font-family', fontFamily);
+            localStorage.setItem('shadow-level', shadow);
+            localStorage.setItem('font-size-base', fontSize);
+            localStorage.setItem('line-height-ratio', lineHeight);
+            localStorage.setItem('transition-duration', duration);
+        }
+
+        function resetTokens() {
+            for (const key in defaultTokens) {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = defaultTokens[key];
+                }
+                localStorage.removeItem(key);
+            }
+            updateTokens(); 
+        }
+
+        function initMobileMenu() {
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            menuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                const svg = menuButton.querySelector('svg');
+                if (!mobileMenu.classList.contains('hidden')) {
+                    svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
+                } else {
+                    svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
+                }
             });
-        });
+
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                    const svg = menuButton.querySelector('svg');
+                    svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>';
+                });
+            });
+        }
+        
+        function initWaterSurfaceInteraction() {
+            const pageContent = document.getElementById('page-content');
+            const root = document.documentElement.style;
+            
+            if (!pageContent) return;
+
+            const updateWaterLight = (e) => {
+                const rect = pageContent.getBoundingClientRect();
+                
+                let mouseX = e.clientX - rect.left;
+                let mouseY = e.clientY - rect.top;
+
+                let lightXPercent = (mouseX / rect.width) * 100;
+                let lightYPercent = (mouseY / rect.height) * 100;
+
+                lightYPercent = Math.min(Math.max(lightYPercent, 0), 100); 
+
+                root.setProperty('--water-light-x', `${lightXPercent.toFixed(2)}%`);
+                root.setProperty('--water-light-y', `${lightYPercent.toFixed(2)}%`);
+            };
+
+            pageContent.addEventListener('mousemove', updateWaterLight);
+            
+            pageContent.addEventListener('touchmove', (e) => {
+                if (e.touches.length > 0) {
+                    updateWaterLight(e.touches[0]);
+                }
+            });
+        }
     </script>
 </body>
 </html>
