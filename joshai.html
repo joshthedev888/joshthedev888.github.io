@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>josh.ai Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .chat-container {
+            height: calc(100vh - 8rem);
+            max-height: 100vh;
+        }
+        .chat-history::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-history::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+        .chat-history::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        .chat-history::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen antialiased">
+
+    <header class="bg-white shadow-lg p-4 sticky top-0 z-10">
+        <div class="max-w-4xl mx-auto flex items-center space-x-4">
+            <a href="index.html" class="p-2 text-gray-500 hover:text-indigo-600 transition duration-150 rounded-full hover:bg-gray-100" title="Ga terug naar het menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </a>
+            <h1 class="text-3xl font-extrabold text-gray-900">josh.<span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">ai</span></h1>
+        </div>
+    </header>
+
+    <main class="flex-grow overflow-hidden p-4">
+        <div class="max-w-4xl mx-auto chat-container flex flex-col rounded-xl bg-white shadow-2xl">
+
+            <div id="chatHistory" class="chat-history flex-grow overflow-y-auto p-6 space-y-4">
+                <div class="flex justify-start">
+                    <div class="bg-gray-200 text-gray-800 p-3 rounded-xl rounded-tl-none max-w-lg shadow-md">
+                        <p class="font-bold text-sm mb-1">josh.ai</p>
+                        <p>yo ik ben een ai die geforceerd is om je te helpen dus vraag me iets</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-200 bg-white/50 backdrop-blur-sm">
+                <form id="chatForm" class="flex items-center space-x-3">
+                    <input
+                        type="text"
+                        id="userInput"
+                        placeholder="Typ hier..."
+                        autocomplete="off"
+                        class="flex-grow p-3 bg-white border border-gray-300 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 shadow-inner"
+                        required
+                    >
+                    <button
+                        type="submit"
+                        id="sendButton"
+                        class="p-3 bg-indigo-600 text-white rounded-xl font-semibold shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 transform hover:scale-105 disabled:bg-indigo-300 disabled:transform-none"
+                    >
+                        <svg id="sendIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        <svg id="loadingIcon" class="w-6 h-6 animate-spin hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="p-2 text-center text-xs text-gray-500 bg-white/50">
+        &copy; 2025 Josh Sharma
+    </footer>
+
+    <script>
+        const WORKER_URL = 'https://jouw-josh-ai-worker.workers.dev/chat';
+        const MAX_RETRIES = 3;
+        const INITIAL_BACKOFF_MS = 1000;
+
+        const chatHistoryDiv = document.getElementById('chatHistory');
+        const chatForm = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const sendIcon = document.getElementById('sendIcon');
+        const loadingIcon = document.getElementById('loadingIcon');
+
+        let chatHistory = [];
+        let isLoading = false;
+
+        const escapeHtml = (str) => {
+            return str.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#039;');
+        };
+
+        const renderMessages = () => {
+            chatHistoryDiv.innerHTML = '';
+
+            chatHistory.forEach(message => {
+                const messageDiv = document.createElement('div');
+                const bubble = document.createElement('div');
+
+                const isUser = message.role === 'user';
+                const content = escapeHtml(message.parts[0].text).replace(/\n/g, '<br>');
+
+                messageDiv.className = isUser ? 'flex justify-end' : 'flex justify-start';
+
+                bubble.className = isUser
+                    ? 'bg-indigo-600 text-white p-3 rounded-xl rounded-br-none max-w-lg shadow-md'
+                    : 'bg-gray-200 text-gray-800 p-3 rounded-xl rounded-tl-none max-w-lg shadow-md';
+
+                if (!isUser) {
+                    const persona = document.createElement('p');
+                    persona.className = 'font-bold text-sm mb-1';
+                    persona.textContent = 'josh.ai';
+                    bubble.appendChild(persona);
+                }
+
+                const textContent = document.createElement('p');
+                textContent.innerHTML = content;
+                bubble.appendChild(textContent);
+
+                messageDiv.appendChild(bubble);
+                chatHistoryDiv.appendChild(messageDiv);
+            });
+
+            chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+        };
+
+        const setLoading = (loadingState) => {
+            isLoading = loadingState;
+            userInput.disabled = loadingState;
+            sendButton.disabled = loadingState;
+            if (loadingState) {
+                sendIcon.classList.add('hidden');
+                loadingIcon.classList.remove('hidden');
+            } else {
+                loadingIcon.classList.add('hidden');
+                sendIcon.classList.remove('hidden');
+            }
+        };
+
+        const callGeminiApi = async () => {
+            setLoading(true);
+
+            const requestPayload = {
+                contents: chatHistory,
+                systemInstruction: {
+                    parts: [{ text: "je bent de behulpzame ai assistent voor josh.ai. je spreekt nederlands. je gebruikt geen hoofdletters voor het begin van elke zin en gebruikt nederlandse slang, maar vermijd aanstootgevende taal. je modelnaam is josh.ai 1.0" }]
+                }
+            };
+
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    const response = await fetch(WORKER_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(requestPayload)
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 429 && i < MAX_RETRIES - 1) {
+                            const delay = INITIAL_BACKOFF_MS * Math.pow(2, i);
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            continue;
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (text) {
+                        setLoading(false);
+                        return text;
+                    } else {
+                        throw new Error('API response missing text content.');
+                    }
+
+                } catch (error) {
+                    console.error('Gemini API call failed:', error);
+                    if (i === MAX_RETRIES - 1) {
+                        setLoading(false);
+                        return 'Sorry, ik heb moeite om verbinding te maken met de AI-service. Probeer het over een moment opnieuw.';
+                    }
+                }
+            }
+        };
+
+        const sendMessage = async (event) => {
+            event.preventDefault();
+            const prompt = userInput.value.trim();
+
+            if (!prompt || isLoading) return;
+
+            chatHistory.push({ role: 'user', parts: [{ text: prompt }] });
+            userInput.value = '';
+            renderMessages();
+
+            const responseText = await callGeminiApi();
+
+            chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
+            renderMessages();
+        };
+
+        chatForm.addEventListener('submit', sendMessage);
+
+        renderMessages();
+    </script>
+</body>
+</html>
