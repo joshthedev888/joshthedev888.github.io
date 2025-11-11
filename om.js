@@ -47,7 +47,7 @@ class Fighter extends Sprite {
         this.lineWidth = 3;
         this.stats = stats;
         this.name = stats.name;
-        this.lastDirection = 1; 
+        this.lastDirection = 1;
     }
 
     drawStickman(ctx) {
@@ -89,7 +89,7 @@ class Fighter extends Sprite {
             ctx.strokeStyle = '#ffc107';
             ctx.lineWidth = 4;
             
-            const attackDirection = this.attackBox.position.x < x ? -1 : 1;
+            const attackDirection = this.lastDirection;
             
             const pencilOffsetX = attackDirection * (armLength + 5);
             const pencilStart = { x: x + pencilOffsetX, y: armY };
@@ -621,10 +621,10 @@ function endMatch(reason) {
         subtitleText = 'De tegenstander heeft de verbinding verbroken. Spel voorbij. Terug naar menu in 5 seconden.';
         restartMatch = false;
     } else if (reason === 'SeriesEnded' || game.score.player1 >= Math.ceil(game.totalMatches / 2) || game.score.player2 >= Math.ceil(game.totalMatches / 2)) {
-         const winnerName = game.score.player1 > game.score.player2 ? player1NameDisplay.textContent : player2NameDisplay.textContent;
-         titleText = 'Einde Spel Serie!';
-         subtitleText = `${winnerName} heeft de serie gewonnen met ${game.score.player1}-${game.score.player2}. Terug naar menu in 5 seconden.`;
-         restartMatch = false;
+           const winnerName = game.score.player1 > game.score.player2 ? player1NameDisplay.textContent : player2NameDisplay.textContent;
+           titleText = 'Einde Spel Serie!';
+           subtitleText = `${winnerName} heeft de serie gewonnen met ${game.score.player1}-${game.score.player2}. Terug naar menu in 5 seconden.`;
+           restartMatch = false;
     }
     
     if (game.isSolo) {
