@@ -1,776 +1,701 @@
-const GRAVITY = 0.7;
-const INITIAL_AI_SPEED = 3.5;
-const MAX_AI_SPEED = 7;
-const INITIAL_JUMP_CHANCE = 0.005;
-const MAX_JUMP_CHANCE = 0.03;
-const BASE_ATTACK_DAMAGE = 15;
-const MAX_AI_ATTACK_DAMAGE = 25;
-const AI_DIFFICULTY_FACTOR = 0.05;
-
-class Sprite {
-    constructor({ position }) {
-        this.position = position;
-        this.width = 50;
-        this.height = 150;
-        this.velocity = { x: 0, y: 0 };
+const INITIAL_TIME = 60;
+const AI_DIFFICULTY_FACTOR = 0.005;
+const MIN_GOLD_PER_WIN = 20;
+const MAX_GOLD_PER_WIN = 50;
+const MIN_GOLD_PER_DRAW = 5;
+const MAX_GOLD_PER_DRAW = 20;
+const UPGRADE_BONUS_HEALTH = 10;
+const UPGRADE_BONUS_DAMAGE = 5;
+const UPGRADE_BONUS_COOLDOWN = 2;
+const BASE_UPGRADE_COST_HEALTH = 100;
+const BASE_UPGRADE_COST_DAMAGE = 150;
+const BASE_UPGRADE_COST_COOLDOWN = 200;
+const COST_MULTIPLIER = 1.4;
+const WEEKLY_BONUS_DURATION_ROUNDS = 5;
+const WEEKLY_SHOP_ITEMS = [
+    {
+        id: 'gold_boost',
+        name: 'Goud Boost',
+        desc: `Verdien 2x zoveel goud voor de volgende ${WEEKLY_BONUS_DURATION_ROUNDS} rondes.`,
+        cost: 500,
+        bought: false
+    },
+    {
+        id: 'starting_shield',
+        name: 'Start Schild',
+        desc: `Krijg een tijdelijk schild (30% HP boost) in de volgende ronde.`,
+        cost: 350,
+        bought: false
+    },
+];
+const PENCIL_SPECIAL_COOLDOWN = 600;
+const ICE_FREEZE_DURATION = 60;
+const ICE_EXTRA_DAMAGE_MULTIPLIER = 1.5;
+const PENCIL_STYLES = [
+    {
+        id: 'standard',
+        name: 'Houtskool Standaard',
+        desc: 'Een gewone potlood. Geen bonus.',
+        drawColor: '#B8860B',
+        damageBonus: 0, healthBonus: 0, cooldownBonus: 0, cost: 0
+    },
+    {
+        id: 'ruby',
+        name: 'Vlammen Potlood',
+        desc: 'Schiet vlammen bij elke aanval (cosmetisch) en een kleine passieve DMG-boost.',
+        drawColor: '#E0115F',
+        damageBonus: 3, healthBonus: 0, cooldownBonus: 0, cost: 500,
+        specialAttack: null, specialCooldown: 0
+    },
+    {
+        id: 'sapphire',
+        name: 'IJskristal Pen',
+        desc: 'Bevriest de vijand (1s), daarna 50% extra schade (Z-toets).',
+        drawColor: '#0F52BA',
+        damageBonus: 8, healthBonus: 0, cooldownBonus: 0, cost: 750,
+        specialAttack: 'freeze_shot', specialCooldown: 300
+    },
+    {
+        id: 'emerald',
+        name: 'Smaragd Stormbreker',
+        desc: 'Gebalanceerde kracht en betere verdediging.',
+        drawColor: '#50C878',
+        damageBonus: 10, healthBonus: 5, cooldownBonus: 0, cost: 1000,
+        specialAttack: null, specialCooldown: 0
+    },
+    {
+        id: 'gold',
+        name: 'Oud Gouden Scepter',
+        desc: 'Een krachtige lichtstraal die elke 10s enorme schade aanricht (Z-toets).',
+        drawColor: '#FFD700',
+        damageBonus: 15, healthBonus: 0, cooldownBonus: 5, cost: 2500,
+        specialAttack: 'beam_of_light', specialCooldown: PENCIL_SPECIAL_COOLDOWN
     }
-    update(ctx, canvas) {
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-        const floorY = canvas.height - 50 - this.height;
-        if (this.position.y + this.height + this.velocity.y >= canvas.height - 50) {
-            this.velocity.y = 0;
-            this.position.y = floorY;
-        } else {
-            this.velocity.y += GRAVITY;
-        }
-    }
-}
-
-class Fighter extends Sprite {
-    constructor({ position, velocity, color, isEnemy, stats }) {
-        super({ position });
-        this.velocity = velocity;
-        this.maxHealth = stats.health || 100;
-        this.health = this.maxHealth;
-        this.isAttacking = false;
-        this.attackCooldown = stats.attackCooldown || 30;
-        this.currentCooldown = 0;
-        this.attackBox = {
-            position: { x: this.position.x, y: this.position.y },
-            width: 100,
-            height: 50,
-            damage: stats.damage || 15
-        };
-        this.isEnemy = isEnemy;
-        this.lineColor = color;
-        this.lineWidth = 3;
-        this.stats = stats;
-        this.name = stats.name;
-        this.lastDirection = 1;
-    }
-
-    drawStickman(ctx) {
-        ctx.strokeStyle = this.lineColor;
-        ctx.lineWidth = this.lineWidth;
-        const x = this.position.x + this.width / 2;
-        const y = this.position.y;
-        const bodyHeight = this.height * 0.55;
-        const legLength = this.height * 0.3;
-        const armLength = this.height * 0.2;
-        const headRadius = this.width / 2;
-
-        ctx.beginPath();
-        ctx.arc(x, y + headRadius, headRadius, 0, Math.PI * 2, false);
-        ctx.stroke();
-
-        const bodyTop = y + headRadius * 2;
-        ctx.beginPath();
-        ctx.moveTo(x, bodyTop);
-        ctx.lineTo(x, bodyTop + bodyHeight);
-        ctx.stroke();
-
-        const bodyBottom = bodyTop + bodyHeight;
-        ctx.beginPath();
-        ctx.moveTo(x, bodyBottom);
-        ctx.lineTo(x - legLength * 0.4, bodyBottom + legLength);
-        ctx.moveTo(x, bodyBottom);
-        ctx.lineTo(x + legLength * 0.4, bodyBottom + legLength);
-        ctx.stroke();
-
-        const armY = bodyTop + bodyHeight / 4;
-        ctx.beginPath();
-        ctx.moveTo(x - armLength, armY);
-        ctx.lineTo(x + armLength, armY);
-        ctx.stroke();
-
-        if (this.isAttacking) {
-            ctx.fillStyle = '#ffc107';
-            ctx.strokeStyle = '#ffc107';
-            ctx.lineWidth = 4;
-            
-            const attackDirection = this.lastDirection;
-            
-            const pencilOffsetX = attackDirection * (armLength + 5);
-            const pencilStart = { x: x + pencilOffsetX, y: armY };
-            
-            const pencilLength = 50;
-            const pencilTipOffset = 10;
-            const pencilEnd = { 
-                x: pencilStart.x + (attackDirection * pencilLength), 
-                y: armY - pencilTipOffset 
-            };
-            
-            ctx.beginPath();
-            ctx.moveTo(pencilStart.x, pencilStart.y);
-            ctx.lineTo(pencilEnd.x, pencilEnd.y);
-            ctx.stroke();
-            
-            ctx.fillStyle = '#6d4c41';
-            ctx.beginPath();
-            ctx.moveTo(pencilEnd.x, pencilEnd.y);
-            ctx.lineTo(pencilEnd.x + (attackDirection * 10), pencilEnd.y + 5);
-            ctx.lineTo(pencilEnd.x + (attackDirection * 10), pencilEnd.y - 15);
-            ctx.closePath();
-            ctx.fill();
-        }
-    }
-
-    update(ctx, canvas) {
-        this.drawStickman(ctx);
-        super.update(ctx, canvas);
-        
-        const attackDirection = this.lastDirection;
-
-        if (attackDirection === -1) { 
-            this.attackBox.position.x = this.position.x - this.attackBox.width + this.width / 2;
-        } else { 
-            this.attackBox.position.x = this.position.x + this.width / 2;
-        }
-        this.attackBox.position.y = this.position.y + 50;
-
-        if (this.currentCooldown > 0) {
-            this.currentCooldown--;
-            if (this.currentCooldown === 0) {
-                this.isAttacking = false;
-            }
-        }
-    }
-
-    attack() {
-        if (this.currentCooldown === 0) {
-            this.isAttacking = true;
-            this.currentCooldown = this.stats.attackCooldown;
-        }
-    }
-}
-
-function rectangularCollision({ rectangle1, rectangle2 }) {
-    return (
-        rectangle1.attackBox.position.x + rectangle1.attackBox.width >= rectangle2.position.x &&
-        rectangle1.attackBox.position.x <= rectangle2.position.x + rectangle2.width &&
-        rectangle1.attackBox.position.y + rectangle1.attackBox.height >= rectangle2.position.y &&
-        rectangle1.attackBox.position.y <= rectangle2.position.y + rectangle2.height
-    );
-}
-
-function updateHealthBar(fighter, element) {
-    const healthPercentage = Math.max(0, fighter.health / fighter.maxHealth) * 100;
-    element.style.width = healthPercentage + '%';
-}
-
-function calculateAIStats(currentLevel) {
-    const levelFactor = Math.min(1, currentLevel * AI_DIFFICULTY_FACTOR);
-    
-    const speed = INITIAL_AI_SPEED + (MAX_AI_SPEED - INITIAL_AI_SPEED) * levelFactor;
-    const jumpChance = INITIAL_JUMP_CHANCE + (MAX_JUMP_CHANCE - INITIAL_JUMP_CHANCE) * levelFactor;
-    const damage = BASE_ATTACK_DAMAGE + (MAX_AI_ATTACK_DAMAGE - BASE_ATTACK_DAMAGE) * levelFactor;
-
-    return {
-        speed: speed,
-        jumpChance: jumpChance,
-        attackCooldown: 60 - Math.floor(levelFactor * 40),
-        damage: Math.round(damage),
-        health: 100,
-        name: `josh.ai.Potloodvechter Lvl ${currentLevel}`
-    };
-}
-
-function enemyAI(fighter, player) {
-    const enemyStats = fighter.stats;
-    const distance = player.position.x - fighter.position.x;
-    const pursuitRange = 250;
-    const attackRange = 100;
-
-    fighter.velocity.x = 0;
-
-    if (Math.abs(distance) > pursuitRange) {
-        fighter.velocity.x = distance < 0 ? -enemyStats.speed : enemyStats.speed;
-    } else if (Math.abs(distance) > attackRange) {
-        fighter.velocity.x = distance < 0 ? -enemyStats.speed * 0.7 : enemyStats.speed * 0.7;
-    }
-
-    if (fighter.velocity.x !== 0) {
-        fighter.lastDirection = fighter.velocity.x > 0 ? 1 : -1;
-    } else {
-        fighter.lastDirection = distance > 0 ? 1 : -1;
-    }
-
-    if (Math.random() < enemyStats.jumpChance && fighter.velocity.y === 0) {
-        fighter.velocity.y = -20;
-    }
-
-    if (Math.abs(distance) <= attackRange && fighter.currentCooldown === 0) {
-        fighter.attack();
-    }
-}
-
+];
+const AI_PROFILES = [
+    { name: "De Drukker", damageMultiplier: 1.2, speedMultiplier: 1.1, cooldownMultiplier: 0.9 },
+    { name: "De Tank", damageMultiplier: 0.8, healthMultiplier: 1.5, speedMultiplier: 0.8 },
+    { name: "De Snelheidsduivel", speedMultiplier: 1.5, jumpChanceMultiplier: 2.0, damageMultiplier: 0.9 },
+    { name: "De Balans", damageMultiplier: 1.0, speedMultiplier: 1.0, healthMultiplier: 1.0 }
+];
+const KEY_CODES = {
+    LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, ATTACK: 32,
+    SPECIAL: 90
+};
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 750;
-canvas.height = 400;
-
-const playerHealthBar = document.getElementById('playerHealth');
-const enemyHealthBar = document.getElementById('enemyHealth');
-const timerDisplay = document.getElementById('timer');
-const scoreDisplay = document.getElementById('scoreDisplay');
-const player1NameDisplay = document.getElementById('player1Name');
-const player2NameDisplay = document.getElementById('player2Name');
-const gameElements = document.getElementById('gameElements');
-
 const messageBox = document.getElementById('messageBox');
 const messageSubtitle = document.getElementById('messageSubtitle');
-const hostGameForm = document.getElementById('hostGameForm');
-const joinGameForm = document.getElementById('joinGameForm');
-const waitingScreen = document.getElementById('waitingScreen');
-const publicGamesList = document.getElementById('publicGamesList');
-const noPublicGames = document.getElementById('noPublicGames');
-
-const usernameInput = document.getElementById('usernameInput');
-const playOptionsDiv = document.getElementById('playOptions');
-const nameStatus = document.getElementById('nameStatus');
-const showHostButton = document.getElementById('showHostButton');
-const showJoinButton = document.getElementById('showJoinButton');
-const soloPlayButton = document.getElementById('soloPlayButton');
-const showPublicGamesButton = document.getElementById('showPublicGamesButton');
-const publicGameSelectScreen = document.getElementById('publicGameSelectScreen');
-const publicGamesListDisplay = document.getElementById('publicGamesListDisplay');
-const refreshPublicGamesButton = document.getElementById('refreshPublicGamesButton');
-
-const hostConfirmButton = document.getElementById('hostConfirmButton');
-const joinConfirmButton = document.getElementById('joinConfirmButton');
-const gameNameInput = document.getElementById('gameNameInput');
-const matchCountInput = document.getElementById('matchCountInput');
-const publicCheckbox = document.getElementById('publicCheckbox');
-const hostStatus = document.getElementById('hostStatus');
-const joinStatus = document.getElementById('joinStatus');
-const gamePinDisplay = document.getElementById('gamePinDisplay');
-const playersJoined = document.getElementById('playersJoined');
-const pinInput = document.getElementById('pinInput');
-const disconnectAndMenuButton = document.getElementById('disconnectAndMenuButton');
-const nextRoundButton = document.getElementById('nextRoundButton');
 const nextRoundButtonContainer = document.getElementById('nextRoundButtonContainer');
-
-const INITIAL_TIME = 60;
-
-let player, opponent;
+const scoreDisplay = document.getElementById('scoreDisplay');
+const playerHealthBar = document.getElementById('playerHealth');
+const enemyHealthBar = document.getElementById('enemyHealth');
+const player1Name = document.getElementById('player1Name');
+const player2Name = document.getElementById('player2Name');
+const timerDisplay = document.getElementById('timer');
+const gameElements = document.getElementById('gameElements');
 let gameLoopId;
 let timerIntervalId;
-let keys = { a: { pressed: false }, d: { pressed: false }, w: { pressed: false }, j: { pressed: false }, k: { pressed: false } };
-
+let player, opponent;
+let keys = {};
+let activeProjectiles = [];
 let game = {
     isRunning: false,
     isMultiplayer: false,
     isSolo: false,
     isHost: false,
     username: '',
-    matchID: null,
     score: { player1: 0, player2: 0 },
-    totalMatches: 1,
+    totalMatches: 3,
     timer: INITIAL_TIME,
     playerSide: 'p1',
     currentLevel: 1,
-    matchesNeededForNextLevel: 1
+    matchesNeededForNextLevel: 1,
+    soloPlayerUpgrades: { health: 0, damage: 0, cooldown: 0 },
+    soloWinCount: 0,
+    gold: 0,
+    boughtPencils: ['standard'],
+    activePencil: 'standard',
+    soloBonusRoundsLeft: 0,
+    soloBonusActive: null,
 };
-
-const SERVER_URL = 'https://joshthedev888-server.onrender.com';
-const socket = io(SERVER_URL);
-
-function goToIndexHtml() {
-    window.location.href = 'index.html';
-}
-
-function showStartScreen() {
-    game.isSolo = false;
-    game.currentLevel = 1;
-    game.matchesNeededForNextLevel = 1;
-    game.score = { player1: 0, player2: 0 };
-    
-    hostGameForm.style.display = 'none';
-    joinGameForm.style.display = 'none';
-    waitingScreen.style.display = 'none';
-    publicGameSelectScreen.style.display = 'none';
-    
-    messageBox.style.display = 'flex';
-    gameElements.classList.add('hidden');
-    document.querySelector('.message-text').textContent = 'Om Multiplayer';
-    
-    nextRoundButtonContainer.style.display = 'none';
-
-    const name = usernameInput.value.trim();
-    
-    if (name.length > 0) {
-        playOptionsDiv.style.display = 'flex';
-        messageSubtitle.textContent = 'Kies een optie om te beginnen';
-        nameStatus.textContent = 'Je naam is ingevoerd. Kies een actie.';
-        nameStatus.classList.remove('text-red-500', 'font-bold', 'hidden');
-        nameStatus.classList.add('text-gray-600', 'mb-4');
-        nameStatus.style.display = 'block';
-        usernameInput.style.marginBottom = '10px';
-        
-    } else {
-        playOptionsDiv.style.display = 'none';
-        messageSubtitle.textContent = 'Voer je naam in om te starten';
-        nameStatus.textContent = 'Voer een gebruikersnaam in om de opties te zien.';
-        nameStatus.classList.add('text-red-500', 'font-bold');
-        nameStatus.classList.remove('text-gray-600', 'mb-4', 'hidden');
-        nameStatus.style.display = 'block';
-        usernameInput.style.marginBottom = '20px';
+class Fighter {
+    constructor(x, y, width, height, isPlayer, playerSide) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.isPlayer = isPlayer;
+        this.playerSide = playerSide;
+        this.health = 100;
+        this.maxHealth = 100;
+        this.damage = 10;
+        this.speed = 5;
+        this.jumpForce = 20;
+        this.gravity = 1;
+        this.attackCooldown = 60;
+        this.vy = 0;
+        this.vx = 0;
+        this.isOnGround = false;
+        this.isAttacking = false;
+        this.currentCooldown = 0;
+        this.isFlipped = (playerSide === 'p2');
+        this.name = '';
+        this.isFrozen = false;
+        this.freezeTimer = 0;
+        this.specialCooldownTimer = 0;
+        this.isBeingHit = false;
+        this.isDying = false;
     }
 }
-
-function disconnectAndGoToMenu() {
-    if (game.isMultiplayer && game.matchID) {
-        socket.emit('leaveGame', game.matchID);
-    }
-    
-    game.isRunning = false;
-    game.isMultiplayer = false;
-    game.isHost = false;
-    game.matchID = null;
-    cancelAnimationFrame(gameLoopId);
-    clearInterval(timerIntervalId);
-    
-    goToIndexHtml();
+function saveGameData() {
+    localStorage.setItem('om_game_gold', game.gold);
+    localStorage.setItem('om_game_upgrades', JSON.stringify(game.soloPlayerUpgrades));
+    localStorage.setItem('om_game_bought_pencils', JSON.stringify(game.boughtPencils));
+    localStorage.setItem('om_game_active_pencil', game.activePencil);
 }
-
-
-function renderPublicGames(gamesData) {
-    publicGamesListDisplay.innerHTML = '';
-    
-    if (gamesData.length === 0) {
-        publicGamesListDisplay.innerHTML = '<p class="text-gray-500">Geen openbare spellen beschikbaar. Host er één!</p>';
-        return;
-    }
-
-    gamesData.forEach(g => {
-        const gameButton = document.createElement('button');
-        gameButton.textContent = `${g.gameName || 'Naamloos Spel'} (Host: ${g.hostName})`;
-        gameButton.className = 'join-button w-full mb-2 p-2 text-sm';
-        gameButton.style.backgroundColor = '#00796b';
-        gameButton.style.display = 'block';
-        
-        gameButton.addEventListener('click', () => {
-            if (!usernameInput.value.trim()) { alert("Voer eerst een gebruikersnaam in."); return; }
-            joinGame(g.pin);
-        });
-        publicGamesListDisplay.appendChild(gameButton);
-    });
+function loadGameData() {
+    game.gold = parseInt(localStorage.getItem('om_game_gold') || 0);
+    game.soloPlayerUpgrades = JSON.parse(localStorage.getItem('om_game_upgrades') || '{"health": 0, "damage": 0, "cooldown": 0}');
+    game.boughtPencils = JSON.parse(localStorage.getItem('om_game_bought_pencils') || '["standard"]');
+    game.activePencil = localStorage.getItem('om_game_active_pencil') || 'standard';
+    WEEKLY_SHOP_ITEMS.forEach(item => item.bought = false);
 }
-
-
-socket.on('connect', () => {
-    console.log('Connected to server with ID:', socket.id);
-    socket.emit('requestPublicGames');
-    if (!game.isRunning && !game.isSolo) showStartScreen(); 
-});
-
-socket.on('publicGamesUpdate', (gamesData) => {
-    renderPublicGames(gamesData);
-    
-    const mainListDiv = document.getElementById('publicGamesList');
-    mainListDiv.innerHTML = '';
-    if (gamesData.length > 0) {
-        gamesData.slice(0, 5).forEach(g => {
-            const gameDiv = document.createElement('div');
-            gameDiv.className = 'p-3 bg-white rounded-lg shadow-md border border-blue-200';
-            gameDiv.innerHTML = `<p class="font-bold text-lg text-blue-800">${g.gameName || 'Naamloos Spel'}</p><p class="text-sm text-gray-600">Host: ${g.hostName}</p><p class="text-xs text-gray-500">1/2 Spelers</p>`;
-            mainListDiv.appendChild(gameDiv);
-        });
-        noPublicGames.style.display = 'none';
-    } else {
-        noPublicGames.style.display = 'block';
+function setCanvasSize() {
+    canvas.width = window.innerWidth * 0.9;
+    canvas.height = window.innerHeight * 0.6;
+    if (player && opponent) {
+        player.y = canvas.height - player.height;
+        opponent.y = canvas.height - opponent.height;
     }
-});
-
-socket.on('gameCreated', (pin, totalMatches) => {
-    game.matchID = pin;
-    game.totalMatches = totalMatches;
-    game.isHost = true;
-    game.playerSide = 'p1';
-    displayWaitingScreen(`Wachten op speler. PIN:`, pin, 'Host (Speler 1)');
-});
-
-socket.on('playerJoined', (player2Name) => {
-    player2NameDisplay.textContent = player2Name;
-    playersJoined.textContent = `VS: ${player2Name}. Host kan de match starten!`;
-    document.getElementById('waitingMessage').textContent = 'Klaar om te beginnen:';
-    gamePinDisplay.textContent = 'Start de match hieronder.';
-    nextRoundButtonContainer.style.display = game.isHost ? 'block' : 'none';
-});
-
-socket.on('joinStatus', (message) => {
-    joinStatus.textContent = message;
-});
-
-socket.on('matchStart', (playerData1, playerData2) => {
-    const myData = (playerData1.id === socket.id) ? playerData1 : playerData2;
-    const opponentData = (playerData1.id !== socket.id) ? playerData1 : playerData2;
-    
-    game.playerSide = (playerData1.id === socket.id) ? 'p1' : 'p2';
-    
-    initializeFighters(myData, opponentData, game.playerSide === 'p1');
-    
-    game.timer = INITIAL_TIME;
-    player.health = player.maxHealth;
-    opponent.health = opponent.maxHealth;
-    updateHealthBar(player, playerHealthBar);
-    updateHealthBar(opponent, enemyHealthBar);
-    
-    startMatch(); 
-});
-
-socket.on('opponentMoved', (moveData) => {
-    if (opponent) {
-        opponent.position.x = moveData.x;
-        opponent.position.y = moveData.y;
-        opponent.velocity.x = moveData.vx;
-        opponent.velocity.y = moveData.vy;
+}
+window.addEventListener('resize', setCanvasSize);
+function checkCollision(r1, r2) {
+    return r1.x < r2.x + r2.width &&
+           r1.x + r1.width > r2.x &&
+           r1.y < r2.y + r2.height &&
+           r1.y + r1.height > r2.y;
+}
+function calculateCost(baseCost, currentLevel) {
+    return Math.ceil(baseCost * Math.pow(COST_MULTIPLIER, currentLevel));
+}
+function calculateGold(min, max, level) {
+    const base = Math.floor(Math.random() * (max - min + 1)) + min;
+    let multiplier = 1 + (level * 0.1);
+    if (game.soloBonusActive === 'gold_boost' && game.soloBonusRoundsLeft > 0) {
+        multiplier *= 2;
     }
-});
-
-socket.on('opponentAttacked', () => {
-    if (opponent) {
-        opponent.attack();
-    }
-});
-
-socket.on('opponentDisconnected', () => {
-    game.score[game.playerSide === 'p1' ? 'player1' : 'player2'] = game.totalMatches;
-    endMatch('OpponentDisconnected');
-});
-
-socket.on('seriesEnded', (finalScore) => {
-    game.score = { player1: finalScore.p1, player2: finalScore.p2 };
-    endMatch('SeriesEnded');
-});
-
+    return Math.round(base * multiplier);
+}
+function calculateAIStats(currentLevel) {
+    const levelFactor = Math.min(1, currentLevel * AI_DIFFICULTY_FACTOR);
+    const profile = AI_PROFILES[Math.floor(Math.random() * AI_PROFILES.length)];
+    const INITIAL_AI_SPEED = 4;
+    const MAX_AI_SPEED = 8;
+    const INITIAL_JUMP_CHANCE = 0.05;
+    const MAX_JUMP_CHANCE = 0.20;
+    const BASE_ATTACK_DAMAGE = 15;
+    const MAX_AI_ATTACK_DAMAGE = 35;
+    const speed = INITIAL_AI_SPEED + (MAX_AI_SPEED - INITIAL_AI_SPEED) * levelFactor;
+    const jumpChance = INITIAL_JUMP_CHANCE + (MAX_JUMP_CHANCE - INITIAL_JUMP_CHANCE) * levelFactor;
+    const damage = BASE_ATTACK_DAMAGE + (MAX_AI_ATTACK_DAMAGE - BASE_ATTACK_DAMAGE) * levelFactor;
+    const attackCooldown = 60 - Math.floor(levelFactor * 40);
+    const health = 100 + Math.floor(levelFactor * 50);
+    return {
+        speed: speed * (profile.speedMultiplier || 1),
+        jumpChance: jumpChance * (profile.jumpChanceMultiplier || 1),
+        attackCooldown: Math.max(10, attackCooldown * (profile.cooldownMultiplier || 1)),
+        damage: Math.round(damage * (profile.damageMultiplier || 1)),
+        health: Math.round(health * (profile.healthMultiplier || 1)),
+        name: `${profile.name} (Lvl ${currentLevel})`
+    };
+}
+function updateHealthBars() {
+    playerHealthBar.style.width = `${(player.health / player.maxHealth) * 100}%`;
+    enemyHealthBar.style.width = `${(opponent.health / opponent.maxHealth) * 100}%`;
+}
 function initializeFighters(playerData, opponentData, playerIsP1) {
-    const playerStats = { health: 100, attackCooldown: 30, damage: 15, name: playerData.name };
-    let opponentStats = { health: 100, attackCooldown: 30, damage: 15, name: opponentData.name };
-
+    setCanvasSize();
+    player = new Fighter(canvas.width * 0.1, canvas.height - 100, 50, 100, true, 'p1');
+    opponent = new Fighter(canvas.width * 0.9 - 50, canvas.height - 100, 50, 100, false, 'p2');
+    let playerStats = { health: 100, damage: 15, attackCooldown: 60, speed: 7, name: playerData.name };
+    let opponentStats = { health: 100, damage: 15, attackCooldown: 60, speed: 7, name: opponentData.name };
     if (game.isSolo) {
         opponentStats = calculateAIStats(game.currentLevel);
-        opponentData.name = opponentStats.name;
+        const activePencilData = PENCIL_STYLES.find(p => p.id === game.activePencil);
+        playerStats.health += game.soloPlayerUpgrades.health * UPGRADE_BONUS_HEALTH;
+        playerStats.damage += game.soloPlayerUpgrades.damage * UPGRADE_BONUS_DAMAGE;
+        playerStats.attackCooldown -= game.soloPlayerUpgrades.cooldown * UPGRADE_BONUS_COOLDOWN;
+        if (activePencilData) {
+            playerStats.health += activePencilData.healthBonus || 0;
+            playerStats.damage += activePencilData.damageBonus || 0;
+            playerStats.attackCooldown -= activePencilData.cooldownBonus || 0;
+        }
+        if (game.soloBonusActive === 'starting_shield' && game.soloBonusRoundsLeft > 0) {
+            playerStats.health *= 1.30;
+        }
+        playerStats.attackCooldown = Math.max(10, playerStats.attackCooldown);
     }
-
-
-    const p1Pos = { x: 100, y: 0 };
-    const p2Pos = { x: canvas.width - 150, y: 0 };
-
-    if (playerIsP1) {
-        player = new Fighter({ position: p1Pos, velocity: { x: 0, y: 0 }, color: '#c62828', isEnemy: false, stats: playerStats });
-        opponent = new Fighter({ position: p2Pos, velocity: { x: 0, y: 0 }, color: '#1565c0', isEnemy: true, stats: opponentStats });
-    } else {
-        player = new Fighter({ position: p2Pos, velocity: { x: 0, y: 0 }, color: '#1565c0', isEnemy: true, stats: playerStats });
-        opponent = new Fighter({ position: p1Pos, velocity: { x: 0, y: 0 }, color: '#c62828', isEnemy: false, stats: opponentStats });
-    }
-
-    player.attackBox.damage = playerStats.damage;
-    opponent.attackBox.damage = opponentStats.damage;
-    
-    player1NameDisplay.textContent = playerData.name;
-    player2NameDisplay.textContent = opponentData.name;
+    player.health = player.maxHealth = playerStats.health;
+    player.damage = playerStats.damage;
+    player.attackCooldown = playerStats.attackCooldown;
+    player.speed = playerStats.speed;
+    player.name = playerStats.name;
+    opponent.health = opponent.maxHealth = opponentStats.health;
+    opponent.damage = opponentStats.damage;
+    opponent.attackCooldown = opponentStats.attackCooldown;
+    opponent.speed = opponentStats.speed;
+    opponent.name = opponentStats.name;
+    player1Name.textContent = player.name;
+    player2Name.textContent = opponent.name;
+    updateHealthBars();
 }
-
-function displayWaitingScreen(message, pin, role) {
-    hostGameForm.style.display = 'none';
-    joinGameForm.style.display = 'none';
-    publicGameSelectScreen.style.display = 'none';
-    waitingScreen.style.display = 'block';
-    nextRoundButtonContainer.style.display = 'none';
-    
-    document.getElementById('waitingMessage').textContent = `${message}`;
-    gamePinDisplay.textContent = pin;
-    playersJoined.textContent = `${role}. Wachten op tegenstander...`;
-    messageBox.style.display = 'flex';
-}
-
-function animate(currentTime) {
-    gameLoopId = requestAnimationFrame(animate);
-
-    ctx.fillStyle = '#e0f7fa';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#6d4c41';
-    ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
-
-    player.update(ctx, canvas);
-    opponent.update(ctx, canvas);
-
-    player.velocity.x = 0;
-    const playerSpeed = 8;
-    if (keys.a.pressed) player.velocity.x = -playerSpeed;
-    if (keys.d.pressed) player.velocity.x = playerSpeed;
-    
-    if (player.velocity.x !== 0) {
-        player.lastDirection = player.velocity.x > 0 ? 1 : -1;
+function applyDamage(target, damage) {
+    if (target.health <= 0) return;
+    if (target.freezeTimer > 0 && target.isFrozen === false && game.isSolo) {
+        damage = Math.round(damage * ICE_EXTRA_DAMAGE_MULTIPLIER);
+        target.freezeTimer = 0;
     }
-    
-    if (game.isMultiplayer) {
-        socket.emit('playerMovement', { 
-            x: player.position.x, 
-            y: player.position.y, 
-            vx: player.velocity.x, 
-            vy: player.velocity.y 
+    target.health -= damage;
+    target.isBeingHit = true;
+    if (target.health < 0) target.health = 0;
+    updateHealthBars();
+    if (target.health === 0) {
+        if (target === opponent) endMatch('OpponentDied');
+        if (target === player) endMatch('PlayerDied');
+    }
+    setTimeout(() => target.isBeingHit = false, 100);
+}
+function startSpecialAttack(attacker, pencil) {
+    if (!game.isSolo) return;
+    if (pencil.specialAttack === 'freeze_shot') {
+        activeProjectiles.push({
+            id: 'ice_proj',
+            x: attacker.x + attacker.width / 2,
+            y: attacker.y + attacker.height / 2,
+            width: 15,
+            height: 15,
+            speed: 15,
+            damage: 10,
+            color: pencil.drawColor,
+            isFlipped: attacker.isFlipped,
+            type: 'ice'
+        });
+    } else if (pencil.specialAttack === 'beam_of_light') {
+        activeProjectiles.push({
+            id: 'gold_beam',
+            x: attacker.x + attacker.width / 2,
+            y: attacker.y + attacker.height / 2,
+            width: 500,
+            height: 25,
+            speed: 0,
+            damage: 50,
+            color: pencil.drawColor,
+            lifespan: 15,
+            isFlipped: attacker.isFlipped,
+            type: 'beam'
         });
     }
-
-    if (game.isSolo) {
-        const aiPlayer = opponent;
-        const humanPlayer = player;
-        enemyAI(aiPlayer, humanPlayer); 
+}
+function handleInput() {
+    player.vx = 0;
+    if (keys[KEY_CODES.LEFT]) {
+        player.vx = -player.speed;
+        player.isFlipped = true;
     }
-
-    if (player.isAttacking && player.currentCooldown > 0) {
-        if (rectangularCollision({ rectangle1: player, rectangle2: opponent })) {
-            opponent.health -= player.attackBox.damage;
-            player.isAttacking = false;
+    if (keys[KEY_CODES.RIGHT]) {
+        player.vx = player.speed;
+        player.isFlipped = false;
+    }
+    if (keys[KEY_CODES.UP] && player.isOnGround) {
+        player.vy = -player.jumpForce;
+        player.isOnGround = false;
+    }
+    if (keys[KEY_CODES.ATTACK] && player.currentCooldown <= 0) {
+        player.isAttacking = true;
+        player.currentCooldown = player.attackCooldown;
+        if (game.isSolo) {
+             if (checkCollision(player, opponent)) {
+                 applyDamage(opponent, player.damage);
+             }
         }
     }
-    if (opponent.isAttacking && opponent.currentCooldown > 0) {
-        if (rectangularCollision({ rectangle1: opponent, rectangle2: player })) {
-            player.health -= opponent.attackBox.damage;
-            opponent.isAttacking = false;
+    if (keys[KEY_CODES.SPECIAL] && game.isSolo) {
+        const activePencilData = PENCIL_STYLES.find(p => p.id === game.activePencil);
+        if (activePencilData && activePencilData.specialAttack && player.specialCooldownTimer <= 0) {
+            startSpecialAttack(player, activePencilData);
+            player.specialCooldownTimer = activePencilData.specialCooldown;
         }
-    }
-
-    updateHealthBar(player, playerHealthBar);
-    updateHealthBar(opponent, enemyHealthBar);
-
-    if (player.health <= 0 || opponent.health <= 0) {
-        endMatch(player.health <= 0 ? 'PlayerDied' : 'OpponentDied');
     }
 }
-
-function handleTimer() {
+function updateFighter(fighter, opponent) {
+    fighter.vy += fighter.gravity;
+    fighter.y += fighter.vy;
+    fighter.x += fighter.vx;
+    if (fighter.y + fighter.height >= canvas.height) {
+        fighter.y = canvas.height - fighter.height;
+        fighter.vy = 0;
+        fighter.isOnGround = true;
+    }
+    if (fighter.currentCooldown > 0) {
+        fighter.currentCooldown--;
+        if (fighter.currentCooldown === 0) {
+            fighter.isAttacking = false;
+        }
+    }
+    if (fighter === opponent && game.isSolo) {
+        if (fighter.isFrozen) {
+            fighter.vx = 0;
+            fighter.vy = 0;
+            return;
+        }
+        fighter.vx = (player.x < fighter.x) ? -fighter.speed : fighter.speed;
+        fighter.isFlipped = (player.x < fighter.x);
+        if (checkCollision(fighter, player) && fighter.currentCooldown <= 0) {
+            fighter.isAttacking = true;
+            fighter.currentCooldown = fighter.attackCooldown;
+            applyDamage(player, fighter.damage);
+        }
+    }
+}
+function gameLoop(timestamp) {
     if (!game.isRunning) return;
-    game.timer--;
-    timerDisplay.textContent = `${game.timer}s`;
-    
-    if (game.timer <= 0) {
-        endMatch('Tijd op');
-    }
-}
-
-function startMatch() {
-    game.isRunning = true;
-    messageBox.style.display = 'none';
-    gameElements.classList.remove('hidden'); 
-    
-    game.timer = INITIAL_TIME;
-    player.health = player.maxHealth;
-    opponent.health = opponent.maxHealth;
-
-    clearInterval(timerIntervalId);
-    timerIntervalId = setInterval(handleTimer, 1000);
-    
+    handleInput();
+    updateFighter(player, opponent);
+    updateFighter(opponent, player);
     if (game.isSolo) {
-        scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel})`;
-    } else {
-        scoreDisplay.textContent = `Score: ${game.score.player1}-${game.score.player2} / ${game.totalMatches}`;
+        activeProjectiles = activeProjectiles.filter(proj => {
+            if (proj.speed > 0) {
+                proj.x += proj.isFlipped ? -proj.speed : proj.speed;
+            }
+            if (proj.id === 'gold_beam') {
+                proj.lifespan--;
+                if (proj.lifespan <= 0) return false;
+            }
+            if (checkCollision(proj, opponent)) {
+                applyDamage(opponent, proj.damage);
+                if (proj.id === 'ice_proj') {
+                    opponent.isFrozen = true;
+                    opponent.freezeTimer = ICE_FREEZE_DURATION;
+                    return false;
+                } else if (proj.id === 'gold_beam') {
+                    return false;
+                }
+                return false;
+            }
+            return proj.x > 0 && proj.x < canvas.width;
+        });
+        if (player.specialCooldownTimer > 0) player.specialCooldownTimer--;
+        if (opponent.specialCooldownTimer > 0) opponent.specialCooldownTimer--;
+        if (opponent.isFrozen) {
+            opponent.freezeTimer--;
+            if (opponent.freezeTimer <= 0) {
+                opponent.isFrozen = false;
+            }
+        }
     }
-    
-    animate(0); 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawFighter(ctx, player);
+    drawFighter(ctx, opponent);
+    drawProjectiles(ctx);
+    gameLoopId = requestAnimationFrame(gameLoop);
 }
-
+function drawProjectiles(ctx) {
+    activeProjectiles.forEach(proj => {
+        ctx.fillStyle = proj.color;
+        if (proj.id === 'gold_beam') {
+            let startX = proj.isFlipped ? proj.x - proj.width : proj.x;
+            ctx.globalAlpha = proj.lifespan / 15;
+            ctx.fillRect(startX, proj.y, proj.width, proj.height);
+            ctx.globalAlpha = 1.0;
+        } else {
+            ctx.fillRect(proj.x, proj.y, proj.width, proj.height);
+        }
+    });
+}
+function drawFighter(ctx, fighter) {
+    let spriteColor = fighter.playerSide === 'p1' ? 'red' : 'blue';
+    if (fighter === player && game.isSolo) {
+        const activePencilData = PENCIL_STYLES.find(p => p.id === game.activePencil);
+        if (activePencilData) {
+            spriteColor = activePencilData.drawColor;
+        }
+    }
+    if (fighter === opponent && fighter.isFrozen) {
+        spriteColor = '#ADD8E6';
+        ctx.globalAlpha = 0.8;
+    }
+    ctx.fillStyle = spriteColor;
+    ctx.fillRect(fighter.x, fighter.y, fighter.width, fighter.height);
+    ctx.globalAlpha = 1.0;
+    if (fighter === player && game.isSolo && game.activePencil === 'ruby') {
+        ctx.fillStyle = 'orange';
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath();
+        ctx.arc(fighter.x + fighter.width / 2, fighter.y + fighter.height / 2, fighter.width * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+    }
+    if (fighter.specialCooldownTimer > 0) {
+        const cdMax = PENCIL_STYLES.find(p => p.id === game.activePencil)?.specialCooldown || PENCIL_SPECIAL_COOLDOWN;
+        const cdPercent = fighter.specialCooldownTimer / cdMax;
+        ctx.fillStyle = `rgba(0, 0, 0, 0.7)`;
+        ctx.fillRect(fighter.x, fighter.y - 15, fighter.width, 10);
+        ctx.fillStyle = `rgba(255, 255, 255, 1)`;
+        ctx.fillRect(fighter.x, fighter.y - 15, fighter.width * (1 - cdPercent), 10);
+    }
+}
+function startMatch() {
+    messageBox.style.display = 'none';
+    gameElements.style.display = 'block';
+    game.isRunning = true;
+    activeProjectiles = [];
+    game.timer = INITIAL_TIME;
+    timerDisplay.textContent = `${game.timer}s`;
+    clearInterval(timerIntervalId);
+    timerIntervalId = setInterval(() => {
+        game.timer--;
+        timerDisplay.textContent = `${game.timer}s`;
+        if (game.timer <= 0) {
+            clearInterval(timerIntervalId);
+            endMatch('Tijd op');
+        }
+    }, 1000);
+    gameLoopId = requestAnimationFrame(gameLoop);
+}
 function endMatch(reason) {
     cancelAnimationFrame(gameLoopId);
     game.isRunning = false;
     clearInterval(timerIntervalId);
-    
     let titleText, subtitleText;
-    let mySide = game.playerSide;
     let restartMatch = false;
     nextRoundButtonContainer.style.display = 'none';
-
+    let goldEarned = 0;
     if (reason === 'Tijd op' || (player.health <= 0 && opponent.health <= 0)) {
         titleText = 'Gelijkspel!';
         subtitleText = 'Tijd op of dubbele K.O.';
-        if (game.isMultiplayer) socket.emit('matchEnded', 'draw', game.matchID);
+        if (game.isSolo) goldEarned = calculateGold(MIN_GOLD_PER_DRAW, MAX_GOLD_PER_DRAW, game.currentLevel);
         restartMatch = true;
-    } else if (reason === 'PlayerDied' || (reason === 'Tijd op' && player.health <= opponent.health)) {
-        game.score[mySide === 'p1' ? 'player2' : 'player1']++;
+    } else if (reason === 'PlayerDied') {
+        game.score.player2++;
         titleText = 'Je bent verslagen';
         subtitleText = `${opponent.name} wint deze ronde.`;
-
-    } else if (reason === 'OpponentDied' || (reason === 'Tijd op' && player.health > opponent.health)) {
-        game.score[mySide === 'p1' ? 'player1' : 'player2']++;
+    } else if (reason === 'OpponentDied') {
+        game.score.player1++;
         titleText = 'Overwinning!';
         subtitleText = `Je hebt ${opponent.name} verslagen.`;
+        if (game.isSolo) goldEarned = calculateGold(MIN_GOLD_PER_WIN, MAX_GOLD_PER_WIN, game.currentLevel);
         restartMatch = true;
-    } 
-    
+    }
     if (game.isSolo) {
-        if (reason === 'PlayerDied' || (reason === 'Tijd op' && player.health <= opponent.health)) {
-            titleText = `Game Over! (Lvl ${game.currentLevel})`;
-            subtitleText = 'Je bent verslagen. Terug naar menu in 5 seconden.';
-            restartMatch = false;
-            
-        } else if (restartMatch) {
-            if (game.score.player1 >= game.matchesNeededForNextLevel) {
-                game.currentLevel++;
-                game.matchesNeededForNextLevel += 1;
-                subtitleText = `De tegenstander is nu sterker (Lvl ${game.currentLevel}). Nieuwe match in 5 seconden...`;
+        if (goldEarned > 0) {
+            game.gold += goldEarned;
+            saveGameData();
+            subtitleText += `<br>Je hebt **${goldEarned} goud** verdiend!`;
+        }
+        if (restartMatch && game.soloBonusActive && game.soloBonusRoundsLeft > 0) {
+            game.soloBonusRoundsLeft--;
+            if (game.soloBonusRoundsLeft > 0) {
+                subtitleText += `<br>**(Tijdelijke Bonus Actief: ${game.soloBonusRoundsLeft} ronde(s) resterend)**`;
             } else {
-                subtitleText = `Nog ${game.matchesNeededForNextLevel - game.score.player1} overwinning(en) tot Level ${game.currentLevel + 1}. Nieuwe match in 5 seconden...`;
+                game.soloBonusActive = null;
+                subtitleText += `<br>**(Tijdelijke Bonus: Verlopen!)**`;
+            }
+        }
+        if (game.score.player1 < game.matchesNeededForNextLevel && !restartMatch) {
+            titleText = 'Game Over!';
+            subtitleText += '<br>Je bent te zwak. Keer terug naar het menu.';
+            setTimeout(() => showStartScreen(), 5000);
+            return;
+        }
+        if (restartMatch) {
+            game.soloWinCount++;
+            if (game.soloWinCount % game.matchesNeededForNextLevel === 0) {
+                showUpgradeShop(titleText, subtitleText, true);
+                return;
+            } else {
+                subtitleText += `<br>Nog ${game.matchesNeededForNextLevel - game.score.player1} overwinning(en) tot Level ${game.currentLevel + 1} en een upgrade. Nieuwe match in 5 seconden...`;
+                setTimeout(() => {
+                    const newAiStats = calculateAIStats(game.currentLevel);
+                    initializeFighters({name: game.username}, {name: newAiStats.name}, true);
+                    startMatch();
+                }, 5000);
             }
         }
     }
-    else if (reason === 'OpponentDisconnected') {
-        titleText = 'Tegenstander Verlaten';
-        subtitleText = 'De tegenstander heeft de verbinding verbroken. Spel voorbij. Terug naar menu in 5 seconden.';
-        restartMatch = false;
-    } else if (reason === 'SeriesEnded' || game.score.player1 >= Math.ceil(game.totalMatches / 2) || game.score.player2 >= Math.ceil(game.totalMatches / 2)) {
-           const winnerName = game.score.player1 > game.score.player2 ? player1NameDisplay.textContent : player2NameDisplay.textContent;
-           titleText = 'Einde Spel Serie!';
-           subtitleText = `${winnerName} heeft de serie gewonnen met ${game.score.player1}-${game.score.player2}. Terug naar menu in 5 seconden.`;
-           restartMatch = false;
-    }
-    
     if (game.isSolo) {
-        scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel})`;
+        scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}`;
     } else {
         scoreDisplay.textContent = `Score: ${game.score.player1}-${game.score.player2}`;
     }
-
     document.querySelector('.message-text').textContent = titleText;
-    messageSubtitle.textContent = subtitleText;
+    messageSubtitle.innerHTML = subtitleText;
     messageBox.style.display = 'flex';
-    
-    if (game.isSolo) {
-        if (titleText.includes('Game Over!')) {
-            setTimeout(goToIndexHtml, 5000); 
-        } else if (restartMatch) {
-            setTimeout(() => {
-                const newAiStats = calculateAIStats(game.currentLevel);
-                initializeFighters(
-                    {name: game.username}, 
-                    {name: newAiStats.name}, 
-                    true
-                );
-                startMatch();
-            }, 5000);
-        }
-    } else if (game.isMultiplayer && restartMatch) {
-        messageSubtitle.textContent += ' Wachten op Host om volgende match te starten...';
-        if (game.isHost) {
-            nextRoundButtonContainer.style.display = 'block';
-        }
-    } else if (game.isMultiplayer && !restartMatch) {
-        setTimeout(goToIndexHtml, 5000);
-    } else if (!game.isMultiplayer && !game.isSolo) {
-        setTimeout(showStartScreen, 3000);
-    }
-    
-    if (!game.isMultiplayer && !game.isSolo && !restartMatch) {
-        gameElements.classList.add('hidden'); 
-    }
 }
-
-
-usernameInput.addEventListener('input', showStartScreen);
-
-window.addEventListener('keydown', e => {
-    if (!game.isRunning) return;
-    switch (e.key.toLowerCase()) {
-        case 'a': keys.a.pressed = true; break;
-        case 'd': keys.d.pressed = true; break;
-        case 'w': if (player.velocity.y === 0) player.velocity.y = -20; break;
-        case 'j':
-        case 'k':
-            player.attack();
-            if (game.isMultiplayer) socket.emit('playerAttack');
-            break;
-    }
-});
-
-window.addEventListener('keyup', e => {
-    if (!game.isRunning) return;
-    switch (e.key.toLowerCase()) {
-        case 'a': keys.a.pressed = false; break;
-        case 'd': keys.d.pressed = false; break;
-    }
-});
-
-soloPlayButton.addEventListener('click', () => {
-    if (!usernameInput.value.trim()) { alert("Voer een gebruikersnaam in."); return; }
-    
-    game.username = usernameInput.value.trim();
-    game.isMultiplayer = false;
-    game.isSolo = true; 
-    game.totalMatches = 999; 
-    game.currentLevel = 1;
-    game.score = { player1: 0, player2: 0 }; 
-    
-    const aiStatsLvl1 = calculateAIStats(1);
-    initializeFighters({name: game.username}, {name: aiStatsLvl1.name}, true);
-    
-    startMatch();
-});
-
-showHostButton.addEventListener('click', () => {
-    playOptionsDiv.style.display = 'none';
-    hostGameForm.style.display = 'block';
-});
-
-showJoinButton.addEventListener('click', () => {
-    playOptionsDiv.style.display = 'none';
-    joinGameForm.style.display = 'block';
-});
-
-showPublicGamesButton.addEventListener('click', () => {
-    playOptionsDiv.style.display = 'none';
-    publicGameSelectScreen.style.display = 'block';
-    socket.emit('requestPublicGames');
-});
-
-refreshPublicGamesButton.addEventListener('click', () => {
-    publicGamesListDisplay.innerHTML = '<p class="text-gray-500">Laden...</p>';
-    socket.emit('requestPublicGames');
-});
-
-hostConfirmButton.addEventListener('click', () => {
-    if (!usernameInput.value.trim()) { hostStatus.textContent = 'Voer gebruikersnaam in.'; return; }
-    const gameName = gameNameInput.value.trim() || `${usernameInput.value.trim()}'s Game`;
-    const matches = parseInt(matchCountInput.value);
-    const isPublic = publicCheckbox.checked;
-
-    if (matches < 1 || matches > 10) { hostStatus.textContent = 'Matches moeten tussen 1 en 10 zijn.'; return; }
-
-    game.username = usernameInput.value.trim();
-    game.totalMatches = matches;
-    game.isMultiplayer = true;
-    game.isSolo = false;
-
-    socket.emit('createGame', { hostName: game.username, gameName, totalMatches: matches, isPublic });
-    hostGameForm.style.display = 'none';
-});
-
-joinConfirmButton.addEventListener('click', () => {
-    const pin = pinInput.value.trim().toUpperCase();
-    if (!usernameInput.value.trim()) { alert("Voer een gebruikersnaam in."); return; }
-    if (pin.length !== 6) { joinStatus.textContent = 'PIN moet 6 tekens zijn.'; return; }
-    joinGame(pin);
-});
-
-function joinGame(pin) {
-    game.username = usernameInput.value.trim();
-    game.isMultiplayer = true;
-    game.isSolo = false;
-    socket.emit('joinGame', { pin, playerName: game.username });
-    displayWaitingScreen(`Verbinden met spel PIN:`, pin, 'Speler');
-    joinGameForm.style.display = 'none';
+function showUpgradeShop(title, subtitle, isLevelUp) {
+    messageBox.style.display = 'flex';
+    document.querySelector('.message-text').textContent = title;
+    messageSubtitle.innerHTML = `${subtitle}<br><br>Je hebt **${game.gold}** goud. **Koop permanente upgrades en potloden!**`;
+    const createShopButtons = () => {
+        nextRoundButtonContainer.innerHTML = '';
+        nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-4 mb-2 text-gray-700">Permanente Upgrades:</h4>');
+        const healthLvl = game.soloPlayerUpgrades.health;
+        const damageLvl = game.soloPlayerUpgrades.damage;
+        const cooldownLvl = game.soloPlayerUpgrades.cooldown;
+        const healthCost = calculateCost(BASE_UPGRADE_COST_HEALTH, healthLvl);
+        const damageCost = calculateCost(BASE_UPGRADE_COST_DAMAGE, damageLvl);
+        const cooldownCost = calculateCost(BASE_UPGRADE_COST_COOLDOWN, cooldownLvl);
+        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyHealth" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= healthCost ? '#28a745' : '#6c757d'};">
+            ❤️ Max HP (+${UPGRADE_BONUS_HEALTH} HP) - Niveau ${healthLvl} | Kosten: ${healthCost} Goud
+        </button>`);
+        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyDamage" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= damageCost ? '#28a745' : '#6c757d'};">
+            ⚔️ Schade (+${UPGRADE_BONUS_DAMAGE} DMG) - Niveau ${damageLvl} | Kosten: ${damageCost} Goud
+        </button>`);
+        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyCooldown" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= cooldownCost ? '#28a745' : '#6c757d'};">
+            💨 Aanvalssnelheid (-${UPGRADE_BONUS_COOLDOWN} Ticks CD) - Niveau ${cooldownLvl} | Kosten: ${cooldownCost} Goud
+        </button>`);
+        nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-indigo-700">🎨 Potlood Wapens:</h4>');
+        PENCIL_STYLES.forEach(pencil => {
+            const isBought = game.boughtPencils.includes(pencil.id);
+            const isActive = game.activePencil === pencil.id;
+            const isAffordable = game.gold >= pencil.cost;
+            let bonusText = '';
+            if (pencil.damageBonus) bonusText += `+${pencil.damageBonus} DMG`;
+            if (pencil.healthBonus) bonusText += (bonusText ? ', ' : '') + `+${pencil.healthBonus} HP`;
+            if (pencil.cooldownBonus) bonusText += (bonusText ? ', ' : '') + `${pencil.cooldownBonus} CD`;
+            if (pencil.specialAttack) bonusText += (bonusText ? ', ' : '') + `ACTIEVE SKILL`;
+            let buttonText;
+            let buttonAction;
+            let buttonColor;
+            if (isActive) {
+                buttonText = '✅ ACTIEF';
+                buttonColor = '#00796b';
+                buttonAction = 'disabled';
+            } else if (isBought) {
+                buttonText = 'SELECTEREN';
+                buttonColor = '#4caf50';
+                buttonAction = '';
+            } else {
+                buttonText = `KOPEN (${pencil.cost} Goud)`;
+                buttonColor = isAffordable ? '#3f51b5' : '#6c757d';
+                buttonAction = isAffordable ? '' : 'disabled';
+            }
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `
+                <button id="pencil_${pencil.id}" class="w-full mb-2 p-3 text-sm text-white rounded flex justify-between items-center" style="background-color: ${buttonColor};" ${buttonAction}>
+                    <div class="text-left">
+                        <span class="font-bold">${pencil.name}</span>
+                        <p class="text-xs italic">${pencil.desc} <span class="font-bold">(${bonusText || 'Geen Bonus'})</span></p>
+                    </div>
+                    <div style="width: 25px; height: 25px; background-color: ${pencil.drawColor}; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px ${pencil.drawColor};"></div>
+                </button>
+            `);
+        });
+        nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-yellow-700">✨ Wekelijkse Speciale Items:</h4>');
+        WEEKLY_SHOP_ITEMS.forEach(item => {
+            const isAffordable = game.gold >= item.cost;
+            const isBought = item.bought;
+            let buttonText = isBought ? 'UITVERKOCHT' : `Kosten: ${item.cost} Goud`;
+            const currentlyActive = game.soloBonusActive && game.soloBonusRoundsLeft > 0;
+            let buttonColor = isBought ? '#e53e3e' : (isAffordable ? '#f6ad55' : '#6c757d');
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `
+                <div class="p-3 mb-2 bg-gray-100 rounded border border-gray-300 text-left">
+                    <p class="font-bold text-lg">${item.name}</p>
+                    <p class="text-sm text-gray-600">${item.desc}</p>
+                    <button id="buyWeekly_${item.id}" class="weekly-btn w-full mt-2 p-2 text-sm text-white rounded" style="background-color: ${buttonColor};" ${isBought || !isAffordable || currentlyActive ? 'disabled' : ''}>
+                        ${currentlyActive ? `BONUS ACTIEF (${game.soloBonusRoundsLeft})` : buttonText}
+                    </button>
+                </div>
+            `);
+        });
+        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="continueSolo" class="w-full mt-4 p-3 text-lg" style="background-color: #00796b;">
+            Volgende Gevecht (Lvl ${game.currentLevel})
+        </button>`);
+        document.getElementById('buyHealth').addEventListener('click', () => buyUpgrade('health', healthCost, healthLvl));
+        document.getElementById('buyDamage').addEventListener('click', () => buyUpgrade('damage', damageCost, damageLvl));
+        document.getElementById('buyCooldown').addEventListener('click', () => buyUpgrade('cooldown', cooldownCost, cooldownLvl));
+        PENCIL_STYLES.forEach(pencil => {
+            const button = document.getElementById(`pencil_${pencil.id}`);
+            if (button && !button.disabled) {
+                button.addEventListener('click', () => handlePencilAction(pencil));
+            }
+        });
+        WEEKLY_SHOP_ITEMS.forEach(item => {
+            const button = document.getElementById(`buyWeekly_${item.id}`);
+            if (button && !item.bought && game.gold >= item.cost) {
+                button.addEventListener('click', () => buyWeeklyItem(item));
+            }
+        });
+        document.getElementById('continueSolo').addEventListener('click', startNextSoloMatch);
+        scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}`;
+    };
+    const buyUpgrade = (type, cost, currentLevel) => {
+        if (game.gold >= cost) {
+            game.gold -= cost;
+            game.soloPlayerUpgrades[type]++;
+            saveGameData();
+            if (isLevelUp) {
+                game.currentLevel++;
+                game.matchesNeededForNextLevel++;
+                game.score.player1 = 0;
+            }
+            messageSubtitle.innerHTML = `**${type.toUpperCase()} geüpgraded naar niveau ${currentLevel + 1}!** Je hebt nu ${game.gold} goud. Koop meer of ga door.`;
+        } else {
+            messageSubtitle.innerHTML = `**Niet genoeg goud!** Je hebt ${game.gold} goud, maar je hebt ${cost} nodig.`;
+        }
+        createShopButtons();
+    };
+    const buyWeeklyItem = (item) => {
+        if (game.gold >= item.cost) {
+            game.gold -= item.cost;
+            item.bought = true;
+            game.soloBonusActive = item.id;
+            game.soloBonusRoundsLeft = WEEKLY_BONUS_DURATION_ROUNDS;
+            saveGameData();
+            messageSubtitle.innerHTML = `**${item.name} gekocht!** ${item.desc} Je hebt nu ${game.gold} goud.`;
+        } else {
+            messageSubtitle.innerHTML = `**Niet genoeg goud!** Je hebt ${game.gold} goud, maar je hebt ${item.cost} nodig.`;
+        }
+        createShopButtons();
+    };
+    const handlePencilAction = (pencil) => {
+        const isBought = game.boughtPencils.includes(pencil.id);
+        if (!isBought) {
+            if (game.gold >= pencil.cost) {
+                game.gold -= pencil.cost;
+                game.boughtPencils.push(pencil.id);
+                game.activePencil = pencil.id;
+                saveGameData();
+                messageSubtitle.innerHTML = `**Potlood '${pencil.name}' gekocht en geactiveerd!** Je hebt nu ${game.gold} goud.`;
+            } else {
+                messageSubtitle.innerHTML = `**Niet genoeg goud!** Je hebt ${game.gold} goud, maar je hebt ${pencil.cost} nodig.`;
+            }
+        } else {
+            game.activePencil = pencil.id;
+            saveGameData();
+            messageSubtitle.innerHTML = `**Potlood '${pencil.name}' geactiveerd!**`;
+        }
+        createShopButtons();
+    };
+    const startNextSoloMatch = () => {
+        if (isLevelUp) {
+            game.currentLevel = game.currentLevel + 1;
+            game.matchesNeededForNextLevel = game.matchesNeededForNextLevel + 1;
+            game.score.player1 = 0;
+        }
+        const newAiStats = calculateAIStats(game.currentLevel);
+        initializeFighters(
+            {name: game.username},
+            {name: newAiStats.name},
+            true
+        );
+        startMatch();
+    };
+    nextRoundButtonContainer.style.display = 'block';
+    createShopButtons();
 }
-
-disconnectAndMenuButton.addEventListener('click', disconnectAndGoToMenu); 
-
-nextRoundButton.addEventListener('click', () => {
-    if (game.isHost && game.isMultiplayer && game.matchID) {
-        socket.emit('hostStartNextMatch', game.matchID);
-        nextRoundButtonContainer.style.display = 'none';
-        document.querySelector('.message-text').textContent = 'Match gestart!';
-        messageSubtitle.textContent = 'Verbinden...';
-    }
+function showStartScreen() {
+}
+document.addEventListener('DOMContentLoaded', () => {
+    loadGameData();
+    setCanvasSize();
 });
-
-document.addEventListener('DOMContentLoaded', showStartScreen);
