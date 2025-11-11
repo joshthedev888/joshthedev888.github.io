@@ -47,6 +47,7 @@ class Fighter extends Sprite {
         this.lineWidth = 3;
         this.stats = stats;
         this.name = stats.name;
+        this.lastDirection = 1; 
     }
 
     drawStickman(ctx) {
@@ -87,9 +88,18 @@ class Fighter extends Sprite {
             ctx.fillStyle = '#ffc107';
             ctx.strokeStyle = '#ffc107';
             ctx.lineWidth = 4;
-            const attackDirection = this.position.x < 375 ? 1 : -1;
-            const pencilStart = { x: x + (attackDirection * (armLength + 5)), y: armY };
-            const pencilEnd = { x: pencilStart.x + (attackDirection * 50), y: armY - 10 };
+            
+            const attackDirection = this.attackBox.position.x < x ? -1 : 1;
+            
+            const pencilOffsetX = attackDirection * (armLength + 5);
+            const pencilStart = { x: x + pencilOffsetX, y: armY };
+            
+            const pencilLength = 50;
+            const pencilTipOffset = 10;
+            const pencilEnd = { 
+                x: pencilStart.x + (attackDirection * pencilLength), 
+                y: armY - pencilTipOffset 
+            };
             
             ctx.beginPath();
             ctx.moveTo(pencilStart.x, pencilStart.y);
@@ -110,11 +120,12 @@ class Fighter extends Sprite {
         this.drawStickman(ctx);
         super.update(ctx, canvas);
         
-        const attackDirection = this.position.x < 375 ? 1 : -1;
+        const attackDirection = this.lastDirection;
+
         if (attackDirection === -1) { 
-             this.attackBox.position.x = this.position.x - this.attackBox.width + this.width / 2;
+            this.attackBox.position.x = this.position.x - this.attackBox.width + this.width / 2;
         } else { 
-             this.attackBox.position.x = this.position.x + this.width / 2;
+            this.attackBox.position.x = this.position.x + this.width / 2;
         }
         this.attackBox.position.y = this.position.y + 50;
 
@@ -177,6 +188,12 @@ function enemyAI(fighter, player) {
         fighter.velocity.x = distance < 0 ? -enemyStats.speed : enemyStats.speed;
     } else if (Math.abs(distance) > attackRange) {
         fighter.velocity.x = distance < 0 ? -enemyStats.speed * 0.7 : enemyStats.speed * 0.7;
+    }
+
+    if (fighter.velocity.x !== 0) {
+        fighter.lastDirection = fighter.velocity.x > 0 ? 1 : -1;
+    } else {
+        fighter.lastDirection = distance > 0 ? 1 : -1;
     }
 
     if (Math.random() < enemyStats.jumpChance && fighter.velocity.y === 0) {
@@ -485,6 +502,10 @@ function animate(currentTime) {
     if (keys.a.pressed) player.velocity.x = -playerSpeed;
     if (keys.d.pressed) player.velocity.x = playerSpeed;
     
+    if (player.velocity.x !== 0) {
+        player.lastDirection = player.velocity.x > 0 ? 1 : -1;
+    }
+    
     if (game.isMultiplayer) {
         socket.emit('playerMovement', { 
             x: player.position.x, 
@@ -591,7 +612,7 @@ function endMatch(reason) {
                 game.matchesNeededForNextLevel += 1;
                 subtitleText = `De tegenstander is nu sterker (Lvl ${game.currentLevel}). Nieuwe match in 5 seconden...`;
             } else {
-                 subtitleText = `Nog ${game.matchesNeededForNextLevel - game.score.player1} overwinning(en) tot Level ${game.currentLevel + 1}. Nieuwe match in 5 seconden...`;
+                subtitleText = `Nog ${game.matchesNeededForNextLevel - game.score.player1} overwinning(en) tot Level ${game.currentLevel + 1}. Nieuwe match in 5 seconden...`;
             }
         }
     }
