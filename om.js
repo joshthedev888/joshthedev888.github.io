@@ -501,7 +501,7 @@ function endMatch(reason) {
         subtitleText = `Je hebt ${opponent.name} verslagen.`;
         if (game.isSolo) goldEarned = calculateGold(MIN_GOLD_PER_WIN, MAX_GOLD_PER_WIN, game.currentLevel);
         restartMatch = true;
-    } else { // PlayerDied
+    } else {
         game.score.player2++;
         titleText = 'Je bent verslagen';
         subtitleText = `${opponent.name} wint deze ronde.`;
@@ -739,10 +739,6 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
             nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="continueSolo" class="w-full mt-4 p-3 text-lg" style="background-color: #00796b;">
                 Volgende Gevecht (Lvl ${game.currentLevel})
             </button>`);
-        } else if (!isLevelUp) {
-            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="backToMenuFromShop" class="w-full mt-4 p-3 text-lg" style="background-color: #9e9e9e;">
-                Terug naar Menu
-            </button>`);
         }
         
         document.getElementById('buyHealth').addEventListener('click', () => buyUpgrade('health', healthCost, healthLvl));
@@ -765,9 +761,6 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
         
         if (document.getElementById('continueSolo')) {
             document.getElementById('continueSolo').addEventListener('click', startNextSoloMatch);
-        }
-        if (document.getElementById('backToMenuFromShop')) {
-            document.getElementById('backToMenuFromShop').addEventListener('click', showStartScreen);
         }
 
         scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}`;
@@ -817,7 +810,7 @@ function showStartScreen() {
 
     if (showShopButton) {
         showShopButton.addEventListener('click', () => {
-            game.isSolo = false;
+            game.isSolo = true;
             showUpgradeShop('Welkom in de Winkel', 'Beheer je upgrades en koop nieuwe potlooden.', false);
         });
     }
