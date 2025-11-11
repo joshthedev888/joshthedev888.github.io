@@ -245,7 +245,6 @@ function initializeFighters(playerData, opponentData, playerIsP1) {
     opponent.health = opponent.maxHealth = opponentStats.health;
     opponent.damage = opponentStats.damage;
     opponent.attackCooldown = opponentStats.attackCooldown;
-    opponent.speed = opponentStats.speed;
     opponent.name = opponentStats.name;
     player1Name.textContent = player.name;
     player2Name.textContent = opponent.name;
@@ -492,15 +491,15 @@ function endMatch(reason) {
         if (goldEarned > 0) {
             game.gold += goldEarned;
             saveGameData();
-            subtitleText += `<br>Je hebt **${goldEarned} goud** verdiend!`;
+            subtitleText += `<br>Je hebt <strong>${goldEarned} goud</strong> verdiend!`;
         }
         if (restartMatch && game.soloBonusActive && game.soloBonusRoundsLeft > 0) {
             game.soloBonusRoundsLeft--;
             if (game.soloBonusRoundsLeft > 0) {
-                subtitleText += `<br>**(Tijdelijke Bonus Actief: ${game.soloBonusRoundsLeft} ronde(s) resterend)**`;
+                subtitleText += `<br><strong>(Tijdelijke Bonus Actief: ${game.soloBonusRoundsLeft} ronde(s) resterend)</strong>`;
             } else {
                 game.soloBonusActive = null;
-                subtitleText += `<br>**(Tijdelijke Bonus: Verlopen!)**`;
+                subtitleText += `<br><strong>(Tijdelijke Bonus: Verlopen!)</strong>`;
             }
         }
         if (game.score.player1 < game.matchesNeededForNextLevel && !restartMatch) {
@@ -512,6 +511,7 @@ function endMatch(reason) {
         if (restartMatch) {
             game.soloWinCount++;
             if (game.soloWinCount % game.matchesNeededForNextLevel === 0) {
+                document.getElementById('playOptions').style.display = 'flex';
                 showUpgradeShop(titleText, subtitleText, true);
                 return;
             } else {
@@ -534,11 +534,25 @@ function endMatch(reason) {
     messageBox.style.display = 'flex';
 }
 function showUpgradeShop(title, subtitle, isLevelUp) {
+    document.getElementById('playOptions').style.display = 'flex';
+    document.getElementById('usernameInput').style.display = 'block';
+    
+    document.getElementById('hostGameForm').style.display = 'none';
+    document.getElementById('joinGameForm').style.display = 'none';
+    document.getElementById('publicGameSelectScreen').style.display = 'none';
+    document.getElementById('waitingScreen').style.display = 'none';
+
+    document.getElementById('shopContent').style.display = 'block';
+    nextRoundButtonContainer.style.display = 'block';
+
     messageBox.style.display = 'flex';
     document.querySelector('.message-text').textContent = title;
-    messageSubtitle.innerHTML = `${subtitle}<br><br>Je hebt **${game.gold}** goud. **Koop permanente upgrades en potloden!**`;
+    
+    messageSubtitle.innerHTML = `${subtitle}<br><br>Je hebt <strong>${game.gold}</strong> goud. <strong>Koop permanente upgrades en potloden!</strong>`;
+
     const createShopButtons = () => {
         nextRoundButtonContainer.innerHTML = '';
+        
         nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-4 mb-2 text-gray-700">Permanente Upgrades:</h4>');
         const healthLvl = game.soloPlayerUpgrades.health;
         const damageLvl = game.soloPlayerUpgrades.damage;
@@ -546,6 +560,7 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
         const healthCost = calculateCost(BASE_UPGRADE_COST_HEALTH, healthLvl);
         const damageCost = calculateCost(BASE_UPGRADE_COST_DAMAGE, damageLvl);
         const cooldownCost = calculateCost(BASE_UPGRADE_COST_COOLDOWN, cooldownLvl);
+        
         nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyHealth" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= healthCost ? '#28a745' : '#6c757d'};">
             ❤️ Max HP (+${UPGRADE_BONUS_HEALTH} HP) - Niveau ${healthLvl} | Kosten: ${healthCost} Goud
         </button>`);
@@ -555,6 +570,7 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
         nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyCooldown" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= cooldownCost ? '#28a745' : '#6c757d'};">
             💨 Aanvalssnelheid (-${UPGRADE_BONUS_COOLDOWN} Ticks CD) - Niveau ${cooldownLvl} | Kosten: ${cooldownCost} Goud
         </button>`);
+        
         nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-indigo-700">🎨 Potlood Wapens:</h4>');
         PENCIL_STYLES.forEach(pencil => {
             const isBought = game.boughtPencils.includes(pencil.id);
@@ -591,6 +607,7 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                 </button>
             `);
         });
+        
         nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-yellow-700">✨ Wekelijkse Speciale Items:</h4>');
         WEEKLY_SHOP_ITEMS.forEach(item => {
             const isAffordable = game.gold >= item.cost;
@@ -608,37 +625,45 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                 </div>
             `);
         });
+        
         if (game.isSolo) {
             nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="continueSolo" class="w-full mt-4 p-3 text-lg" style="background-color: #00796b;">
                 Volgende Gevecht (Lvl ${game.currentLevel})
             </button>`);
-        } else {
+        } else if (!isLevelUp) {
             nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="backToMenuFromShop" class="w-full mt-4 p-3 text-lg" style="background-color: #9e9e9e;">
                 Terug naar Menu
             </button>`);
         }
+        
         document.getElementById('buyHealth').addEventListener('click', () => buyUpgrade('health', healthCost, healthLvl));
         document.getElementById('buyDamage').addEventListener('click', () => buyUpgrade('damage', damageCost, damageLvl));
         document.getElementById('buyCooldown').addEventListener('click', () => buyUpgrade('cooldown', cooldownCost, cooldownLvl));
+        
         PENCIL_STYLES.forEach(pencil => {
             const button = document.getElementById(`pencil_${pencil.id}`);
             if (button && !button.disabled) {
                 button.addEventListener('click', () => handlePencilAction(pencil));
             }
         });
+        
         WEEKLY_SHOP_ITEMS.forEach(item => {
             const button = document.getElementById(`buyWeekly_${item.id}`);
-            if (button && !item.bought && game.gold >= item.cost) {
+            if (button && !item.bought && game.gold >= item.cost && !game.soloBonusActive) {
                 button.addEventListener('click', () => buyWeeklyItem(item));
             }
         });
-        if (game.isSolo) {
+        
+        if (document.getElementById('continueSolo')) {
             document.getElementById('continueSolo').addEventListener('click', startNextSoloMatch);
-        } else {
+        }
+        if (document.getElementById('backToMenuFromShop')) {
             document.getElementById('backToMenuFromShop').addEventListener('click', showStartScreen);
         }
+
         scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}`;
     };
+
     const buyUpgrade = (type, cost, currentLevel) => {
         if (game.gold >= cost) {
             game.gold -= cost;
@@ -649,12 +674,13 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                 game.matchesNeededForNextLevel++;
                 game.score.player1 = 0;
             }
-            messageSubtitle.innerHTML = `**${type.toUpperCase()} geüpgraded naar niveau ${currentLevel + 1}!** Je hebt nu ${game.gold} goud. Koop meer of ga door.`;
+            messageSubtitle.innerHTML = `<strong>${type.toUpperCase()} geüpgraded naar niveau ${currentLevel + 1}!</strong> Je hebt nu ${game.gold} goud. Koop meer of ga door.`;
         } else {
-            messageSubtitle.innerHTML = `**Niet genoeg goud!** Je hebt ${game.gold} goud, maar je hebt ${cost} nodig.`;
+            messageSubtitle.innerHTML = `<strong>Niet genoeg goud!</strong> Je hebt ${game.gold} goud, maar je hebt ${cost} nodig.`;
         }
         createShopButtons();
     };
+
     const buyWeeklyItem = (item) => {
         if (game.gold >= item.cost) {
             game.gold -= item.cost;
@@ -662,12 +688,13 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
             game.soloBonusActive = item.id;
             game.soloBonusRoundsLeft = WEEKLY_BONUS_DURATION_ROUNDS;
             saveGameData();
-            messageSubtitle.innerHTML = `**${item.name} gekocht!** ${item.desc} Je hebt nu ${game.gold} goud.`;
+            messageSubtitle.innerHTML = `<strong>${item.name} gekocht!</strong> ${item.desc} Je hebt nu ${game.gold} goud.`;
         } else {
-            messageSubtitle.innerHTML = `**Niet genoeg goud!** Je hebt ${game.gold} goud, maar je hebt ${item.cost} nodig.`;
+            messageSubtitle.innerHTML = `<strong>Niet genoeg goud!</strong> Je hebt ${game.gold} goud, maar je hebt ${item.cost} nodig.`;
         }
         createShopButtons();
     };
+
     const handlePencilAction = (pencil) => {
         const isBought = game.boughtPencils.includes(pencil.id);
         if (!isBought) {
@@ -676,17 +703,18 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                 game.boughtPencils.push(pencil.id);
                 game.activePencil = pencil.id;
                 saveGameData();
-                messageSubtitle.innerHTML = `**Potlood '${pencil.name}' gekocht en geactiveerd!** Je hebt nu ${game.gold} goud.`;
+                messageSubtitle.innerHTML = `<strong>Potlood '${pencil.name}' gekocht en geactiveerd!</strong> Je hebt nu ${game.gold} goud.`;
             } else {
-                messageSubtitle.innerHTML = `**Niet genoeg goud!** Je hebt ${game.gold} goud, maar je hebt ${pencil.cost} nodig.`;
+                messageSubtitle.innerHTML = `<strong>Niet genoeg goud!</strong> Je hebt ${game.gold} goud, maar je hebt ${pencil.cost} nodig.`;
             }
         } else {
             game.activePencil = pencil.id;
             saveGameData();
-            messageSubtitle.innerHTML = `**Potlood '${pencil.name}' geactiveerd!**`;
+            messageSubtitle.innerHTML = `<strong>Potlood '${pencil.name}' geactiveerd!</strong>`;
         }
         createShopButtons();
     };
+
     const startNextSoloMatch = () => {
         if (isLevelUp) {
             game.currentLevel = game.currentLevel + 1;
@@ -701,21 +729,25 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
         );
         startMatch();
     };
-    nextRoundButtonContainer.style.display = 'block';
+
     createShopButtons();
 }
 function showStartScreen() {
     gameElements.style.display = 'none';
     messageBox.style.display = 'flex';
-    document.querySelector('.message-text').textContent = 'Om Multiplayer';
-    messageSubtitle.innerHTML = 'Voer je naam in om te starten';
-    document.getElementById('usernameInput').style.display = 'block';
-    document.getElementById('shopContent').style.display = 'none';
-    document.getElementById('playOptions').style.display = 'none';
+    
+    document.getElementById('shopContent').style.display = 'none'; 
     document.getElementById('hostGameForm').style.display = 'none';
     document.getElementById('joinGameForm').style.display = 'none';
     document.getElementById('publicGameSelectScreen').style.display = 'none';
     document.getElementById('waitingScreen').style.display = 'none';
+    nextRoundButtonContainer.style.display = 'none';
+
+    document.querySelector('.message-text').textContent = 'Om Multiplayer';
+    messageSubtitle.innerHTML = 'Voer je naam in om te starten';
+    document.getElementById('usernameInput').style.display = 'block';
+    document.getElementById('playOptions').style.display = 'none';
+    document.getElementById('nameStatus').style.display = 'none';
     
     document.getElementById('usernameInput').addEventListener('input', (e) => {
         if (e.target.value.trim().length > 2) {
@@ -726,14 +758,7 @@ function showStartScreen() {
             document.getElementById('playOptions').style.display = 'none';
         }
     });
-
-    if (showShopButton) {
-        showShopButton.addEventListener('click', () => {
-            game.isSolo = false;
-            showUpgradeShop('Welkom in de Winkel', 'Beheer je upgrades en koop nieuwe potloden.', false);
-        });
-    }
-
+    
     document.getElementById('soloPlayButton').addEventListener('click', () => {
         game.isSolo = true;
         game.isMultiplayer = false;
@@ -746,6 +771,13 @@ function showStartScreen() {
         );
         startMatch();
     });
+
+    if (showShopButton) {
+        showShopButton.addEventListener('click', () => {
+            game.isSolo = false;
+            showUpgradeShop('Welkom in de Winkel', 'Beheer je upgrades en koop nieuwe potlooden.', false);
+        });
+    }
 }
 document.addEventListener('DOMContentLoaded', () => {
     loadGameData();
