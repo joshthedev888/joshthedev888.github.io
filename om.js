@@ -710,6 +710,7 @@ function showStartScreen() {
     document.querySelector('.message-text').textContent = 'Om Multiplayer';
     messageSubtitle.innerHTML = 'Voer je naam in om te starten';
     document.getElementById('usernameInput').style.display = 'block';
+    document.getElementById('shopContent').style.display = 'none';
     document.getElementById('playOptions').style.display = 'none';
     document.getElementById('hostGameForm').style.display = 'none';
     document.getElementById('joinGameForm').style.display = 'none';
