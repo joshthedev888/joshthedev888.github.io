@@ -12,22 +12,6 @@ const BASE_UPGRADE_COST_DAMAGE = 150;
 const BASE_UPGRADE_COST_COOLDOWN = 200;
 const COST_MULTIPLIER = 1.4;
 const WEEKLY_BONUS_DURATION_ROUNDS = 5;
-const WEEKLY_SHOP_ITEMS = [
-    {
-        id: 'gold_boost',
-        name: 'Goud Boost',
-        desc: `Verdien 2x zoveel goud voor de volgende ${WEEKLY_BONUS_DURATION_ROUNDS} rondes.`,
-        cost: 500,
-        bought: false
-    },
-    {
-        id: 'starting_shield',
-        name: 'Start Schild',
-        desc: `Krijg een tijdelijk schild (30% HP boost) in de volgende ronde.`,
-        cost: 350,
-        bought: false
-    },
-];
 const PENCIL_SPECIAL_COOLDOWN = 600;
 const ICE_FREEZE_DURATION = 60;
 const ICE_EXTRA_DAMAGE_MULTIPLIER = 1.5;
@@ -121,6 +105,20 @@ let game = {
     soloBonusRoundsLeft: 0,
     soloBonusActive: null,
 };
+const WEEKLY_SHOP_ITEMS = [
+    {
+        id: 'gold_boost',
+        name: 'Goud Boost',
+        desc: `Verdien 2x zoveel goud voor de volgende ${WEEKLY_BONUS_DURATION_ROUNDS} rondes.`,
+        cost: 500,
+    },
+    {
+        id: 'starting_shield',
+        name: 'Start Schild',
+        desc: `Krijg een tijdelijk schild (30% HP boost) in de volgende ronde.`,
+        cost: 350,
+    },
+];
 class Fighter {
     constructor(x, y, width, height, isPlayer, playerSide) {
         this.x = x;
@@ -155,13 +153,29 @@ function saveGameData() {
     localStorage.setItem('om_game_upgrades', JSON.stringify(game.soloPlayerUpgrades));
     localStorage.setItem('om_game_bought_pencils', JSON.stringify(game.boughtPencils));
     localStorage.setItem('om_game_active_pencil', game.activePencil);
+    localStorage.setItem('om_game_solo_bonus', JSON.stringify({
+        active: game.soloBonusActive,
+        roundsLeft: game.soloBonusRoundsLeft
+    }));
 }
 function loadGameData() {
     game.gold = parseInt(localStorage.getItem('om_game_gold') || 0);
     game.soloPlayerUpgrades = JSON.parse(localStorage.getItem('om_game_upgrades') || '{"health": 0, "damage": 0, "cooldown": 0}');
-    game.boughtPencils = JSON.parse(localStorage.getItem('om_game_bought_pencils') || '["standard"]');
+    
+    const loadedPencils = JSON.parse(localStorage.getItem('om_game_bought_pencils') || '["standard"]');
+    game.boughtPencils = Array.isArray(loadedPencils) ? loadedPencils : ['standard'];
+    if (!game.boughtPencils.includes('standard')) {
+        game.boughtPencils.unshift('standard');
+    }
+
     game.activePencil = localStorage.getItem('om_game_active_pencil') || 'standard';
-    WEEKLY_SHOP_ITEMS.forEach(item => item.bought = false);
+    if (!game.boughtPencils.includes(game.activePencil)) {
+        game.activePencil = 'standard';
+    }
+
+    const loadedBonus = JSON.parse(localStorage.getItem('om_game_solo_bonus') || '{}');
+    game.soloBonusActive = loadedBonus.active || null;
+    game.soloBonusRoundsLeft = loadedBonus.roundsLeft || 0;
 }
 function setCanvasSize() {
     canvas.width = window.innerWidth * 0.9;
@@ -472,43 +486,53 @@ function endMatch(reason) {
     let restartMatch = false;
     nextRoundButtonContainer.style.display = 'none';
     let goldEarned = 0;
-    if (reason === 'Tijd op' || (player.health <= 0 && opponent.health <= 0)) {
+    
+    const isDraw = reason === 'Tijd op' || (player.health <= 0 && opponent.health <= 0);
+    const isWin = reason === 'OpponentDied';
+
+    if (isDraw) {
         titleText = 'Gelijkspel!';
         subtitleText = 'Tijd op of dubbele K.O.';
         if (game.isSolo) goldEarned = calculateGold(MIN_GOLD_PER_DRAW, MAX_GOLD_PER_DRAW, game.currentLevel);
         restartMatch = true;
-    } else if (reason === 'PlayerDied') {
-        game.score.player2++;
-        titleText = 'Je bent verslagen';
-        subtitleText = `${opponent.name} wint deze ronde.`;
-    } else if (reason === 'OpponentDied') {
+    } else if (isWin) {
         game.score.player1++;
         titleText = 'Overwinning!';
         subtitleText = `Je hebt ${opponent.name} verslagen.`;
         if (game.isSolo) goldEarned = calculateGold(MIN_GOLD_PER_WIN, MAX_GOLD_PER_WIN, game.currentLevel);
         restartMatch = true;
+    } else { // PlayerDied
+        game.score.player2++;
+        titleText = 'Je bent verslagen';
+        subtitleText = `${opponent.name} wint deze ronde.`;
     }
+
     if (game.isSolo) {
         if (goldEarned > 0) {
             game.gold += goldEarned;
-            saveGameData();
             subtitleText += `<br>Je hebt <strong>${goldEarned} goud</strong> verdiend!`;
         }
-        if (restartMatch && game.soloBonusActive && game.soloBonusRoundsLeft > 0) {
-            game.soloBonusRoundsLeft--;
-            if (game.soloBonusRoundsLeft > 0) {
-                subtitleText += `<br><strong>(Tijdelijke Bonus Actief: ${game.soloBonusRoundsLeft} ronde(s) resterend)</strong>`;
-            } else {
-                game.soloBonusActive = null;
-                subtitleText += `<br><strong>(Tijdelijke Bonus: Verlopen!)</strong>`;
+        
+        if (restartMatch) {
+            if (game.soloBonusActive && game.soloBonusRoundsLeft > 0) {
+                game.soloBonusRoundsLeft--;
+                if (game.soloBonusRoundsLeft > 0) {
+                    subtitleText += `<br><strong>(Tijdelijke Bonus Actief: ${game.soloBonusRoundsLeft} ronde(s) resterend)</strong>`;
+                } else {
+                    game.soloBonusActive = null;
+                    subtitleText += `<br><strong>(Tijdelijke Bonus: Verlopen!)</strong>`;
+                }
             }
+            saveGameData(); 
         }
+
         if (game.score.player1 < game.matchesNeededForNextLevel && !restartMatch) {
             titleText = 'Game Over!';
             subtitleText += '<br>Je bent te zwak. Keer terug naar het menu.';
             setTimeout(() => showStartScreen(), 5000);
             return;
         }
+
         if (restartMatch) {
             game.soloWinCount++;
             if (game.soloWinCount % game.matchesNeededForNextLevel === 0) {
@@ -549,7 +573,11 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
     messageBox.style.display = 'flex';
     document.querySelector('.message-text').textContent = title;
     
-    messageSubtitle.innerHTML = `${subtitle}<br><br>Je hebt <strong>${game.gold}</strong> goud. <strong>Koop permanente upgrades en potloden!</strong>`;
+    const updateShopSubtitle = (message) => {
+        messageSubtitle.innerHTML = `${message}<br><br>Je hebt <strong>${game.gold}</strong> goud. <strong>Koop permanente upgrades en potloden!</strong>`;
+    };
+
+    updateShopSubtitle(subtitle);
 
     const createShopButtons = () => {
         nextRoundButtonContainer.innerHTML = '';
@@ -564,9 +592,9 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                     game.matchesNeededForNextLevel++;
                     game.score.player1 = 0;
                 }
-                messageSubtitle.innerHTML = `<strong>${type.toUpperCase()} geüpgraded naar niveau ${currentLevel + 1}!</strong> Je hebt nu ${game.gold} goud. Koop meer of ga door.`;
+                updateShopSubtitle(`✅ <strong>${type.toUpperCase()} geüpgraded naar niveau ${currentLevel + 1}!</strong> Je hebt nu ${game.gold} goud. Koop meer of ga door.`);
             } else {
-                messageSubtitle.innerHTML = `<strong>Niet genoeg goud!</strong> Je hebt ${game.gold} goud, maar je hebt ${cost} nodig.`;
+                updateShopSubtitle(`❌ <strong>Niet genoeg goud!</strong> Je hebt ${game.gold} goud, maar je hebt ${cost} nodig voor deze upgrade.`);
             }
             createShopButtons();
         };
@@ -574,13 +602,12 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
         const buyWeeklyItem = (item) => {
             if (game.gold >= item.cost) {
                 game.gold -= item.cost;
-                item.bought = true;
                 game.soloBonusActive = item.id;
                 game.soloBonusRoundsLeft = WEEKLY_BONUS_DURATION_ROUNDS;
                 saveGameData();
-                messageSubtitle.innerHTML = `<strong>${item.name} gekocht!</strong> ${item.desc} Je hebt nu ${game.gold} goud.`;
+                updateShopSubtitle(`✅ <strong>${item.name} gekocht!</strong> ${item.desc} Je hebt nu ${game.gold} goud. Dit item is nu actief.`);
             } else {
-                messageSubtitle.innerHTML = `<strong>Niet genoeg goud!</strong> Je hebt ${game.gold} goud, maar je hebt ${item.cost} nodig.`;
+                updateShopSubtitle(`❌ <strong>Niet genoeg goud!</strong> Je hebt ${game.gold} goud, maar je hebt ${item.cost} nodig.`);
             }
             createShopButtons();
         };
@@ -593,14 +620,14 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                     game.boughtPencils.push(pencil.id);
                     game.activePencil = pencil.id;
                     saveGameData();
-                    messageSubtitle.innerHTML = `<strong>Potlood '${pencil.name}' gekocht en geactiveerd!</strong> Je hebt nu ${game.gold} goud.`;
+                    updateShopSubtitle(`✅ <strong>Potlood '${pencil.name}' gekocht en geactiveerd!</strong> Je hebt nu ${game.gold} goud.`);
                 } else {
-                    messageSubtitle.innerHTML = `<strong>Niet genoeg goud!</strong> Je hebt ${game.gold} goud, maar je hebt ${pencil.cost} nodig.`;
+                    updateShopSubtitle(`❌ <strong>Niet genoeg goud!</strong> Je hebt ${game.gold} goud, maar je hebt ${pencil.cost} nodig.`);
                 }
             } else {
                 game.activePencil = pencil.id;
                 saveGameData();
-                messageSubtitle.innerHTML = `<strong>Potlood '${pencil.name}' geactiveerd!</strong>`;
+                updateShopSubtitle(`✅ <strong>Potlood '${pencil.name}' geactiveerd!</strong>`);
             }
             createShopButtons();
         };
@@ -628,13 +655,13 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
         const damageCost = calculateCost(BASE_UPGRADE_COST_DAMAGE, damageLvl);
         const cooldownCost = calculateCost(BASE_UPGRADE_COST_COOLDOWN, cooldownLvl);
         
-        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyHealth" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= healthCost ? '#28a745' : '#6c757d'};">
+        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyHealth" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= healthCost ? '#28a745' : '#6c757d'};" ${game.gold < healthCost ? 'disabled' : ''}>
             ❤️ Max HP (+${UPGRADE_BONUS_HEALTH} HP) - Niveau ${healthLvl} | Kosten: ${healthCost} Goud
         </button>`);
-        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyDamage" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= damageCost ? '#28a745' : '#6c757d'};">
+        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyDamage" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= damageCost ? '#28a745' : '#6c757d'};" ${game.gold < damageCost ? 'disabled' : ''}>
             ⚔️ Schade (+${UPGRADE_BONUS_DAMAGE} DMG) - Niveau ${damageLvl} | Kosten: ${damageCost} Goud
         </button>`);
-        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyCooldown" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= cooldownCost ? '#28a745' : '#6c757d'};">
+        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyCooldown" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= cooldownCost ? '#28a745' : '#6c757d'};" ${game.gold < cooldownCost ? 'disabled' : ''}>
             💨 Aanvalssnelheid (-${UPGRADE_BONUS_COOLDOWN} Ticks CD) - Niveau ${cooldownLvl} | Kosten: ${cooldownCost} Goud
         </button>`);
         
@@ -646,7 +673,7 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
             let bonusText = '';
             if (pencil.damageBonus) bonusText += `+${pencil.damageBonus} DMG`;
             if (pencil.healthBonus) bonusText += (bonusText ? ', ' : '') + `+${pencil.healthBonus} HP`;
-            if (pencil.cooldownBonus) bonusText += (bonusText ? ', ' : '') + `${pencil.cooldownBonus} CD`;
+            if (pencil.cooldownBonus) bonusText += (bonusText ? ', ' : '') + `-${pencil.cooldownBonus} CD`;
             if (pencil.specialAttack) bonusText += (bonusText ? ', ' : '') + `ACTIEVE SKILL`;
             let buttonText;
             let buttonAction;
@@ -656,7 +683,7 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                 buttonColor = '#00796b';
                 buttonAction = 'disabled';
             } else if (isBought) {
-                buttonText = 'SELECTEREN';
+                buttonText = 'SELECTEREN (Equip)';
                 buttonColor = '#4caf50';
                 buttonAction = '';
             } else {
@@ -678,16 +705,31 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
         nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-yellow-700">✨ Wekelijkse Speciale Items:</h4>');
         WEEKLY_SHOP_ITEMS.forEach(item => {
             const isAffordable = game.gold >= item.cost;
-            const isBought = item.bought;
-            let buttonText = isBought ? 'UITVERKOCHT' : `Kosten: ${item.cost} Goud`;
             const currentlyActive = game.soloBonusActive && game.soloBonusRoundsLeft > 0;
-            let buttonColor = isBought ? '#e53e3e' : (isAffordable ? '#f6ad55' : '#6c757d');
+            const isThisItemActive = game.soloBonusActive === item.id;
+            
+            let buttonText = `Kosten: ${item.cost} Goud`;
+            let buttonColor = isAffordable ? '#f6ad55' : '#6c757d';
+            let isDisabled = !isAffordable || currentlyActive;
+            
+            if (currentlyActive) {
+                if (isThisItemActive) {
+                    buttonText = `BONUS ACTIEF (${game.soloBonusRoundsLeft} rondes)`;
+                    buttonColor = '#00796b';
+                    isDisabled = true;
+                } else {
+                    buttonText = `BONUS ACTIEF (Wacht op afronding)`;
+                    buttonColor = '#e53e3e';
+                    isDisabled = true;
+                }
+            }
+            
             nextRoundButtonContainer.insertAdjacentHTML('beforeend', `
                 <div class="p-3 mb-2 bg-gray-100 rounded border border-gray-300 text-left">
                     <p class="font-bold text-lg">${item.name}</p>
                     <p class="text-sm text-gray-600">${item.desc}</p>
-                    <button id="buyWeekly_${item.id}" class="weekly-btn w-full mt-2 p-2 text-sm text-white rounded" style="background-color: ${buttonColor};" ${isBought || !isAffordable || currentlyActive ? 'disabled' : ''}>
-                        ${currentlyActive ? `BONUS ACTIEF (${game.soloBonusRoundsLeft})` : buttonText}
+                    <button id="buyWeekly_${item.id}" class="weekly-btn w-full mt-2 p-2 text-sm text-white rounded" style="background-color: ${buttonColor};" ${isDisabled ? 'disabled' : ''}>
+                        ${buttonText}
                     </button>
                 </div>
             `);
@@ -716,7 +758,7 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
         
         WEEKLY_SHOP_ITEMS.forEach(item => {
             const button = document.getElementById(`buyWeekly_${item.id}`);
-            if (button && !item.bought && game.gold >= item.cost && !game.soloBonusActive) {
+            if (button && !button.disabled) {
                 button.addEventListener('click', () => buyWeeklyItem(item));
             }
         });
