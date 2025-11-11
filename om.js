@@ -94,6 +94,7 @@ const player1Name = document.getElementById('player1Name');
 const player2Name = document.getElementById('player2Name');
 const timerDisplay = document.getElementById('timer');
 const gameElements = document.getElementById('gameElements');
+const showShopButton = document.getElementById('showShopButton');
 let gameLoopId;
 let timerIntervalId;
 let player, opponent;
@@ -607,9 +608,15 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                 </div>
             `);
         });
-        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="continueSolo" class="w-full mt-4 p-3 text-lg" style="background-color: #00796b;">
-            Volgende Gevecht (Lvl ${game.currentLevel})
-        </button>`);
+        if (game.isSolo) {
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="continueSolo" class="w-full mt-4 p-3 text-lg" style="background-color: #00796b;">
+                Volgende Gevecht (Lvl ${game.currentLevel})
+            </button>`);
+        } else {
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="backToMenuFromShop" class="w-full mt-4 p-3 text-lg" style="background-color: #9e9e9e;">
+                Terug naar Menu
+            </button>`);
+        }
         document.getElementById('buyHealth').addEventListener('click', () => buyUpgrade('health', healthCost, healthLvl));
         document.getElementById('buyDamage').addEventListener('click', () => buyUpgrade('damage', damageCost, damageLvl));
         document.getElementById('buyCooldown').addEventListener('click', () => buyUpgrade('cooldown', cooldownCost, cooldownLvl));
@@ -625,7 +632,11 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                 button.addEventListener('click', () => buyWeeklyItem(item));
             }
         });
-        document.getElementById('continueSolo').addEventListener('click', startNextSoloMatch);
+        if (game.isSolo) {
+            document.getElementById('continueSolo').addEventListener('click', startNextSoloMatch);
+        } else {
+            document.getElementById('backToMenuFromShop').addEventListener('click', showStartScreen);
+        }
         scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}`;
     };
     const buyUpgrade = (type, cost, currentLevel) => {
@@ -694,8 +705,49 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
     createShopButtons();
 }
 function showStartScreen() {
+    gameElements.style.display = 'none';
+    messageBox.style.display = 'flex';
+    document.querySelector('.message-text').textContent = 'Om Multiplayer';
+    messageSubtitle.innerHTML = 'Voer je naam in om te starten';
+    document.getElementById('usernameInput').style.display = 'block';
+    document.getElementById('playOptions').style.display = 'none';
+    document.getElementById('hostGameForm').style.display = 'none';
+    document.getElementById('joinGameForm').style.display = 'none';
+    document.getElementById('publicGameSelectScreen').style.display = 'none';
+    document.getElementById('waitingScreen').style.display = 'none';
+    
+    document.getElementById('usernameInput').addEventListener('input', (e) => {
+        if (e.target.value.trim().length > 2) {
+            game.username = e.target.value.trim();
+            document.getElementById('playOptions').style.display = 'flex';
+            document.getElementById('nameStatus').style.display = 'none';
+        } else {
+            document.getElementById('playOptions').style.display = 'none';
+        }
+    });
+
+    if (showShopButton) {
+        showShopButton.addEventListener('click', () => {
+            game.isSolo = false;
+            showUpgradeShop('Welkom in de Winkel', 'Beheer je upgrades en koop nieuwe potloden.', false);
+        });
+    }
+
+    document.getElementById('soloPlayButton').addEventListener('click', () => {
+        game.isSolo = true;
+        game.isMultiplayer = false;
+        game.score = { player1: 0, player2: 0 };
+        const newAiStats = calculateAIStats(game.currentLevel);
+        initializeFighters(
+            {name: game.username},
+            {name: newAiStats.name},
+            true
+        );
+        startMatch();
+    });
 }
 document.addEventListener('DOMContentLoaded', () => {
     loadGameData();
     setCanvasSize();
+    showStartScreen();
 });
