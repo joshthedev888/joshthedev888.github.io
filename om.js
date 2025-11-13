@@ -119,6 +119,7 @@ const WEEKLY_SHOP_ITEMS = [
         cost: 350,
     },
 ];
+
 class Fighter {
     constructor(x, y, width, height, isPlayer, playerSide) {
         this.x = x;
@@ -148,6 +149,27 @@ class Fighter {
         this.isDying = false;
     }
 }
+
+function setupInputListeners() {
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+}
+
+function handleKeyDown(e) {
+    if (game.isRunning) {
+        keys[e.keyCode] = true;
+        if ([KEY_CODES.UP, KEY_CODES.DOWN, KEY_CODES.LEFT, KEY_CODES.RIGHT, KEY_CODES.ATTACK, KEY_CODES.SPECIAL].includes(e.keyCode)) {
+            e.preventDefault();
+        }
+    }
+}
+
+function handleKeyUp(e) {
+    if (game.isRunning) {
+        keys[e.keyCode] = false;
+    }
+}
+
 function saveGameData() {
     localStorage.setItem('om_game_gold', game.gold);
     localStorage.setItem('om_game_upgrades', JSON.stringify(game.soloPlayerUpgrades));
@@ -158,6 +180,7 @@ function saveGameData() {
         roundsLeft: game.soloBonusRoundsLeft
     }));
 }
+
 function loadGameData() {
     game.gold = parseInt(localStorage.getItem('om_game_gold') || 0);
     game.soloPlayerUpgrades = JSON.parse(localStorage.getItem('om_game_upgrades') || '{"health": 0, "damage": 0, "cooldown": 0}');
@@ -177,6 +200,7 @@ function loadGameData() {
     game.soloBonusActive = loadedBonus.active || null;
     game.soloBonusRoundsLeft = loadedBonus.roundsLeft || 0;
 }
+
 function setCanvasSize() {
     canvas.width = window.innerWidth * 0.9;
     canvas.height = window.innerHeight * 0.6;
@@ -186,15 +210,18 @@ function setCanvasSize() {
     }
 }
 window.addEventListener('resize', setCanvasSize);
+
 function checkCollision(r1, r2) {
     return r1.x < r2.x + r2.width &&
            r1.x + r1.width > r2.x &&
            r1.y < r2.y + r2.height &&
            r1.y + r1.height > r2.y;
 }
+
 function calculateCost(baseCost, currentLevel) {
     return Math.ceil(baseCost * Math.pow(COST_MULTIPLIER, currentLevel));
 }
+
 function calculateGold(min, max, level) {
     const base = Math.floor(Math.random() * (max - min + 1)) + min;
     let multiplier = 1 + (level * 0.1);
@@ -203,6 +230,7 @@ function calculateGold(min, max, level) {
     }
     return Math.round(base * multiplier);
 }
+
 function calculateAIStats(currentLevel) {
     const levelFactor = Math.min(1, currentLevel * AI_DIFFICULTY_FACTOR);
     const profile = AI_PROFILES[Math.floor(Math.random() * AI_PROFILES.length)];
@@ -226,63 +254,83 @@ function calculateAIStats(currentLevel) {
         name: `${profile.name} (Lvl ${currentLevel})`
     };
 }
+
 function updateHealthBars() {
     playerHealthBar.style.width = `${(player.health / player.maxHealth) * 100}%`;
     enemyHealthBar.style.width = `${(opponent.health / opponent.maxHealth) * 100}%`;
 }
+
 function initializeFighters(playerData, opponentData, playerIsP1) {
     setCanvasSize();
     player = new Fighter(canvas.width * 0.1, canvas.height - 100, 50, 100, true, 'p1');
     opponent = new Fighter(canvas.width * 0.9 - 50, canvas.height - 100, 50, 100, false, 'p2');
     let playerStats = { health: 100, damage: 15, attackCooldown: 60, speed: 7, name: playerData.name };
     let opponentStats = { health: 100, damage: 15, attackCooldown: 60, speed: 7, name: opponentData.name };
+    
     if (game.isSolo) {
         opponentStats = calculateAIStats(game.currentLevel);
         const activePencilData = PENCIL_STYLES.find(p => p.id === game.activePencil);
+        
         playerStats.health += game.soloPlayerUpgrades.health * UPGRADE_BONUS_HEALTH;
         playerStats.damage += game.soloPlayerUpgrades.damage * UPGRADE_BONUS_DAMAGE;
         playerStats.attackCooldown -= game.soloPlayerUpgrades.cooldown * UPGRADE_BONUS_COOLDOWN;
+        
         if (activePencilData) {
             playerStats.health += activePencilData.healthBonus || 0;
             playerStats.damage += activePencilData.damageBonus || 0;
             playerStats.attackCooldown -= activePencilData.cooldownBonus || 0;
         }
+        
         if (game.soloBonusActive === 'starting_shield' && game.soloBonusRoundsLeft > 0) {
-            playerStats.health *= 1.30;
+            playerStats.health = Math.round(playerStats.health * 1.30);
         }
+        
         playerStats.attackCooldown = Math.max(10, playerStats.attackCooldown);
     }
+    
     player.health = player.maxHealth = playerStats.health;
     player.damage = playerStats.damage;
     player.attackCooldown = playerStats.attackCooldown;
     player.speed = playerStats.speed;
     player.name = playerStats.name;
+    
     opponent.health = opponent.maxHealth = opponentStats.health;
     opponent.damage = opponentStats.damage;
     opponent.attackCooldown = opponentStats.attackCooldown;
     opponent.name = opponentStats.name;
+    
     player1Name.textContent = player.name;
     player2Name.textContent = opponent.name;
     updateHealthBars();
 }
+
 function applyDamage(target, damage) {
     if (target.health <= 0) return;
-    if (target.freezeTimer > 0 && target.isFrozen === false && game.isSolo) {
-        damage = Math.round(damage * ICE_EXTRA_DAMAGE_MULTIPLIER);
-        target.freezeTimer = 0;
+    
+    if (game.isSolo) {
+        if (target.freezeTimer > 0 && target.isFrozen === false) {
+            damage = Math.round(damage * ICE_EXTRA_DAMAGE_MULTIPLIER);
+            target.freezeTimer = 0;
+        }
     }
+    
     target.health -= damage;
     target.isBeingHit = true;
     if (target.health < 0) target.health = 0;
+    
     updateHealthBars();
+    
     if (target.health === 0) {
         if (target === opponent) endMatch('OpponentDied');
         if (target === player) endMatch('PlayerDied');
     }
+    
     setTimeout(() => target.isBeingHit = false, 100);
 }
+
 function startSpecialAttack(attacker, pencil) {
     if (!game.isSolo) return;
+
     if (pencil.specialAttack === 'freeze_shot') {
         activeProjectiles.push({
             id: 'ice_proj',
@@ -297,10 +345,11 @@ function startSpecialAttack(attacker, pencil) {
             type: 'ice'
         });
     } else if (pencil.specialAttack === 'beam_of_light') {
+        const startX = attacker.isFlipped ? attacker.x - 500 : attacker.x + attacker.width;
         activeProjectiles.push({
             id: 'gold_beam',
-            x: attacker.x + attacker.width / 2,
-            y: attacker.y + attacker.height / 2,
+            x: startX,
+            y: attacker.y + attacker.height / 2 - 12.5,
             width: 500,
             height: 25,
             speed: 0,
@@ -312,8 +361,10 @@ function startSpecialAttack(attacker, pencil) {
         });
     }
 }
+
 function handleInput() {
     player.vx = 0;
+    
     if (keys[KEY_CODES.LEFT]) {
         player.vx = -player.speed;
         player.isFlipped = true;
@@ -322,19 +373,25 @@ function handleInput() {
         player.vx = player.speed;
         player.isFlipped = false;
     }
+    
     if (keys[KEY_CODES.UP] && player.isOnGround) {
         player.vy = -player.jumpForce;
         player.isOnGround = false;
     }
+    
     if (keys[KEY_CODES.ATTACK] && player.currentCooldown <= 0) {
         player.isAttacking = true;
         player.currentCooldown = player.attackCooldown;
+        
         if (game.isSolo) {
-             if (checkCollision(player, opponent)) {
-                 applyDamage(opponent, player.damage);
-             }
+            if (checkCollision(player, opponent) && !player.isFlipped && player.x < opponent.x) {
+                applyDamage(opponent, player.damage);
+            } else if (checkCollision(player, opponent) && player.isFlipped && player.x > opponent.x) {
+                applyDamage(opponent, player.damage);
+            }
         }
     }
+    
     if (keys[KEY_CODES.SPECIAL] && game.isSolo) {
         const activePencilData = PENCIL_STYLES.find(p => p.id === game.activePencil);
         if (activePencilData && activePencilData.specialAttack && player.specialCooldownTimer <= 0) {
@@ -343,83 +400,111 @@ function handleInput() {
         }
     }
 }
+
 function updateFighter(fighter, opponent) {
     fighter.vy += fighter.gravity;
     fighter.y += fighter.vy;
     fighter.x += fighter.vx;
+    
     if (fighter.y + fighter.height >= canvas.height) {
         fighter.y = canvas.height - fighter.height;
         fighter.vy = 0;
         fighter.isOnGround = true;
     }
+    
     if (fighter.currentCooldown > 0) {
         fighter.currentCooldown--;
         if (fighter.currentCooldown === 0) {
             fighter.isAttacking = false;
         }
     }
+    
+    if (fighter.specialCooldownTimer > 0) {
+        fighter.specialCooldownTimer--;
+    }
+
     if (fighter === opponent && game.isSolo) {
         if (fighter.isFrozen) {
             fighter.vx = 0;
             fighter.vy = 0;
+            fighter.freezeTimer--;
+            if (fighter.freezeTimer <= 0) {
+                fighter.isFrozen = false;
+            }
             return;
         }
-        fighter.vx = (player.x < fighter.x) ? -fighter.speed : fighter.speed;
-        fighter.isFlipped = (player.x < fighter.x);
-        if (checkCollision(fighter, player) && fighter.currentCooldown <= 0) {
+        
+        const distance = player.x - fighter.x;
+        if (Math.abs(distance) > 50) {
+            fighter.vx = (distance > 0) ? fighter.speed : -fighter.speed;
+            fighter.isFlipped = (distance < 0);
+        } else {
+            fighter.vx = 0;
+        }
+
+        if (Math.abs(distance) < 80 && fighter.currentCooldown <= 0) {
             fighter.isAttacking = true;
             fighter.currentCooldown = fighter.attackCooldown;
             applyDamage(player, fighter.damage);
         }
+        
+        if (fighter.isOnGround && Math.random() < opponent.jumpChance && distance < 0) {
+            fighter.vy = -fighter.jumpForce;
+            fighter.isOnGround = false;
+        }
     }
 }
+
 function gameLoop(timestamp) {
     if (!game.isRunning) return;
+    
     handleInput();
+    
     updateFighter(player, opponent);
     updateFighter(opponent, player);
+    
     if (game.isSolo) {
         activeProjectiles = activeProjectiles.filter(proj => {
             if (proj.speed > 0) {
                 proj.x += proj.isFlipped ? -proj.speed : proj.speed;
             }
+            
             if (proj.id === 'gold_beam') {
+                if (checkCollision(proj, opponent)) {
+                    applyDamage(opponent, proj.damage);
+                }
                 proj.lifespan--;
-                if (proj.lifespan <= 0) return false;
+                return proj.lifespan > 0;
             }
+            
             if (checkCollision(proj, opponent)) {
-                applyDamage(opponent, proj.damage);
                 if (proj.id === 'ice_proj') {
                     opponent.isFrozen = true;
                     opponent.freezeTimer = ICE_FREEZE_DURATION;
-                    return false;
-                } else if (proj.id === 'gold_beam') {
-                    return false;
+                    applyDamage(opponent, proj.damage); 
+                } else {
+                     applyDamage(opponent, proj.damage);
                 }
                 return false;
             }
+            
             return proj.x > 0 && proj.x < canvas.width;
         });
-        if (player.specialCooldownTimer > 0) player.specialCooldownTimer--;
-        if (opponent.specialCooldownTimer > 0) opponent.specialCooldownTimer--;
-        if (opponent.isFrozen) {
-            opponent.freezeTimer--;
-            if (opponent.freezeTimer <= 0) {
-                opponent.isFrozen = false;
-            }
-        }
     }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawFighter(ctx, player);
     drawFighter(ctx, opponent);
     drawProjectiles(ctx);
+    
     gameLoopId = requestAnimationFrame(gameLoop);
 }
+
 function drawProjectiles(ctx) {
     activeProjectiles.forEach(proj => {
         ctx.fillStyle = proj.color;
         if (proj.id === 'gold_beam') {
-            let startX = proj.isFlipped ? proj.x - proj.width : proj.x;
+            const startX = proj.isFlipped ? proj.x - proj.width : proj.x;
             ctx.globalAlpha = proj.lifespan / 15;
             ctx.fillRect(startX, proj.y, proj.width, proj.height);
             ctx.globalAlpha = 1.0;
@@ -428,21 +513,26 @@ function drawProjectiles(ctx) {
         }
     });
 }
+
 function drawFighter(ctx, fighter) {
     let spriteColor = fighter.playerSide === 'p1' ? 'red' : 'blue';
+    
     if (fighter === player && game.isSolo) {
         const activePencilData = PENCIL_STYLES.find(p => p.id === game.activePencil);
         if (activePencilData) {
             spriteColor = activePencilData.drawColor;
         }
     }
+    
     if (fighter === opponent && fighter.isFrozen) {
         spriteColor = '#ADD8E6';
         ctx.globalAlpha = 0.8;
     }
+    
     ctx.fillStyle = spriteColor;
     ctx.fillRect(fighter.x, fighter.y, fighter.width, fighter.height);
     ctx.globalAlpha = 1.0;
+    
     if (fighter === player && game.isSolo && game.activePencil === 'ruby') {
         ctx.fillStyle = 'orange';
         ctx.globalAlpha = 0.3;
@@ -451,15 +541,19 @@ function drawFighter(ctx, fighter) {
         ctx.fill();
         ctx.globalAlpha = 1.0;
     }
+    
     if (fighter.specialCooldownTimer > 0) {
-        const cdMax = PENCIL_STYLES.find(p => p.id === game.activePencil)?.specialCooldown || PENCIL_SPECIAL_COOLDOWN;
+        const activePencilData = PENCIL_STYLES.find(p => p.id === game.activePencil);
+        const cdMax = activePencilData ? activePencilData.specialCooldown : PENCIL_SPECIAL_COOLDOWN;
         const cdPercent = fighter.specialCooldownTimer / cdMax;
+        
         ctx.fillStyle = `rgba(0, 0, 0, 0.7)`;
         ctx.fillRect(fighter.x, fighter.y - 15, fighter.width, 10);
         ctx.fillStyle = `rgba(255, 255, 255, 1)`;
         ctx.fillRect(fighter.x, fighter.y - 15, fighter.width * (1 - cdPercent), 10);
     }
 }
+
 function startMatch() {
     messageBox.style.display = 'none';
     gameElements.style.display = 'block';
@@ -467,6 +561,9 @@ function startMatch() {
     activeProjectiles = [];
     game.timer = INITIAL_TIME;
     timerDisplay.textContent = `${game.timer}s`;
+    
+    keys = {};
+    
     clearInterval(timerIntervalId);
     timerIntervalId = setInterval(() => {
         game.timer--;
@@ -476,8 +573,10 @@ function startMatch() {
             endMatch('Tijd op');
         }
     }, 1000);
+    
     gameLoopId = requestAnimationFrame(gameLoop);
 }
+
 function endMatch(reason) {
     cancelAnimationFrame(gameLoopId);
     game.isRunning = false;
@@ -529,16 +628,19 @@ function endMatch(reason) {
         if (game.score.player1 < game.matchesNeededForNextLevel && !restartMatch) {
             titleText = 'Game Over!';
             subtitleText += '<br>Je bent te zwak. Keer terug naar het menu.';
-            setTimeout(() => showStartScreen(), 5000);
+            shopContent.style.display = 'none';
+            nextRoundButtonContainer.style.display = 'none';
+            messageBox.style.display = 'flex';
+            document.querySelector('.message-text').textContent = titleText;
+            messageSubtitle.innerHTML = subtitleText;
             return;
         }
 
         if (restartMatch) {
             game.soloWinCount++;
             if (game.soloWinCount % game.matchesNeededForNextLevel === 0) {
-                document.getElementById('playOptions').style.display = 'flex';
                 showUpgradeShop(titleText, subtitleText, true);
-                return;
+                return; 
             } else {
                 subtitleText += `<br>Nog ${game.matchesNeededForNextLevel - game.score.player1} overwinning(en) tot Level ${game.currentLevel + 1} en een upgrade. Nieuwe match in 5 seconden...`;
                 setTimeout(() => {
@@ -549,6 +651,7 @@ function endMatch(reason) {
             }
         }
     }
+    
     if (game.isSolo) {
         scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}`;
     } else {
@@ -558,15 +661,11 @@ function endMatch(reason) {
     messageSubtitle.innerHTML = subtitleText;
     messageBox.style.display = 'flex';
 }
+
 function showUpgradeShop(title, subtitle, isLevelUp) {
     document.getElementById('playOptions').style.display = 'flex';
-    document.getElementById('usernameInput').style.display = 'block';
-    
-    document.getElementById('hostGameForm').style.display = 'none';
-    document.getElementById('joinGameForm').style.display = 'none';
-    document.getElementById('publicGameSelectScreen').style.display = 'none';
-    document.getElementById('waitingScreen').style.display = 'none';
 
+    gameElements.style.display = 'none'; 
     shopContent.style.display = 'block';
     nextRoundButtonContainer.style.display = 'block';
 
@@ -574,6 +673,12 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
     document.querySelector('.message-text').textContent = title;
     
     const updateShopSubtitle = (message) => {
+        const scoreText = game.isSolo ? 
+            `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}` : 
+            `Score: ${game.score.player1}-${game.score.player2}`;
+            
+        scoreDisplay.textContent = scoreText; 
+
         messageSubtitle.innerHTML = `${message}<br><br>Je hebt <strong>${game.gold}</strong> goud. <strong>Koop permanente upgrades en potloden!</strong>`;
     };
 
@@ -582,16 +687,21 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
     const createShopButtons = () => {
         nextRoundButtonContainer.innerHTML = '';
         
-        const buyUpgrade = (type, cost, currentLevel) => {
+        const buyUpgrade = (type, baseCost) => {
+            const currentLevel = game.soloPlayerUpgrades[type];
+            const cost = calculateCost(baseCost, currentLevel);
             if (game.gold >= cost) {
                 game.gold -= cost;
                 game.soloPlayerUpgrades[type]++;
-                saveGameData();
+                
                 if (isLevelUp) {
                     game.currentLevel++;
                     game.matchesNeededForNextLevel++;
                     game.score.player1 = 0;
+                    isLevelUp = false; 
                 }
+                
+                saveGameData();
                 updateShopSubtitle(`✅ <strong>${type.toUpperCase()} geüpgraded naar niveau ${currentLevel + 1}!</strong> Je hebt nu ${game.gold} goud. Koop meer of ga door.`);
             } else {
                 updateShopSubtitle(`❌ <strong>Niet genoeg goud!</strong> Je hebt ${game.gold} goud, maar je hebt ${cost} nodig voor deze upgrade.`);
@@ -633,11 +743,16 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
         };
 
         const startNextSoloMatch = () => {
-            if (isLevelUp) {
+            if (isLevelUp) { 
                 game.currentLevel = game.currentLevel + 1;
                 game.matchesNeededForNextLevel = game.matchesNeededForNextLevel + 1;
                 game.score.player1 = 0;
             }
+            
+            shopContent.style.display = 'none';
+            messageBox.style.display = 'none';
+            gameElements.style.display = 'block';
+            
             const newAiStats = calculateAIStats(game.currentLevel);
             initializeFighters(
                 {name: game.username},
@@ -664,6 +779,10 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
         nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyCooldown" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= cooldownCost ? '#28a745' : '#6c757d'};" ${game.gold < cooldownCost ? 'disabled' : ''}>
             💨 Aanvalssnelheid (-${UPGRADE_BONUS_COOLDOWN} Ticks CD) - Niveau ${cooldownLvl} | Kosten: ${cooldownCost} Goud
         </button>`);
+        
+        document.getElementById('buyHealth').onclick = () => buyUpgrade('health', BASE_UPGRADE_COST_HEALTH);
+        document.getElementById('buyDamage').onclick = () => buyUpgrade('damage', BASE_UPGRADE_COST_DAMAGE);
+        document.getElementById('buyCooldown').onclick = () => buyUpgrade('cooldown', BASE_UPGRADE_COST_COOLDOWN);
         
         nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-indigo-700">🎨 Potlood Wapens:</h4>');
         PENCIL_STYLES.forEach(pencil => {
@@ -700,6 +819,7 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                     <div style="width: 25px; height: 25px; background-color: ${pencil.drawColor}; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px ${pencil.drawColor};"></div>
                 </button>
             `);
+            document.getElementById(`pencil_${pencil.id}`).onclick = () => handlePencilAction(pencil);
         });
         
         nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-yellow-700">✨ Wekelijkse Speciale Items:</h4>');
@@ -733,90 +853,24 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                     </button>
                 </div>
             `);
+            if (!isDisabled) {
+                document.getElementById(`buyWeekly_${item.id}`).onclick = () => buyWeeklyItem(item);
+            }
         });
         
         if (game.isSolo) {
-            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="continueSolo" class="w-full mt-4 p-3 text-lg" style="background-color: #00796b;">
-                Volgende Gevecht (Lvl ${game.currentLevel})
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="continueSolo" class="w-full mt-6 p-4 text-white font-bold rounded-lg text-lg" style="background-color: #dc3545;">
+                Ga Verder naar Level ${isLevelUp ? game.currentLevel + 1 : game.currentLevel}
             </button>`);
+            document.getElementById('continueSolo').onclick = startNextSoloMatch;
         }
-        
-        document.getElementById('buyHealth').addEventListener('click', () => buyUpgrade('health', healthCost, healthLvl));
-        document.getElementById('buyDamage').addEventListener('click', () => buyUpgrade('damage', damageCost, damageLvl));
-        document.getElementById('buyCooldown').addEventListener('click', () => buyUpgrade('cooldown', cooldownCost, cooldownLvl));
-        
-        PENCIL_STYLES.forEach(pencil => {
-            const button = document.getElementById(`pencil_${pencil.id}`);
-            if (button && !button.disabled) {
-                button.addEventListener('click', () => handlePencilAction(pencil));
-            }
-        });
-        
-        WEEKLY_SHOP_ITEMS.forEach(item => {
-            const button = document.getElementById(`buyWeekly_${item.id}`);
-            if (button && !button.disabled) {
-                button.addEventListener('click', () => buyWeeklyItem(item));
-            }
-        });
-        
-        if (document.getElementById('continueSolo')) {
-            document.getElementById('continueSolo').addEventListener('click', startNextSoloMatch);
-        }
-
-        scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}`;
     };
-
+    
     createShopButtons();
 }
-function showStartScreen() {
-    gameElements.style.display = 'none';
-    messageBox.style.display = 'flex';
-    
-    shopContent.style.display = 'none'; 
-    document.getElementById('hostGameForm').style.display = 'none';
-    document.getElementById('joinGameForm').style.display = 'none';
-    document.getElementById('publicGameSelectScreen').style.display = 'none';
-    document.getElementById('waitingScreen').style.display = 'none';
-    nextRoundButtonContainer.style.display = 'none';
 
-    document.querySelector('.message-text').textContent = 'Om Multiplayer';
-    messageSubtitle.innerHTML = 'Voer je naam in om te starten';
-    document.getElementById('usernameInput').style.display = 'block';
-    document.getElementById('playOptions').style.display = 'none';
-    document.getElementById('nameStatus').style.display = 'none';
-    
-    document.getElementById('usernameInput').addEventListener('input', (e) => {
-        if (e.target.value.trim().length > 2) {
-            game.username = e.target.value.trim();
-            document.getElementById('playOptions').style.display = 'flex';
-            document.getElementById('nameStatus').style.display = 'none';
-        } else {
-            document.getElementById('playOptions').style.display = 'none';
-        }
-    });
-    
-    document.getElementById('soloPlayButton').addEventListener('click', () => {
-        game.isSolo = true;
-        game.isMultiplayer = false;
-        game.score = { player1: 0, player2: 0 };
-        const newAiStats = calculateAIStats(game.currentLevel);
-        initializeFighters(
-            {name: game.username},
-            {name: newAiStats.name},
-            true
-        );
-        startMatch();
-    });
-
-    if (showShopButton) {
-        showShopButton.addEventListener('click', () => {
-            game.isSolo = true;
-            showUpgradeShop('Welkom in de Winkel', 'Beheer je upgrades en koop nieuwe potlooden.', false);
-        });
-    }
-}
-document.addEventListener('DOMContentLoaded', () => {
-    loadGameData();
+window.onload = function() {
     setCanvasSize();
-    showStartScreen();
-});
+    setupInputListeners();
+    loadGameData();
+};
