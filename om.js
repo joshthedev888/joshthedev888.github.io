@@ -67,7 +67,7 @@ const KEY_CODES = {
     SPECIAL: 90
 };
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas ? canvas.getContext('2d') : null;
 const messageBox = document.getElementById('messageBox');
 const messageSubtitle = document.getElementById('messageSubtitle');
 const nextRoundButtonContainer = document.getElementById('nextRoundButtonContainer');
@@ -202,11 +202,13 @@ function loadGameData() {
 }
 
 function setCanvasSize() {
-    canvas.width = window.innerWidth * 0.9;
-    canvas.height = window.innerHeight * 0.6;
-    if (player && opponent) {
-        player.y = canvas.height - player.height;
-        opponent.y = canvas.height - opponent.height;
+    if (canvas) {
+        canvas.width = window.innerWidth * 0.9;
+        canvas.height = window.innerHeight * 0.6;
+        if (player && opponent) {
+            player.y = canvas.height - player.height;
+            opponent.y = canvas.height - opponent.height;
+        }
     }
 }
 window.addEventListener('resize', setCanvasSize);
@@ -256,8 +258,10 @@ function calculateAIStats(currentLevel) {
 }
 
 function updateHealthBars() {
-    playerHealthBar.style.width = `${(player.health / player.maxHealth) * 100}%`;
-    enemyHealthBar.style.width = `${(opponent.health / opponent.maxHealth) * 100}%`;
+    if (playerHealthBar && enemyHealthBar) {
+        playerHealthBar.style.width = `${(player.health / player.maxHealth) * 100}%`;
+        enemyHealthBar.style.width = `${(opponent.health / opponent.maxHealth) * 100}%`;
+    }
 }
 
 function initializeFighters(playerData, opponentData, playerIsP1) {
@@ -299,8 +303,10 @@ function initializeFighters(playerData, opponentData, playerIsP1) {
     opponent.attackCooldown = opponentStats.attackCooldown;
     opponent.name = opponentStats.name;
     
-    player1Name.textContent = player.name;
-    player2Name.textContent = opponent.name;
+    if (player1Name && player2Name) {
+        player1Name.textContent = player.name;
+        player2Name.textContent = opponent.name;
+    }
     updateHealthBars();
 }
 
@@ -456,7 +462,7 @@ function updateFighter(fighter, opponent) {
 }
 
 function gameLoop(timestamp) {
-    if (!game.isRunning) return;
+    if (!game.isRunning || !ctx) return;
     
     handleInput();
     
@@ -555,19 +561,19 @@ function drawFighter(ctx, fighter) {
 }
 
 function startMatch() {
-    messageBox.style.display = 'none';
-    gameElements.style.display = 'block';
+    if (messageBox) messageBox.style.display = 'none';
+    if (gameElements) gameElements.style.display = 'block';
     game.isRunning = true;
     activeProjectiles = [];
     game.timer = INITIAL_TIME;
-    timerDisplay.textContent = `${game.timer}s`;
+    if (timerDisplay) timerDisplay.textContent = `${game.timer}s`;
     
     keys = {};
     
     clearInterval(timerIntervalId);
     timerIntervalId = setInterval(() => {
         game.timer--;
-        timerDisplay.textContent = `${game.timer}s`;
+        if (timerDisplay) timerDisplay.textContent = `${game.timer}s`;
         if (game.timer <= 0) {
             clearInterval(timerIntervalId);
             endMatch('Tijd op');
@@ -583,7 +589,7 @@ function endMatch(reason) {
     clearInterval(timerIntervalId);
     let titleText, subtitleText;
     let restartMatch = false;
-    nextRoundButtonContainer.style.display = 'none';
+    if (nextRoundButtonContainer) nextRoundButtonContainer.style.display = 'none';
     let goldEarned = 0;
     
     const isDraw = reason === 'Tijd op' || (player.health <= 0 && opponent.health <= 0);
@@ -628,11 +634,11 @@ function endMatch(reason) {
         if (game.score.player1 < game.matchesNeededForNextLevel && !restartMatch) {
             titleText = 'Game Over!';
             subtitleText += '<br>Je bent te zwak. Keer terug naar het menu.';
-            shopContent.style.display = 'none';
-            nextRoundButtonContainer.style.display = 'none';
-            messageBox.style.display = 'flex';
-            document.querySelector('.message-text').textContent = titleText;
-            messageSubtitle.innerHTML = subtitleText;
+            if (shopContent) shopContent.style.display = 'none';
+            if (nextRoundButtonContainer) nextRoundButtonContainer.style.display = 'none';
+            if (messageBox) messageBox.style.display = 'flex';
+            if (document.querySelector('.message-text')) document.querySelector('.message-text').textContent = titleText;
+            if (messageSubtitle) messageSubtitle.innerHTML = subtitleText;
             return;
         }
 
@@ -652,40 +658,42 @@ function endMatch(reason) {
         }
     }
     
-    if (game.isSolo) {
-        scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}`;
-    } else {
-        scoreDisplay.textContent = `Score: ${game.score.player1}-${game.score.player2}`;
+    if (scoreDisplay) {
+        if (game.isSolo) {
+            scoreDisplay.textContent = `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}`;
+        } else {
+            scoreDisplay.textContent = `Score: ${game.score.player1}-${game.score.player2}`;
+        }
     }
-    document.querySelector('.message-text').textContent = titleText;
-    messageSubtitle.innerHTML = subtitleText;
-    messageBox.style.display = 'flex';
+    if (document.querySelector('.message-text')) document.querySelector('.message-text').textContent = titleText;
+    if (messageSubtitle) messageSubtitle.innerHTML = subtitleText;
+    if (messageBox) messageBox.style.display = 'flex';
 }
 
 function showUpgradeShop(title, subtitle, isLevelUp) {
-    document.getElementById('playOptions').style.display = 'flex';
+    if (document.getElementById('playOptions')) document.getElementById('playOptions').style.display = 'flex';
 
-    gameElements.style.display = 'none'; 
-    shopContent.style.display = 'block';
-    nextRoundButtonContainer.style.display = 'block';
+    if (gameElements) gameElements.style.display = 'none'; 
+    if (shopContent) shopContent.style.display = 'block';
+    if (nextRoundButtonContainer) nextRoundButtonContainer.style.display = 'block';
 
-    messageBox.style.display = 'flex';
-    document.querySelector('.message-text').textContent = title;
+    if (messageBox) messageBox.style.display = 'flex';
+    if (document.querySelector('.message-text')) document.querySelector('.message-text').textContent = title;
     
     const updateShopSubtitle = (message) => {
         const scoreText = game.isSolo ? 
             `Level: ${game.currentLevel} (${game.score.player1}/${game.matchesNeededForNextLevel}) | Goud: ${game.gold}` : 
             `Score: ${game.score.player1}-${game.score.player2}`;
             
-        scoreDisplay.textContent = scoreText; 
+        if (scoreDisplay) scoreDisplay.textContent = scoreText; 
 
-        messageSubtitle.innerHTML = `${message}<br><br>Je hebt <strong>${game.gold}</strong> goud. <strong>Koop permanente upgrades en potloden!</strong>`;
+        if (messageSubtitle) messageSubtitle.innerHTML = `${message}<br><br>Je hebt <strong>${game.gold}</strong> goud. <strong>Koop permanente upgrades en potloden!</strong>`;
     };
 
     updateShopSubtitle(subtitle);
 
     const createShopButtons = () => {
-        nextRoundButtonContainer.innerHTML = '';
+        if (nextRoundButtonContainer) nextRoundButtonContainer.innerHTML = '';
         
         const buyUpgrade = (type, baseCost) => {
             const currentLevel = game.soloPlayerUpgrades[type];
@@ -749,9 +757,9 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
                 game.score.player1 = 0;
             }
             
-            shopContent.style.display = 'none';
-            messageBox.style.display = 'none';
-            gameElements.style.display = 'block';
+            if (shopContent) shopContent.style.display = 'none';
+            if (messageBox) messageBox.style.display = 'none';
+            if (gameElements) gameElements.style.display = 'block';
             
             const newAiStats = calculateAIStats(game.currentLevel);
             initializeFighters(
@@ -762,115 +770,246 @@ function showUpgradeShop(title, subtitle, isLevelUp) {
             startMatch();
         };
         
-        nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-4 mb-2 text-gray-700">Permanente Upgrades:</h4>');
-        const healthLvl = game.soloPlayerUpgrades.health;
-        const damageLvl = game.soloPlayerUpgrades.damage;
-        const cooldownLvl = game.soloPlayerUpgrades.cooldown;
-        const healthCost = calculateCost(BASE_UPGRADE_COST_HEALTH, healthLvl);
-        const damageCost = calculateCost(BASE_UPGRADE_COST_DAMAGE, damageLvl);
-        const cooldownCost = calculateCost(BASE_UPGRADE_COST_COOLDOWN, cooldownLvl);
-        
-        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyHealth" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= healthCost ? '#28a745' : '#6c757d'};" ${game.gold < healthCost ? 'disabled' : ''}>
-            ❤️ Max HP (+${UPGRADE_BONUS_HEALTH} HP) - Niveau ${healthLvl} | Kosten: ${healthCost} Goud
-        </button>`);
-        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyDamage" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= damageCost ? '#28a745' : '#6c757d'};" ${game.gold < damageCost ? 'disabled' : ''}>
-            ⚔️ Schade (+${UPGRADE_BONUS_DAMAGE} DMG) - Niveau ${damageLvl} | Kosten: ${damageCost} Goud
-        </button>`);
-        nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyCooldown" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= cooldownCost ? '#28a745' : '#6c757d'};" ${game.gold < cooldownCost ? 'disabled' : ''}>
-            💨 Aanvalssnelheid (-${UPGRADE_BONUS_COOLDOWN} Ticks CD) - Niveau ${cooldownLvl} | Kosten: ${cooldownCost} Goud
-        </button>`);
-        
-        document.getElementById('buyHealth').onclick = () => buyUpgrade('health', BASE_UPGRADE_COST_HEALTH);
-        document.getElementById('buyDamage').onclick = () => buyUpgrade('damage', BASE_UPGRADE_COST_DAMAGE);
-        document.getElementById('buyCooldown').onclick = () => buyUpgrade('cooldown', BASE_UPGRADE_COST_COOLDOWN);
-        
-        nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-indigo-700">🎨 Potlood Wapens:</h4>');
-        PENCIL_STYLES.forEach(pencil => {
-            const isBought = game.boughtPencils.includes(pencil.id);
-            const isActive = game.activePencil === pencil.id;
-            const isAffordable = game.gold >= pencil.cost;
-            let bonusText = '';
-            if (pencil.damageBonus) bonusText += `+${pencil.damageBonus} DMG`;
-            if (pencil.healthBonus) bonusText += (bonusText ? ', ' : '') + `+${pencil.healthBonus} HP`;
-            if (pencil.cooldownBonus) bonusText += (bonusText ? ', ' : '') + `-${pencil.cooldownBonus} CD`;
-            if (pencil.specialAttack) bonusText += (bonusText ? ', ' : '') + `ACTIEVE SKILL`;
-            let buttonText;
-            let buttonAction;
-            let buttonColor;
-            if (isActive) {
-                buttonText = '✅ ACTIEF';
-                buttonColor = '#00796b';
-                buttonAction = 'disabled';
-            } else if (isBought) {
-                buttonText = 'SELECTEREN (Equip)';
-                buttonColor = '#4caf50';
-                buttonAction = '';
-            } else {
-                buttonText = `KOPEN (${pencil.cost} Goud)`;
-                buttonColor = isAffordable ? '#3f51b5' : '#6c757d';
-                buttonAction = isAffordable ? '' : 'disabled';
-            }
-            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `
-                <button id="pencil_${pencil.id}" class="w-full mb-2 p-3 text-sm text-white rounded flex justify-between items-center" style="background-color: ${buttonColor};" ${buttonAction}>
-                    <div class="text-left">
-                        <span class="font-bold">${pencil.name}</span>
-                        <p class="text-xs italic">${pencil.desc} <span class="font-bold">(${bonusText || 'Geen Bonus'})</span></p>
-                    </div>
-                    <div style="width: 25px; height: 25px; background-color: ${pencil.drawColor}; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px ${pencil.drawColor};"></div>
-                </button>
-            `);
-            document.getElementById(`pencil_${pencil.id}`).onclick = () => handlePencilAction(pencil);
-        });
-        
-        nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-yellow-700">✨ Wekelijkse Speciale Items:</h4>');
-        WEEKLY_SHOP_ITEMS.forEach(item => {
-            const isAffordable = game.gold >= item.cost;
-            const currentlyActive = game.soloBonusActive && game.soloBonusRoundsLeft > 0;
-            const isThisItemActive = game.soloBonusActive === item.id;
+        if (nextRoundButtonContainer) {
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-4 mb-2 text-gray-700">Permanente Upgrades:</h4>');
+            const healthLvl = game.soloPlayerUpgrades.health;
+            const damageLvl = game.soloPlayerUpgrades.damage;
+            const cooldownLvl = game.soloPlayerUpgrades.cooldown;
+            const healthCost = calculateCost(BASE_UPGRADE_COST_HEALTH, healthLvl);
+            const damageCost = calculateCost(BASE_UPGRADE_COST_DAMAGE, damageLvl);
+            const cooldownCost = calculateCost(BASE_UPGRADE_COST_COOLDOWN, cooldownLvl);
             
-            let buttonText = `Kosten: ${item.cost} Goud`;
-            let buttonColor = isAffordable ? '#f6ad55' : '#6c757d';
-            let isDisabled = !isAffordable || currentlyActive;
-            
-            if (currentlyActive) {
-                if (isThisItemActive) {
-                    buttonText = `BONUS ACTIEF (${game.soloBonusRoundsLeft} rondes)`;
-                    buttonColor = '#00796b';
-                    isDisabled = true;
-                } else {
-                    buttonText = `BONUS ACTIEF (Wacht op afronding)`;
-                    buttonColor = '#e53e3e';
-                    isDisabled = true;
-                }
-            }
-            
-            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `
-                <div class="p-3 mb-2 bg-gray-100 rounded border border-gray-300 text-left">
-                    <p class="font-bold text-lg">${item.name}</p>
-                    <p class="text-sm text-gray-600">${item.desc}</p>
-                    <button id="buyWeekly_${item.id}" class="weekly-btn w-full mt-2 p-2 text-sm text-white rounded" style="background-color: ${buttonColor};" ${isDisabled ? 'disabled' : ''}>
-                        ${buttonText}
-                    </button>
-                </div>
-            `);
-            if (!isDisabled) {
-                document.getElementById(`buyWeekly_${item.id}`).onclick = () => buyWeeklyItem(item);
-            }
-        });
-        
-        if (game.isSolo) {
-            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="continueSolo" class="w-full mt-6 p-4 text-white font-bold rounded-lg text-lg" style="background-color: #dc3545;">
-                Ga Verder naar Level ${isLevelUp ? game.currentLevel + 1 : game.currentLevel}
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyHealth" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= healthCost ? '#28a745' : '#6c757d'};" ${game.gold < healthCost ? 'disabled' : ''}>
+                ❤️ Max HP (+${UPGRADE_BONUS_HEALTH} HP) - Niveau ${healthLvl} | Kosten: ${healthCost} Goud
             </button>`);
-            document.getElementById('continueSolo').onclick = startNextSoloMatch;
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyDamage" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= damageCost ? '#28a745' : '#6c757d'};" ${game.gold < damageCost ? 'disabled' : ''}>
+                ⚔️ Schade (+${UPGRADE_BONUS_DAMAGE} DMG) - Niveau ${damageLvl} | Kosten: ${damageCost} Goud
+            </button>`);
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="buyCooldown" class="upgrade-btn w-full mb-2 p-3 text-sm" style="background-color: ${game.gold >= cooldownCost ? '#28a745' : '#6c757d'};" ${game.gold < cooldownCost ? 'disabled' : ''}>
+                💨 Aanvalssnelheid (-${UPGRADE_BONUS_COOLDOWN} Ticks CD) - Niveau ${cooldownLvl} | Kosten: ${cooldownCost} Goud
+            </button>`);
+            
+            document.getElementById('buyHealth').onclick = () => buyUpgrade('health', BASE_UPGRADE_COST_HEALTH);
+            document.getElementById('buyDamage').onclick = () => buyUpgrade('damage', BASE_UPGRADE_COST_DAMAGE);
+            document.getElementById('buyCooldown').onclick = () => buyUpgrade('cooldown', BASE_UPGRADE_COST_COOLDOWN);
+            
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-indigo-700">🎨 Potlood Wapens:</h4>');
+            PENCIL_STYLES.forEach(pencil => {
+                const isBought = game.boughtPencils.includes(pencil.id);
+                const isActive = game.activePencil === pencil.id;
+                const isAffordable = game.gold >= pencil.cost;
+                let bonusText = '';
+                if (pencil.damageBonus) bonusText += `+${pencil.damageBonus} DMG`;
+                if (pencil.healthBonus) bonusText += (bonusText ? ', ' : '') + `+${pencil.healthBonus} HP`;
+                if (pencil.cooldownBonus) bonusText += (bonusText ? ', ' : '') + `-${pencil.cooldownBonus} CD`;
+                if (pencil.specialAttack) bonusText += (bonusText ? ', ' : '') + `ACTIEVE SKILL`;
+                let buttonText;
+                let buttonAction;
+                let buttonColor;
+                if (isActive) {
+                    buttonText = '✅ ACTIEF';
+                    buttonColor = '#00796b';
+                    buttonAction = 'disabled';
+                } else if (isBought) {
+                    buttonText = 'SELECTEREN (Equip)';
+                    buttonColor = '#4caf50';
+                    buttonAction = '';
+                } else {
+                    buttonText = `KOPEN (${pencil.cost} Goud)`;
+                    buttonColor = isAffordable ? '#3f51b5' : '#6c757d';
+                    buttonAction = isAffordable ? '' : 'disabled';
+                }
+                nextRoundButtonContainer.insertAdjacentHTML('beforeend', `
+                    <button id="pencil_${pencil.id}" class="w-full mb-2 p-3 text-sm text-white rounded flex justify-between items-center" style="background-color: ${buttonColor};" ${buttonAction}>
+                        <div class="text-left">
+                            <span class="font-bold">${pencil.name}</span>
+                            <p class="text-xs italic">${pencil.desc} <span class="font-bold">(${bonusText || 'Geen Bonus'})</span></p>
+                        </div>
+                        <div style="width: 25px; height: 25px; background-color: ${pencil.drawColor}; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px ${pencil.drawColor};"></div>
+                    </button>
+                `);
+                document.getElementById(`pencil_${pencil.id}`).onclick = () => handlePencilAction(pencil);
+            });
+            
+            nextRoundButtonContainer.insertAdjacentHTML('beforeend', '<h4 class="text-xl font-bold mt-6 mb-2 text-yellow-700">✨ Wekelijkse Speciale Items:</h4>');
+            WEEKLY_SHOP_ITEMS.forEach(item => {
+                const isAffordable = game.gold >= item.cost;
+                const currentlyActive = game.soloBonusActive && game.soloBonusRoundsLeft > 0;
+                const isThisItemActive = game.soloBonusActive === item.id;
+                
+                let buttonText = `Kosten: ${item.cost} Goud`;
+                let buttonColor = isAffordable ? '#f6ad55' : '#6c757d';
+                let isDisabled = !isAffordable || currentlyActive;
+                
+                if (currentlyActive) {
+                    if (isThisItemActive) {
+                        buttonText = `BONUS ACTIEF (${game.soloBonusRoundsLeft} rondes)`;
+                        buttonColor = '#00796b';
+                        isDisabled = true;
+                    } else {
+                        buttonText = `BONUS ACTIEF (Wacht op afronding)`;
+                        buttonColor = '#e53e3e';
+                        isDisabled = true;
+                    }
+                }
+                
+                nextRoundButtonContainer.insertAdjacentHTML('beforeend', `
+                    <div class="p-3 mb-2 bg-gray-100 rounded border border-gray-300 text-left">
+                        <p class="font-bold text-lg">${item.name}</p>
+                        <p class="text-sm text-gray-600">${item.desc}</p>
+                        <button id="buyWeekly_${item.id}" class="weekly-btn w-full mt-2 p-2 text-sm text-white rounded" style="background-color: ${buttonColor};" ${isDisabled ? 'disabled' : ''}>
+                            ${buttonText}
+                        </button>
+                    </div>
+                `);
+                if (!isDisabled) {
+                    document.getElementById(`buyWeekly_${item.id}`).onclick = () => buyWeeklyItem(item);
+                }
+            });
+            
+            if (game.isSolo) {
+                nextRoundButtonContainer.insertAdjacentHTML('beforeend', `<button id="continueSolo" class="w-full mt-6 p-4 text-white font-bold rounded-lg text-lg" style="background-color: #dc3545;">
+                    Ga Verder naar Level ${isLevelUp ? game.currentLevel + 1 : game.currentLevel}
+                </button>`);
+                document.getElementById('continueSolo').onclick = startNextSoloMatch;
+            }
         }
     };
     
     createShopButtons();
 }
 
+function showScreen(screenId) {
+    if (document.getElementById('playOptions')) document.getElementById('playOptions').style.display = 'none';
+    if (document.getElementById('hostGameForm')) document.getElementById('hostGameForm').style.display = 'none';
+    if (document.getElementById('joinGameForm')) document.getElementById('joinGameForm').style.display = 'none';
+    if (document.getElementById('publicGameSelectScreen')) document.getElementById('publicGameSelectScreen').style.display = 'none';
+    if (document.getElementById('waitingScreen')) document.getElementById('waitingScreen').style.display = 'none';
+    if (document.getElementById('shopContent')) document.getElementById('shopContent').style.display = 'none';
+    
+    const screenElement = document.getElementById(screenId);
+    if (screenElement) screenElement.style.display = 'flex';
+}
+
+function showStartScreen() {
+    game.isRunning = false;
+    if (gameElements) gameElements.style.display = 'none';
+    if (messageBox) messageBox.style.display = 'flex';
+    if (document.querySelector('.message-text')) document.querySelector('.message-text').textContent = "Welkom bij Om!";
+    if (messageSubtitle) messageSubtitle.textContent = "Voer je naam in om te starten";
+    if (document.getElementById('usernameInput')) document.getElementById('usernameInput').style.display = 'block';
+    if (document.getElementById('nameStatus')) document.getElementById('nameStatus').style.display = 'none';
+    if (document.getElementById('playOptions')) document.getElementById('playOptions').style.display = 'none';
+    
+    if (document.getElementById('hostGameForm')) document.getElementById('hostGameForm').style.display = 'none';
+    if (document.getElementById('joinGameForm')) document.getElementById('joinGameForm').style.display = 'none';
+    if (document.getElementById('publicGameSelectScreen')) document.getElementById('publicGameSelectScreen').style.display = 'none';
+    if (document.getElementById('waitingScreen')) document.getElementById('waitingScreen').style.display = 'none';
+    if (shopContent) shopContent.style.display = 'none';
+
+
+    if (game.username) {
+        showMenu();
+    }
+}
+
+function showMenu() {
+    if (messageSubtitle) messageSubtitle.textContent = `Welkom terug, ${game.username}! Kies een optie:`;
+    if (document.getElementById('usernameInput')) document.getElementById('usernameInput').style.display = 'none';
+    if (document.getElementById('playOptions')) document.getElementById('playOptions').style.display = 'flex';
+    if (shopContent) shopContent.style.display = 'none';
+    if(scoreDisplay) scoreDisplay.textContent = `Level: ${game.currentLevel} | Goud: ${game.gold}`;
+}
+
 window.onload = function() {
     setCanvasSize();
-    setupInputListeners();
+    setupInputListeners(); 
     loadGameData();
+    
+    showStartScreen(); 
+
+    const usernameInput = document.getElementById('usernameInput');
+    if (usernameInput) {
+        usernameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const name = usernameInput.value.trim();
+                const nameStatus = document.getElementById('nameStatus');
+                if (name.length >= 2) {
+                    game.username = name;
+                    showMenu();
+                } else {
+                    if (nameStatus) {
+                        nameStatus.textContent = 'Naam moet minimaal 2 tekens zijn.';
+                        nameStatus.style.display = 'block';
+                    }
+                }
+            }
+        });
+    }
+
+    const soloPlayButton = document.getElementById('soloPlayButton');
+    if (soloPlayButton) {
+        soloPlayButton.onclick = function() {
+            const nameStatus = document.getElementById('nameStatus');
+            if (!game.username) {
+                 if (nameStatus) {
+                    nameStatus.textContent = 'Voer eerst een naam in.';
+                    nameStatus.style.display = 'block';
+                 }
+                 return;
+            }
+            
+            game.isSolo = true;
+            game.isMultiplayer = false;
+            game.score.player1 = 0; 
+
+            const aiStats = calculateAIStats(game.currentLevel);
+            
+            initializeFighters(
+                {name: game.username}, 
+                {name: aiStats.name}, 
+                true
+            );
+            
+            startMatch();
+        };
+    }
+
+    const showShopButton = document.getElementById('showShopButton');
+    if (showShopButton) {
+        showShopButton.onclick = function() {
+            game.isSolo = true;
+            showUpgradeShop("Winkel", "Welkom in de potloodwinkel! Gebruik je goud om sterker te worden.", false);
+        };
+    }
+
+    const disconnectAndMenuButton = document.getElementById('disconnectAndMenuButton');
+    if (disconnectAndMenuButton) {
+        disconnectAndMenuButton.onclick = function() {
+            cancelAnimationFrame(gameLoopId);
+            clearInterval(timerIntervalId);
+            game.isRunning = false;
+            game.isSolo = false;
+            game.isMultiplayer = false;
+            showStartScreen();
+        };
+    }
+
+    const showHostButton = document.getElementById('showHostButton');
+    if (showHostButton) showHostButton.onclick = () => {
+        if (messageSubtitle) messageSubtitle.textContent = 'Host een nieuw spel';
+        showScreen('hostGameForm');
+    };
+    
+    const showJoinButton = document.getElementById('showJoinButton');
+    if (showJoinButton) showJoinButton.onclick = () => {
+        if (messageSubtitle) messageSubtitle.textContent = 'Voer de PIN in om mee te doen';
+        showScreen('joinGameForm');
+    };
+    
+    const showPublicGamesButton = document.getElementById('showPublicGamesButton');
+    if (showPublicGamesButton) showPublicGamesButton.onclick = () => {
+        if (messageSubtitle) messageSubtitle.textContent = 'Kies een openbaar spel';
+        showScreen('publicGameSelectScreen');
+    };
 };
