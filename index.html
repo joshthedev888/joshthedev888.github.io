@@ -3,87 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>josh.ai</title>
+    <title>Josh.ai // Light Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
+        /* Custom Scrollbar voor Light Mode */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+
+        /* Background Gradient Animation (Licht) */
+        .bg-animated {
+            background: radial-gradient(circle at 50% 50%, #f8fafc 0%, #e2e8f0 100%);
         }
-        .chat-container {
-            height: calc(100vh - 8rem);
-            max-height: 100vh;
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
         }
-        .chat-history::-webkit-scrollbar {
-            width: 8px;
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
-        .chat-history::-webkit-scrollbar-track {
-            background: #f3f4f6;
-        }
-        .chat-history::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 4px;
-        }
-        .chat-history::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
     </style>
 </head>
-<body class="flex flex-col h-screen antialiased">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans bg-animated relative overflow-x-hidden">
 
-    <header class="bg-white shadow-lg p-4 sticky top-0 z-10">
-        <div class="max-w-4xl mx-auto flex items-center space-x-4">
-            <h1 class="text-3xl font-extrabold text-gray-900">josh.<span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">ai</span></h1>
-        </div>
-    </header>
+    <!-- Achtergrond Blobs (Subtieler voor Light Mode) -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none opacity-60">
+        <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-300/30 rounded-full blur-[100px] animate-pulse-slow"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-purple-300/30 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: 2s;"></div>
+    </div>
 
-    <main class="flex-grow overflow-hidden p-4">
-        <div class="w-full mx-auto chat-container flex flex-col rounded-xl bg-white shadow-2xl">
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow container mx-auto px-4 py-6 max-w-5xl flex flex-col gap-6 h-screen">
+        
+        <!-- TOP: AI SECTION (Groot & Dominant) -->
+        <section class="flex-grow flex flex-col glass-panel rounded-3xl overflow-hidden relative">
+            
+            <!-- Header -->
+            <div class="p-4 border-b border-slate-200/50 flex justify-between items-center bg-white/30">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] animate-pulse"></div>
+                    <h1 class="text-xl font-bold tracking-wide text-slate-800">JOSH<span class="text-indigo-600">.AI</span> <span class="text-xs font-mono text-slate-500 ml-2 opacity-60">SYSTEM V2.0 (LIGHT)</span></h1>
+                </div>
+                <button onclick="clearChat()" class="p-2 rounded-lg hover:bg-black/5 text-slate-400 hover:text-red-500 transition">
+                    <i class="ph ph-trash text-lg"></i>
+                </button>
+            </div>
 
-            <div id="chatHistory" class="chat-history flex-grow overflow-y-auto p-6 space-y-4">
-                <div class="flex justify-start">
-                    <div class="bg-gray-200 text-gray-800 p-3 rounded-xl rounded-tl-none max-w-lg shadow-md">
-                        <p class="font-bold text-sm mb-1">josh.ai</p>
-                        <p>yo ik ben een ai die geforceerd is om je te helpen dus vraag me iets</p>
+            <!-- Chat History -->
+            <div id="chatHistory" class="flex-grow overflow-y-auto p-6 space-y-6 custom-scroll">
+                <!-- Intro Message -->
+                <div class="flex justify-start animate-float">
+                    <div class="max-w-[85%] md:max-w-[70%]">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs font-mono text-indigo-600">josh.ai</span>
+                            <span class="text-[10px] text-slate-400">NU</span>
+                        </div>
+                        <div class="bg-white/80 border border-indigo-100 text-indigo-900 p-4 rounded-2xl rounded-tl-sm shadow-sm backdrop-blur-sm">
+                            <p>yo bro wat wil je weten?</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="p-4 border-t border-gray-200 bg-white/50 backdrop-blur-sm">
-                <form id="chatForm" class="flex items-center space-x-3">
-                    <input
-                        type="text"
-                        id="userInput"
-                        placeholder="Typ hier..."
+            <div class="p-4 bg-white/60 backdrop-blur-xl border-t border-slate-200/50">
+                <form id="chatForm" class="relative flex items-center gap-3">
+                    <input 
+                        type="text" 
+                        id="userInput" 
+                        placeholder="Geef een commando..." 
                         autocomplete="off"
-                        class="flex-grow p-3 bg-white border border-gray-300 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 shadow-inner"
+                        class="w-full bg-white text-slate-800 placeholder-slate-400 border border-slate-200 rounded-xl px-5 py-4 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:bg-white transition-all font-mono text-sm shadow-sm"
                         required
                     >
-                    <button
-                        type="submit"
+                    <button 
+                        type="submit" 
                         id="sendButton"
-                        class="p-3 bg-indigo-600 text-white rounded-xl font-semibold shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-150 transform hover:scale-105 disabled:bg-indigo-300 disabled:transform-none"
+                        class="absolute right-2 p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
-                        <svg id="sendIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                        <svg id="loadingIcon" class="w-6 h-6 animate-spin hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <i id="sendIcon" class="ph ph-arrow-right text-xl group-hover:translate-x-1 transition-transform"></i>
+                        <svg id="loadingIcon" class="w-5 h-5 animate-spin hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     </button>
                 </form>
             </div>
-        </div>
+        </section>
+
+        <!-- BOTTOM: THE STASH (Grid) -->
+        <section class="h-auto md:h-1/3 shrink-0 pb-6">
+            <div class="flex items-center justify-between mb-4 px-2">
+                <h2 class="text-sm font-mono text-slate-500 uppercase tracking-widest font-bold">The Stash</h2>
+                <div class="h-[1px] flex-grow bg-gradient-to-r from-slate-300 to-transparent ml-4"></div>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                
+                <!-- Card 1 -->
+                <a href="#" class="glass-card p-5 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                    <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-colors duration-300 shadow-sm">
+                        <i class="ph ph-youtube-logo text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition">Watchlist</h3>
+                        <p class="text-xs text-slate-500 mt-1">Movies & Clips</p>
+                    </div>
+                </a>
+
+                <!-- Card 2 -->
+                <a href="#" class="glass-card p-5 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                    <div class="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300 shadow-sm">
+                        <i class="ph ph-lightbulb text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition">Brain Dump</h3>
+                        <p class="text-xs text-slate-500 mt-1">Notes & Ideas</p>
+                    </div>
+                </a>
+
+                <!-- Card 3 -->
+                <a href="#" class="glass-card p-5 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                    <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300 shadow-sm">
+                        <i class="ph ph-image text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition">Gallery</h3>
+                        <p class="text-xs text-slate-500 mt-1">Photos & Memes</p>
+                    </div>
+                </a>
+
+                <!-- Card 4 -->
+                <a href="#" class="glass-card p-5 rounded-2xl flex flex-col items-center justify-center gap-3 text-center group">
+                    <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300 shadow-sm">
+                        <i class="ph ph-link text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition">Portal</h3>
+                        <p class="text-xs text-slate-500 mt-1">Links & Tools</p>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
     </main>
 
-    <footer class="p-2 text-center text-xs text-gray-500 bg-white/50">
-        &copy; 2025 Josh Sharma
-    </footer>
-
     <script>
-        const API_KEY = `AIzaSyARU6mcBq7EBxCP-ECgDHVEuzY4KAw5dds`
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-        const MAX_RETRIES = 3;
-        const INITIAL_BACKOFF_MS = 1000;
+        // --- JOUW SLEUTEL HIER ---
+        const API_KEY = ''; 
+        // -------------------------
 
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+        
         const chatHistoryDiv = document.getElementById('chatHistory');
         const chatForm = document.getElementById('chatForm');
         const userInput = document.getElementById('userInput');
@@ -95,126 +204,128 @@
         let isLoading = false;
 
         const escapeHtml = (str) => {
-            return str.replace(/&/g, '&amp;')
-                      .replace(/</g, '&lt;')
-                      .replace(/>/g, '&gt;')
-                      .replace(/"/g, '&quot;')
-                      .replace(/'/g, '&#039;');
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         };
 
-        const renderMessages = () => {
-            chatHistoryDiv.innerHTML = '';
+        const formatText = (text) => {
+            let formatted = escapeHtml(text).replace(/\n/g, '<br>');
+            // Donkerdere accentkleur voor Light mode
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<b class="text-indigo-600">$1</b>');
+            // Lichtere code block background
+            formatted = formatted.replace(/`(.*?)`/g, '<code class="bg-slate-100 border border-slate-200 px-1 py-0.5 rounded text-xs font-mono text-pink-600">$1</code>');
+            return formatted;
+        };
 
-            chatHistory.forEach(message => {
-                const messageDiv = document.createElement('div');
-                const bubble = document.createElement('div');
+        const appendMessage = (role, text) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'max-w-[85%] md:max-w-[70%] animate-[fadeIn_0.3s_ease-out]';
 
-                const isUser = message.role === 'user';
-                const content = escapeHtml(message.parts[0].text).replace(/\n/g, '<br>');
+            // Meta info (Name/Time)
+            const meta = document.createElement('div');
+            meta.className = `flex items-center gap-2 mb-1 ${role === 'user' ? 'justify-end' : ''}`;
+            meta.innerHTML = role === 'user' 
+                ? `<span class="text-[10px] text-slate-400">JIJ</span>` 
+                : `<span class="text-xs font-mono text-indigo-600">SYSTEM</span>`;
+            wrapper.appendChild(meta);
 
-                messageDiv.className = isUser ? 'flex justify-end' : 'flex justify-start';
+            // Bubble
+            const bubble = document.createElement('div');
+            bubble.className = role === 'user'
+                ? 'bg-indigo-600 text-white p-4 rounded-2xl rounded-tr-sm shadow-lg shadow-indigo-500/20'
+                : 'bg-white border border-slate-200 text-slate-800 p-4 rounded-2xl rounded-tl-sm shadow-sm';
 
-                bubble.className = isUser
-                    ? 'bg-indigo-600 text-white p-3 rounded-xl rounded-br-none max-w-lg shadow-md'
-                    : 'bg-gray-200 text-gray-800 p-3 rounded-xl rounded-tl-none max-w-lg shadow-md';
+            const contentP = document.createElement('div');
+            contentP.className = 'text-sm leading-relaxed';
+            contentP.innerHTML = formatText(text);
+            bubble.appendChild(contentP);
 
-                if (!isUser) {
-                    const persona = document.createElement('p');
-                    persona.className = 'font-bold text-sm mb-1';
-                    persona.textContent = 'josh.ai';
-                    bubble.appendChild(persona);
-                }
-
-                const textContent = document.createElement('p');
-                textContent.innerHTML = content;
-                bubble.appendChild(textContent);
-
-                messageDiv.appendChild(bubble);
-                chatHistoryDiv.appendChild(messageDiv);
-            });
-
+            wrapper.appendChild(bubble);
+            messageDiv.appendChild(wrapper);
+            chatHistoryDiv.appendChild(messageDiv);
             chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
         };
 
-        const setLoading = (loadingState) => {
-            isLoading = loadingState;
-            userInput.disabled = loadingState;
-            sendButton.disabled = loadingState;
-            if (loadingState) {
+        const setLoading = (loading) => {
+            isLoading = loading;
+            userInput.disabled = loading;
+            sendButton.disabled = loading;
+            if (loading) {
                 sendIcon.classList.add('hidden');
                 loadingIcon.classList.remove('hidden');
             } else {
                 loadingIcon.classList.add('hidden');
                 sendIcon.classList.remove('hidden');
+                userInput.focus();
             }
         };
 
-        const callGeminiApi = async () => {
+        const callGemini = async (userMessage) => {
             setLoading(true);
+            
+            const contents = chatHistory.map(msg => ({ role: msg.role, parts: [{ text: msg.text }] }));
+            contents.push({ role: 'user', parts: [{ text: userMessage }] });
 
             const payload = {
-                contents: chatHistory,
+                contents: contents,
                 systemInstruction: {
-                    parts: [{ text: "je bent de behulpzame ai assistent voor josh.ai. je spreekt nederlands. je gebruikt geen hoofdletters voor het begin van elke zin en gebruikt nederlandse slang, maar vermijd aanstootgevende taal. je modelnaam is josh.ai 1.0" }]
+                    parts: [{ text: "je bent Josh.ai, een futuristisch AI systeem in een dashboard. spreek nederlands. wees kort, cool en soms een beetje sarcastisch. je doel is de gebruiker efficiënt te helpen." }]
                 }
             };
 
-            for (let i = 0; i < MAX_RETRIES; i++) {
-                try {
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-                    if (!response.ok) {
-                        if (response.status === 429 && i < MAX_RETRIES - 1) {
-                            const delay = INITIAL_BACKOFF_MS * Math.pow(2, i);
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            continue;
-                        }
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                    if (text) {
-                        setLoading(false);
-                        return text;
-                    } else {
-                        throw new Error('API response missing text content.');
-                    }
-
-                } catch (error) {
-                    console.error('Gemini API call failed:', error);
-                    if (i === MAX_RETRIES - 1) {
-                        setLoading(false);
-                        return 'Sorry, ik heb moeite om verbinding te maken met de AI-service. Probeer het over een moment opnieuw.';
-                    }
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error?.message || 'API Error');
+                
+                const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (aiText) {
+                    chatHistory.push({ role: 'user', text: userMessage });
+                    chatHistory.push({ role: 'model', text: aiText });
+                    appendMessage('model', aiText);
                 }
+
+            } catch (error) {
+                console.error(error);
+                appendMessage('model', 'Systeemfout. Check je verbinding of key. [Error: 500]');
+            } finally {
+                setLoading(false);
             }
         };
 
-        const sendMessage = async (event) => {
-            event.preventDefault();
-            const prompt = userInput.value.trim();
-
-            if (!prompt || isLoading) return;
-
-            chatHistory.push({ role: 'user', parts: [{ text: prompt }] });
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = userInput.value.trim();
+            if (!text || isLoading) return;
+            appendMessage('user', text);
             userInput.value = '';
-            renderMessages();
+            callGemini(text);
+        });
 
-            const responseText = await callGeminiApi();
-
-            chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
-            renderMessages();
-        };
-
-        chatForm.addEventListener('submit', sendMessage);
-
-        renderMessages();
+        function clearChat() {
+            chatHistory = [];
+            chatHistoryDiv.innerHTML = `
+                <div class="flex justify-start animate-float">
+                    <div class="max-w-[85%] md:max-w-[70%]">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs font-mono text-indigo-600">SYSTEM</span>
+                            <span class="text-[10px] text-slate-400">NOW</span>
+                        </div>
+                        <div class="bg-white/80 border border-indigo-100 text-indigo-900 p-4 rounded-2xl rounded-tl-sm shadow-sm backdrop-blur-sm">
+                            <p>Geheugen gewist. Schone lei.</p>
+                        </div>
+                    </div>
+                </div>`;
+        }
     </script>
 </body>
 </html>
