@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>joshthedev888.github.io</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght+400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <script>
@@ -110,21 +110,20 @@
             </div>
 
             <div class="p-4 bg-white/60 backdrop-blur-xl border-t border-slate-200/50">
-                <form id="chatForm" class="relative flex items-center gap-3">
+                                <form id="chatForm" class="flex items-center gap-3">
                     <input 
                         type="text" 
                         id="userInput" 
                         placeholder="vraag iets..." 
                         autocomplete="off"
-                        class="w-full bg-white/80 text-slate-800 placeholder-slate-400 border border-slate-200 rounded-xl px-5 py-4 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:bg-white transition-all font-mono text-sm shadow-sm"
+                        class="flex-grow bg-white/80 text-slate-800 placeholder-slate-400 border border-slate-200 rounded-xl px-5 py-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:bg-white transition-all font-mono text-sm shadow-sm"
                         required
-                    >
-                    <button 
+                    >                    <button 
                         type="submit" 
                         id="sendButton"
-                        class="absolute right-2 p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
+                        class="shrink-0 p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
                     >
-                        <i id="sendIcon" class="ph ph-arrow-right text-xl group-hover:translate-x-1 transition-transform"></i>
+                        <i id="sendIcon" class="ph ph-arrow-right text-xl group-hover:translate-x-0.5 transition-transform"></i>
                         <svg id="loadingIcon" class="w-5 h-5 animate-spin hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     </button>
                 </form>
@@ -133,15 +132,15 @@
 
                 <section class="h-auto shrink-0 pb-6">
             <div class="flex items-center justify-between mb-4 px-2">
-                <h2 class="text-xs font-mono text-slate-500 uppercase tracking-widest font-bold flex items-center gap-2">
+                                <h2 class="text-xs font-mono text-slate-700 uppercase tracking-widest font-bold flex items-center gap-2">
                     <i class="ph ph-squares-four"></i> Belangrijkste Projecten
                 </h2>
-                <div class="h-[1px] flex-grow bg-gradient-to-r from-slate-300 to-transparent ml-4 opacity-50"></div>
+                <div class="h-[1px] flex-grow bg-gradient-to-r from-slate-400 to-transparent ml-4 opacity-50"></div>
             </div>
             
-             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 h-64">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 justify-items-center sm:justify-items-start">
                 
-                <a href="appelsap.html" class="glass-card p-6 rounded-2xl flex items-center gap-4 group relative overflow-hidden">
+                                <a href="appelsap.html" class="glass-card p-6 rounded-2xl flex items-center gap-4 group relative overflow-hidden sm:col-span-1">
                     <div class="flex-grow z-10">
                         <h3 class="font-bold text-slate-800 text-base group-hover:text-indigo-600 transition-colors">Appelsap: 3D Platformer</h3>
                         <p class="text-sm text-slate-500">De beste appelsap 3D platformer game ooit gemaakt. Klik om te spelen!</p>
@@ -194,7 +193,7 @@
             meta.className = `flex items-center gap-2 mb-1 ${role === 'user' ? 'justify-end' : ''}`;
             meta.innerHTML = role === 'user' 
                 ? `<span class="text-[10px] text-slate-400">JIJ</span>` 
-                : `<span class="text-xs font-mono text-indigo-600">josh.ai 1.1</span>`;
+                : `<span class="text-xs font-mono text-indigo-600">SYSTEM</span>`;
             wrapper.appendChild(meta);
 
             const bubble = document.createElement('div');
