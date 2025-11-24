@@ -105,14 +105,8 @@
         const inputForm = document.getElementById('input-form');
         const chatEndRef = document.getElementById('chat-end-ref');
 
-        // BELANGRIJK: Dit is de URL van JOUW zelf gehoste proxy/serverloze functie.
-        // De frontend roept deze endpoint aan in plaats van de Gemini API direct.
-        const PROXY_ENDPOINT = '/api/chat-proxy'; 
-        
-        /**
-         * Roept de proxy-endpoint aan om de API-sleutel veilig te verbergen.
-         * Dit simuleert een communicatie met een server.
-         */
+        const PROXY_ENDPOINT = 'https://joshthedev888-server.onrender.com'; 
+
         const callProxy = async (url, payload) => {
             try {
                 const response = await fetch(url, {
@@ -123,19 +117,24 @@
 
                 if (!response.ok) {
                     const errorBody = await response.text();
-                    throw new Error(`Proxy-fout: ${response.status}. Zorg ervoor dat de proxy op ${url} correct is ingesteld. Details: ${errorBody}`);
+                    let errorMessage = `HTTP-fout: ${response.status}. Proxy-endpoint: ${url}.`;
+                    try {
+                        const errorJson = JSON.parse(errorBody);
+                        errorMessage += ` Server-fout: ${errorJson.error || errorBody}`;
+                    } catch {
+                        errorMessage += ` Ruwe respons: ${errorBody}`;
+                    }
+                    throw new Error(errorMessage);
                 }
                 
                 return response.json();
             } catch (error) {
                 console.error("Fout bij aanroepen van de proxy:", error);
-                // Geef een duidelijke foutmelding terug als de proxy faalt
-                throw new Error(`Netwerkfout bij proxy: ${error.message}`);
+                throw new Error(`Netwerk- of fetch-fout: ${error.message}`);
             }
         };
 
         const callGeminiAPI = async (userPrompt) => {
-            // De frontend stuurt alleen de prompt naar de proxy
             const payload = {
                 userPrompt: userPrompt
             };
@@ -145,8 +144,7 @@
                 
                 if (result && result.text) {
                     let text = result.text;
-                    
-                    // Voeg bronnen toe indien teruggestuurd door de proxy
+
                     if (result.sources && result.sources.length > 0) {
                         const sourceTitles = result.sources
                             .map(a => `[${a.title || 'Onbekende bron'}]`)
@@ -163,11 +161,11 @@
 
             } catch (error) {
                 console.error("Fout in callGeminiAPI (via proxy):", error);
-                return `Yo, de verbinding met de proxy is stuk, bro! ${error.message}. Dit komt waarschijnlijk door een probleem met je backend-server.`;
+                // Geef een duidelijke foutmelding terug bij mislukte proxy-communicatie
+                return `Een probleem is gedetecteerd met de server. ${error.message}. Dit komt waarschijnlijk door een probleem met de backend-server.`;
             }
         };
 
-        // --- UI Hulpfuncties ---
 
         const scrollToBottom = () => {
             chatEndRef.scrollIntoView({ behavior: "smooth" });
@@ -236,7 +234,6 @@
                     </div>
                 `;
             } else { 
-                // AI-bericht (links uitgelijnd)
                 messageEl.className = 'flex mb-4 p-2 rounded-xl justify-start';
                 messageEl.innerHTML = `
                     <div class="p-2 rounded-full mr-3 bg-gray-700 shadow-md flex-shrink-0 ${iconClass}">
@@ -275,14 +272,12 @@
             renderChatHistory(); 
             renderTypingIndicator(true); 
             updateUIState();
-            
-            // 2. API Call naar de veilige proxy
+
             try {
                 const aiText = await callGeminiAPI(cleanPrompt);
                 
                 let aiMessage;
-                // Controleer op proxy-foutmeldingen
-                if (aiText.startsWith('Yo, de verbinding met de proxy is stuk') || aiText.startsWith('Sorry, de proxy gaf geen bruikbaar tekstresultaat')) {
+                if (aiText.startsWith('Een probleem is gedetecteerd met de server') || aiText.startsWith('Sorry, de proxy gaf geen bruikbaar tekstresultaat')) {
                     aiMessage = { 
                         sender: 'ai', 
                         text: aiText, 
@@ -323,7 +318,7 @@
             chatHistory = [
                 {
                     sender: 'ai',
-                    text: 'Yo! Ik ben realJosh.ai. De verbinding via de proxy is gereed. Vuur je vragen op me af!',
+                    text: 'yo bro vraag wat je wilt',
                     icon: 'Cpu',
                     color: MAIN_COLOR
                 }
@@ -331,14 +326,12 @@
             
             renderChatHistory();
 
-            // Event listeners
             inputForm.addEventListener('submit', handleSend);
             promptInput.addEventListener('input', updateUIState);
             
-            updateUIState(); // Initialiseer de knopstatus
+            updateUIState(); 
         };
 
-        // Start de applicatie zodra de pagina geladen is
         window.onload = init;
     </script>
 </body>
