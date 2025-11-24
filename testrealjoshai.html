@@ -3,29 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>realJosh.AI</title>
+    <title>realJosh.AI Chat (Gecorrigeerd)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Laadt het Inter lettertype */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #030712; /* Donkere achtergrond */
+            background-color: #030712; 
         }
-        /* Custom scrollbar styling voor donker thema */
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #1f2937; /* Gray-800 */
+            background: #1f2937; 
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #4f46e5; /* Indigo-600 */
+            background: #4f46e5; 
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #6366f1; 
+        }
+        .whitespace-pre-wrap {
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -36,32 +37,27 @@
         <header class="bg-gray-900 p-4 sm:p-6 flex justify-between items-center border-b border-gray-800 flex-shrink-0">
             <div class="flex items-center space-x-4">
                 <a href="index.html" class="p-2 rounded-full text-white bg-indigo-700 hover:bg-indigo-600 transition duration-200 shadow-md flex items-center group">
-                    <!-- Home Icoon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 group-hover:scale-110 transition-transform"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     <span class="ml-2 hidden sm:inline">Terug naar Home</span>
                 </a>
             </div>
             
             <div class="flex items-center">
-                <!-- AI Processor Icoon -->
-                <svg id="header-cpu-icon" class="w-8 h-8 mr-3 text-indigo-400 animate-pulse" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M15 9V7h-2V5H9v2H7v4h2v2H7v4h2v2h4v-2h2v-2h2v-4h-2v-2h2z"/></svg>
+                <svg id="header-cpu-icon" class="w-8 h-8 mr-3 text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M15 9V7h-2V5H9v2H7v4h2v2H7v4h2v2h4v-2h2v-2h2v-4h-2v-2h2z"/></svg>
                 <h1 class="text-3xl font-extrabold text-white">
                     realJosh.<span class="text-indigo-400">AI</span> (Proxy Mode)
                 </h1>
             </div>
             <button class="text-gray-400 hover:text-indigo-400 p-2 rounded-full transition duration-200">
-                <!-- Instellingen Icoon -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.44a2 2 0 0 1-2 2h-.44a2 2 0 0 0-2 2v.44a2 2 0 0 1-2 2H2v.44a2 2 0 0 0 2 2h.44a2 2 0 0 1 2 2v.44a2 2 0 0 0 2 2h.44a2 2 0 0 1 2 2v.44a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.44a2 2 0 0 1 2-2h.44a2 2 0 0 0 2-2v-.44a2 2 0 0 1 2-2H22v-.44a2 2 0 0 0-2-2h-.44a2 2 0 0 1-2-2v-.44a2 2 0 0 0-2-2h-.44a2 2 0 0 1-2-2V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
         </header>
 
-        <!-- Chat Geschiedenis Container -->
         <div class="flex-1 p-4 sm:p-6 flex flex-col overflow-hidden bg-gray-900">
             <div id="chat-history-container" class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 <div id="chat-end-ref"></div>
             </div>
 
-            <!-- Input Formulier -->
             <form id="input-form" class="mt-4 flex flex-shrink-0">
                 <input
                     type="text"
@@ -76,7 +72,6 @@
                     class="p-4 rounded-r-xl text-white font-semibold flex items-center justify-center transition duration-300 transform active:scale-95 bg-gray-700 text-gray-500 cursor-not-allowed"
                     disabled
                 >
-                    <!-- Verstuur Icoon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-0 sm:mr-2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
                     <span class="hidden sm:inline">Verstuur</span>
                 </button>
@@ -85,7 +80,6 @@
     </div>
 
     <script type="module">
-        // Kaart met SVG iconen voor verschillende berichtentypes
         const ICON_MAP = {
             Cpu: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M15 9V7h-2V5H9v2H7v4h2v2H7v4h2v2h4v-2h2v-2h2v-4h-2v-2h2z"/></svg>',
             AlertTriangle: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
@@ -96,19 +90,37 @@
         let isTyping = false;
 
         const MAIN_COLOR = 'text-indigo-400';
-        const ACCENT_BUTTON_CLASSES = 'bg-indigo-600 hover:bg-indigo-500';
-        const ERROR_COLOR = 'text-red-400'; // Voor proxy-fouten
+        const ACCENT_BUTTON_CLASSES = 'bg-indigo-600 hover:bg-indigo-500 shadow-lg';
+        const ACCENT_CLASS_ARRAY = ACCENT_BUTTON_CLASSES.split(' '); 
+        const ERROR_COLOR = 'text-red-400';
 
         const chatContainer = document.getElementById('chat-history-container');
         const promptInput = document.getElementById('prompt-input');
         const sendButton = document.getElementById('send-button');
         const inputForm = document.getElementById('input-form');
         const chatEndRef = document.getElementById('chat-end-ref');
+        const headerCpuIcon = document.getElementById('header-cpu-icon'); 
 
-        const PROXY_ENDPOINT = 'const PROXY_URL = 'https://joshthedev888-server.onrender.com/api/chat-proxy';'; 
+        const PROXY_ENDPOINT = 'https://joshthedev888-server.onrender.com/api/chat-proxy';
 
+        const scrollToBottom = () => {
+            chatEndRef.scrollIntoView({ behavior: "smooth" });
+        };
+
+        const withExponentialBackoff = async (fn, maxRetries = 5) => {
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    return await fn();
+                } catch (error) {
+                    if (attempt === maxRetries - 1) throw error;
+                    const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        };
+        
         const callProxy = async (url, payload) => {
-            try {
+            const fetchContent = async () => {
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -128,15 +140,22 @@
                 }
                 
                 return response.json();
-            } catch (error) {
-                console.error("Fout bij aanroepen van de proxy:", error);
-                throw new Error(`Netwerk- of fetch-fout: ${error.message}`);
             }
+
+            return await withExponentialBackoff(fetchContent);
         };
 
         const callGeminiAPI = async (userPrompt) => {
+            const apiHistory = chatHistory
+                .filter(msg => msg.sender !== 'ai' || !msg.text.startsWith('Een probleem')) // Filter foutberichten
+                .map(msg => ({
+                    role: msg.sender === 'user' ? 'user' : 'model', 
+                    text: msg.text
+                }));
+
             const payload = {
-                userPrompt: userPrompt
+                userPrompt: userPrompt,
+                chatHistory: apiHistory
             };
 
             try {
@@ -146,12 +165,11 @@
                     let text = result.text;
 
                     if (result.sources && result.sources.length > 0) {
-                        const sourceTitles = result.sources
-                            .map(a => `[${a.title || 'Onbekende bron'}]`)
-                            .filter(s => s);
-                        if (sourceTitles.length > 0) {
-                             text += `\n\n*Bronnen (via proxy): ${sourceTitles.join(', ')}*`;
-                        }
+                        const sourceList = result.sources
+                            .map((a, index) => `[${index + 1}] <a href="${a.uri}" target="_blank" class="text-indigo-300 hover:text-indigo-200 underline">${a.title}</a>`)
+                            .join('\n');
+                        
+                        text += `\n\n---\n**Gevonden bronnen:**\n${sourceList}`;
                     }
 
                     return text;
@@ -161,30 +179,31 @@
 
             } catch (error) {
                 console.error("Fout in callGeminiAPI (via proxy):", error);
-                // Geef een duidelijke foutmelding terug bij mislukte proxy-communicatie
                 return `Een probleem is gedetecteerd met de server. ${error.message}. Dit komt waarschijnlijk door een probleem met de backend-server.`;
             }
         };
 
-
-        const scrollToBottom = () => {
-            chatEndRef.scrollIntoView({ behavior: "smooth" });
-        };
-        
         const updateUIState = () => {
             const promptValue = promptInput.value.trim();
 
-            // Knop uitschakelen als we aan het typen zijn of de input leeg is
             if (isTyping || !promptValue) {
                 sendButton.disabled = true;
-                sendButton.className = `p-4 rounded-r-xl text-white font-semibold flex items-center justify-center transition duration-300 transform active:scale-95 bg-gray-700 text-gray-500 cursor-not-allowed`;
+                sendButton.classList.remove(...ACCENT_CLASS_ARRAY); 
+                sendButton.classList.add('bg-gray-700', 'text-gray-500', 'cursor-not-allowed');
             } else {
                 sendButton.disabled = false;
-                sendButton.className = `p-4 rounded-r-xl text-white font-semibold flex items-center justify-center transition duration-300 transform active:scale-95 ${ACCENT_BUTTON_CLASSES}`;
+                sendButton.classList.add(...ACCENT_CLASS_ARRAY); 
+                sendButton.classList.remove('bg-gray-700', 'text-gray-500', 'cursor-not-allowed');
             }
 
             promptInput.disabled = isTyping;
             promptInput.placeholder = isTyping ? "realJosh.ai is bezig met verwerken..." : "Stel je vraag aan realJosh.ai...";
+
+            if (isTyping) {
+                 headerCpuIcon.classList.add('animate-pulse');
+            } else {
+                headerCpuIcon.classList.remove('animate-pulse');
+            }
         };
 
         const renderTypingIndicator = (show) => {
@@ -198,13 +217,12 @@
 
             const indicator = document.createElement('div');
             indicator.id = 'typing-indicator';
-            indicator.className = 'flex justify-start mb-4 p-3';
+            indicator.className = 'flex justify-start mb-4 p-2';
             indicator.innerHTML = `
-                <div class="p-2 rounded-full mr-3 bg-gray-700 ${MAIN_COLOR} flex-shrink-0">
+                <div class="p-2 rounded-full mr-3 bg-gray-700 shadow-md flex-shrink-0 ${MAIN_COLOR}">
                     ${ICON_MAP.Cpu}
                 </div>
-                <div class="max-w-xs sm:max-w-lg p-4 rounded-xl bg-gray-800 text-gray-400 rounded-tl-none border border-gray-700">
-                    <!-- Typ-animatie (drie stippen) -->
+                <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 bg-gray-800 text-gray-400 rounded-tl-none border border-gray-700">
                     <div class="flex space-x-1">
                         <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-75"></div>
                         <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-150"></div>
@@ -222,23 +240,26 @@
             
             const { sender, text, icon: iconName, color } = msg;
 
+            const isError = iconName === 'AlertTriangle';
+
             const iconSvg = ICON_MAP[iconName] || ICON_MAP.MessageSquare; 
             const iconClass = color || MAIN_COLOR;
+            const bgColor = isError ? 'bg-red-800' : 'bg-gray-800';
             
             if (sender === 'user') {
-                messageEl.className = 'flex mb-4 p-2 rounded-xl justify-end';
+                messageEl.className = 'flex mb-4 p-2 justify-end';
                 messageEl.innerHTML = `
                     <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 bg-indigo-600 text-white rounded-br-none whitespace-pre-wrap">
                         <p>${text}</p>
                     </div>
                 `;
             } else { 
-                messageEl.className = 'flex mb-4 p-2 rounded-xl justify-start';
+                messageEl.className = 'flex mb-4 p-2 justify-start';
                 messageEl.innerHTML = `
                     <div class="p-2 rounded-full mr-3 bg-gray-700 shadow-md flex-shrink-0 ${iconClass}">
                         ${iconSvg}
                     </div>
-                    <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 bg-gray-800 text-gray-200 rounded-tl-none border border-gray-700 whitespace-pre-wrap">
+                    <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 ${bgColor} text-gray-200 rounded-tl-none border border-gray-700 whitespace-pre-wrap">
                         <p>${text}</p>
                     </div>
                 `;
@@ -276,7 +297,7 @@
                 const aiText = await callGeminiAPI(cleanPrompt);
                 
                 let aiMessage;
-                if (aiText.startsWith('Een probleem is gedetecteerd met de server') || aiText.startsWith('Sorry, de proxy gaf geen bruikbaar tekstresultaat')) {
+                if (aiText.startsWith('Een probleem is gedetecteerd') || aiText.startsWith('Sorry, de proxy gaf geen bruikbaar')) {
                     aiMessage = { 
                         sender: 'ai', 
                         text: aiText, 
@@ -304,7 +325,7 @@
                 };
                 chatHistory.push(fatalError);
             } finally {
-                // Herstel de staat na de API-oproep
+                // 4. Einde laadstatus
                 isTyping = false;
                 renderTypingIndicator(false);
                 renderChatHistory(); 
@@ -313,7 +334,6 @@
         };
 
         const init = () => {
-            // Enkel AI-bericht bij start
             chatHistory = [
                 {
                     sender: 'ai',
