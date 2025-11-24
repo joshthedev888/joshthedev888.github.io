@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>realJosh.AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712; /* bg-gray-950 equivalent */
+        }
+        /* Custom scrollbar styling for dark theme */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1f2937; /* Gray-800 */
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4f46e5; /* Indigo-600 */
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #6366f1; 
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8 flex justify-center items-center bg-gray-950">
+
+    <div id="app-container" class="max-w-4xl w-full flex flex-col h-[90vh] sm:h-[80vh] rounded-2xl shadow-2xl overflow-hidden border border-gray-800">
+
+        <header class="bg-gray-900 p-4 sm:p-6 flex justify-between items-center border-b border-gray-800 flex-shrink-0">
+            <div class="flex items-center">
+                <svg id="header-cpu-icon" class="w-8 h-8 mr-3 text-indigo-400 animate-pulse" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M15 9V7h-2V5H9v2H7v4h2v2H7v4h2v2h4v-2h2v-2h2v-4h-2v-2h2z"/></svg>
+                <h1 class="text-3xl font-extrabold text-white">
+                    realJosh.<span class="text-indigo-400">AI</span>
+                </h1>
+            </div>
+            <button class="text-gray-400 hover:text-indigo-400 p-2 rounded-full transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.44a2 2 0 0 1-2 2h-.44a2 2 0 0 0-2 2v.44a2 2 0 0 1-2 2H2v.44a2 2 0 0 0 2 2h.44a2 2 0 0 1 2 2v.44a2 2 0 0 0 2 2h.44a2 2 0 0 1 2 2v.44a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.44a2 2 0 0 1 2-2h.44a2 2 0 0 0 2-2v-.44a2 2 0 0 1 2-2H22v-.44a2 2 0 0 0-2-2h-.44a2 2 0 0 1-2-2v-.44a2 2 0 0 0-2-2h-.44a2 2 0 0 1-2-2V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+        </header>
+
+        <div class="flex-1 p-4 sm:p-6 flex flex-col overflow-hidden bg-gray-900">
+            <div id="chat-history-container" class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <div id="chat-end-ref"></div>
+            </div>
+
+            <form id="input-form" class="mt-4 flex flex-shrink-0">
+                <input
+                    type="text"
+                    id="prompt-input"
+                    placeholder="Stel je vraag aan realJosh.ai..."
+                    class="flex-1 p-4 rounded-l-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 border-r-0 transition duration-200"
+                    autofocus
+                />
+                <button
+                    type="submit"
+                    id="send-button"
+                    class="p-4 rounded-r-xl text-white font-semibold flex items-center justify-center transition duration-300 transform active:scale-95 bg-gray-700 text-gray-500 cursor-not-allowed"
+                    disabled
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-0 sm:mr-2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+                    <span class="hidden sm:inline">Verstuur</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        const ICON_MAP = {
+            Cpu: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M15 9V7h-2V5H9v2H7v4h2v2H7v4h2v2h4v-2h2v-2h2v-4h-2v-2h2z"/></svg>',
+            AlertTriangle: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+            MessageSquare: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+        };
+
+        let chatHistory = [];
+        let isTyping = false;
+
+        const MAIN_COLOR = 'text-indigo-400';
+        const ACCENT_BUTTON_CLASSES = 'bg-indigo-600 hover:bg-indigo-500';
+        const ERROR_COLOR = 'text-red-400';
+
+        const chatContainer = document.getElementById('chat-history-container');
+        const promptInput = document.getElementById('prompt-input');
+        const sendButton = document.getElementById('send-button');
+        const inputForm = document.getElementById('input-form');
+        const chatEndRef = document.getElementById('chat-end-ref');
+
+        const fetchWithRetry = async (url, options, retries = 3) => {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    }
+                    if (response.status >= 400 || i === retries - 1) {
+                        throw new Error(`API-fout: ${response.status} ${response.statusText}`);
+                    }
+                } catch (error) {
+                    if (i === retries - 1) throw error; 
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+            throw new Error('Alle API-pogingen zijn mislukt.');
+        };
+
+        const callGeminiAPI = async (userPrompt) => {
+            const apiKey = "AIzaSyARU6mcBq7EBxCP-ECgDHVEuzY4KAw5dds"; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: {
+                    parts: [{ text: "Je bent realJosh.ai, een persoonlijke AI-assistent. Reageer in het Nederlands, wees behulpzaam, intelligent en gebruik een professionele maar vriendelijke toon. Houd antwoorden beknopt en direct. Gebruik bij voorkeur markdown voor opmaak. En probeer een beetje cool te zijn en woorden zoals 'yo' en 'cool' en 'bro' te gebruiken." }]
+                },
+                tools: [{ "google_search": {} }], 
+            };
+
+            try {
+                const response = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    let text = candidate.content.parts[0].text;
+ 
+                    const groundingMetadata = candidate.groundingMetadata;
+                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                        const sourceTitles = groundingMetadata.groundingAttributions
+                            .map(a => `[${a.web?.title || 'Onbekende bron'}]`)
+                            .filter(s => s);
+                        
+                        if (sourceTitles.length > 0) {
+                             text += `\n\n*Bronnen: ${sourceTitles.join(', ')}*`;
+                        }
+                    }
+
+                    return text;
+                } else if (result.error) {
+                    console.error("API Foutreactie:", result.error);
+                    return `Er is een API-fout opgetreden: ${result.error.message || 'Onbekende fout.'}`;
+                }
+                
+                return "Sorry, ik kon geen bruikbaar antwoord genereren. De API-respons was onverwacht.";
+
+            } catch (error) {
+                console.error("Netwerk/API-oproepfout:", error);
+                return `Netwerk- of verwerkingsfout: ${error.message}.`;
+            }
+        };
+
+        const scrollToBottom = () => {
+            chatEndRef.scrollIntoView({ behavior: "smooth" });
+        };
+        
+        const updateUIState = () => {
+            const promptValue = promptInput.value.trim();
+
+            if (isTyping || !promptValue) {
+                sendButton.disabled = true;
+                sendButton.className = `p-4 rounded-r-xl text-white font-semibold flex items-center justify-center transition duration-300 transform active:scale-95 bg-gray-700 text-gray-500 cursor-not-allowed`;
+            } else {
+                sendButton.disabled = false;
+                sendButton.className = `p-4 rounded-r-xl text-white font-semibold flex items-center justify-center transition duration-300 transform active:scale-95 ${ACCENT_BUTTON_CLASSES}`;
+            }
+
+            promptInput.disabled = isTyping;
+            promptInput.placeholder = isTyping ? "realJosh.ai is bezig met verwerken..." : "Stel je vraag aan realJosh.ai...";
+        };
+
+        const renderTypingIndicator = (show) => {
+            const existingIndicator = document.getElementById('typing-indicator');
+            if (!show) {
+                if (existingIndicator) existingIndicator.remove();
+                return;
+            }
+
+            if (existingIndicator) return; 
+
+            const indicator = document.createElement('div');
+            indicator.id = 'typing-indicator';
+            indicator.className = 'flex justify-start mb-4 p-3';
+            indicator.innerHTML = `
+                <div class="p-2 rounded-full mr-3 bg-gray-700 ${MAIN_COLOR} flex-shrink-0">
+                    ${ICON_MAP.Cpu}
+                </div>
+                <div class="max-w-xs sm:max-w-lg p-4 rounded-xl bg-gray-800 text-gray-400 rounded-tl-none border border-gray-700">
+                    <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-75"></div>
+                        <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-150"></div>
+                        <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-300"></div>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertBefore(indicator, chatEndRef);
+            scrollToBottom();
+        };
+
+
+        const renderMessage = (msg) => {
+            const messageEl = document.createElement('div');
+            
+            const { sender, text, icon: iconName, color } = msg;
+
+            const iconSvg = ICON_MAP[iconName] || ICON_MAP.MessageSquare; 
+            const iconClass = color || MAIN_COLOR;
+            
+            if (sender === 'user') {
+                messageEl.className = 'flex mb-4 p-2 rounded-xl justify-end';
+                messageEl.innerHTML = `
+                    <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 bg-indigo-600 text-white rounded-br-none whitespace-pre-wrap">
+                        <p>${text}</p>
+                    </div>
+                `;
+            } else { 
+                messageEl.className = 'flex mb-4 p-2 rounded-xl justify-start';
+                messageEl.innerHTML = `
+                    <div class="p-2 rounded-full mr-3 bg-gray-700 shadow-md flex-shrink-0 ${iconClass}">
+                        ${iconSvg}
+                    </div>
+                    <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 bg-gray-800 text-gray-200 rounded-tl-none border border-gray-700 whitespace-pre-wrap">
+                        <p>${text}</p>
+                    </div>
+                `;
+            }
+            chatContainer.insertBefore(messageEl, chatEndRef);
+        };
+
+        const renderChatHistory = () => {
+            Array.from(chatContainer.children).forEach(child => {
+                if (child.id !== 'chat-end-ref' && child.id !== 'typing-indicator') {
+                    child.remove();
+                }
+            });
+            
+            chatHistory.forEach(renderMessage);
+            scrollToBottom();
+        };
+
+        const handleSend = async (e) => {
+            e.preventDefault();
+            const cleanPrompt = promptInput.value.trim();
+            if (!cleanPrompt || isTyping) return;
+
+            const userMessage = { sender: 'user', text: cleanPrompt };
+            chatHistory.push(userMessage);
+            promptInput.value = '';
+
+            isTyping = true;
+            renderChatHistory(); 
+            renderTypingIndicator(true); 
+            updateUIState();
+            
+            // 2. API Call
+            try {
+                const aiText = await callGeminiAPI(cleanPrompt);
+                
+                let aiMessage;
+                if (aiText.startsWith('Netwerk-') || aiText.startsWith('Er is een API-fout')) {
+                    aiMessage = { 
+                        sender: 'ai', 
+                        text: aiText, 
+                        icon: 'AlertTriangle', 
+                        color: ERROR_COLOR 
+                    };
+                } else {
+                    aiMessage = { 
+                        sender: 'ai', 
+                        text: aiText, 
+                        icon: 'Cpu', 
+                        color: MAIN_COLOR 
+                    };
+                }
+                
+                chatHistory.push(aiMessage);
+
+            } catch (error) {
+                console.error("Fatale fout in handleSend:", error);
+                const fatalError = { 
+                    sender: 'ai', 
+                    text: `Er is een onverwachte fout opgetreden: ${error.message}.`, 
+                    icon: 'AlertTriangle', 
+                    color: ERROR_COLOR 
+                };
+                chatHistory.push(fatalError);
+            } finally {
+                isTyping = false;
+                renderTypingIndicator(false);
+                renderChatHistory(); 
+                updateUIState();
+            }
+        };
+
+        const init = () => {
+            chatHistory = [
+                {
+                    sender: 'ai',
+                    text: 'yo vraag mij iets"',
+                    icon: 'Cpu',
+                    color: MAIN_COLOR
+                }
+            ];
+            
+            renderChatHistory();
+
+            inputForm.addEventListener('submit', handleSend);
+            promptInput.addEventListener('input', updateUIState);
+            
+            updateUIState(); 
+        };
+
+        window.onload = init;
+    </script>
+</body>
+</html>
