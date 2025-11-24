@@ -105,7 +105,7 @@
         const inputForm = document.getElementById('input-form');
         const chatEndRef = document.getElementById('chat-end-ref');
 
-        const PROXY_ENDPOINT = 'https://joshthedev888-server.onrender.com'; 
+        const PROXY_ENDPOINT = 'const PROXY_URL = 'https://joshthedev888-server.onrender.com/api/chat-proxy';'; 
 
         const callProxy = async (url, payload) => {
             try {
@@ -226,7 +226,6 @@
             const iconClass = color || MAIN_COLOR;
             
             if (sender === 'user') {
-                // Gebruikersbericht (rechts uitgelijnd)
                 messageEl.className = 'flex mb-4 p-2 rounded-xl justify-end';
                 messageEl.innerHTML = `
                     <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 bg-indigo-600 text-white rounded-br-none whitespace-pre-wrap">
