@@ -63,7 +63,7 @@
                 <input
                     type="text"
                     id="prompt-input"
-                    placeholder="Stel je vraag aan realJosh.ai..."
+                    placeholder="Stel je vraag aan realJosh.ai of vraag om een afbeelding (bijv. 'maak een cool logo')"
                     class="flex-1 p-4 rounded-l-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 border-r-0 transition duration-200"
                     autofocus
                 />
@@ -103,6 +103,7 @@
         const chatEndRef = document.getElementById('chat-end-ref');
         const headerCpuIcon = document.getElementById('header-cpu-icon'); 
 
+        // Let op: Verander deze naar je eigen server URL
         const PROXY_ENDPOINT = 'https://joshthedev888-server.onrender.com/api/chat-proxy';
 
         const scrollToBottom = () => {
@@ -148,13 +149,12 @@
         };
 
         const callGeminiAPI = async (userPrompt) => {
-
             const payload = {
                 userPrompt: userPrompt,
-                // chatHistory: apiHistory <--- VERWIJDERD
             };
 
             try {
+                // De server stuurt nu direct het juiste type terug ('chat', 'image' of 'error')
                 const result = await callProxy(PROXY_ENDPOINT, payload);
                 
                 if (result.type === 'image') {
@@ -168,12 +168,21 @@
                 if (result.type === 'chat' && result.text) {
                     let text = result.text;
 
+                    // Voeg bronnen toe indien aanwezig
                     if (result.sources && result.sources.length > 0) {
                         const sourceList = result.sources
-                            .map((a, index) => `[${index + 1}] <a href="${a.uri}" target="_blank" class="text-indigo-300 hover:text-indigo-200 underline">${a.title}</a>`)
+                            .map((a, index) => {
+                                if (a.uri && a.title) {
+                                    return `[${index + 1}] <a href="${a.uri}" target="_blank" class="text-indigo-300 hover:text-indigo-200 underline">${a.title}</a>`;
+                                }
+                                return null;
+                            })
+                            .filter(Boolean)
                             .join('\n');
                         
-                        text += `\n\n---\n**Gevonden bronnen:**\n${sourceList}`;
+                        if (sourceList) {
+                            text += `\n\n---\n**Gevonden bronnen:**\n${sourceList}`;
+                        }
                     }
 
                     return { type: 'chat', text: text };
@@ -186,7 +195,7 @@
                 console.error("Fout in callGeminiAPI (via proxy):", error);
                 return { 
                     type: 'error', 
-                    text: `Een probleem is gedetecteerd met de server. ${error.message}. Dit komt waarschijnlijk door een probleem met de backend-server.` 
+                    text: `Een probleem is gedetecteerd met de server. ${error.message}. Dit komt waarschijnlijk door een probleem met de backend-server.`,
                 };
             }
         };
@@ -269,21 +278,24 @@
                 if (isImage) {
                     contentHTML = `
                         <div class="p-2 text-gray-200">
-                            <p class="mb-2 font-bold text-indigo-400">hier is de afbeelding die je wilt:</p>
+                            <p class="mb-2 font-bold text-indigo-400">Yo bro, hier is de **cool**e afbeelding die je wilde:</p>
                             <img src="${url}" alt="Gegenereerde afbeelding: ${prompt}" 
                                  class="rounded-lg shadow-xl w-full max-w-sm border-2 border-indigo-500 transition duration-300 hover:scale-[1.02] cursor-pointer"
                                  onclick="window.open(this.src, '_blank')" />
                         </div>
                     `;
                 } else {
-                    contentHTML = `<p>${text}</p>`;
+                    // Gebruik innerHTML voor de chatrespons om de Markdown- en anker-tags van de bronnen correct weer te geven
+                    // De server stuurt nu de bronnen als HTML met <a> tags binnen de text
+                    const processedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    contentHTML = `<div class="whitespace-pre-wrap">${processedText}</div>`;
                 }
 
                 messageEl.innerHTML = `
                     <div class="p-2 rounded-full mr-3 bg-gray-700 shadow-md flex-shrink-0 ${iconClass}">
                         ${iconSvg}
                     </div>
-                    <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 ${isImage ? 'bg-gray-800' : bgColor} text-gray-200 rounded-tl-none border border-gray-700 ${isImage ? '' : 'whitespace-pre-wrap'}">
+                    <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 ${isImage ? 'bg-gray-800' : bgColor} text-gray-200 rounded-tl-none border border-gray-700">
                         ${contentHTML}
                     </div>
                 `;
@@ -347,6 +359,15 @@
                         icon: 'AlertTriangle', 
                         color: ERROR_COLOR 
                     };
+                } else {
+                    // Fallback voor onbekend type
+                    aiMessage = { 
+                        sender: 'ai', 
+                        type: 'error',
+                        text: "Onbekend reactietype van de server. Probeer het opnieuw.", 
+                        icon: 'AlertTriangle', 
+                        color: ERROR_COLOR 
+                    };
                 }
 
                 chatHistory.push(aiMessage);
@@ -356,7 +377,7 @@
                 const fatalError = { 
                     sender: 'ai', 
                     type: 'error',
-                    text: `Er is een onverwachte fout opgetreden: ${error.message}.`, 
+                    text: `Er is een onverwachte fatale fout opgetreden: ${error.message}.`, 
                     icon: 'AlertTriangle', 
                     color: ERROR_COLOR 
                 };
@@ -374,7 +395,7 @@
                 {
                     sender: 'ai',
                     type: 'chat',
-                    text: 'yo bro vraag wat je wilt',
+                    text: 'Yo bro, ik ben realJosh.ai! Vraag me alles, of zeg "Maak een afbeelding van..." voor een cool plaatje!',
                     icon: 'Cpu',
                     color: MAIN_COLOR
                 }
