@@ -368,11 +368,11 @@
         const boostProgress = document.getElementById('player-progress');
         const loadingScreen = document.getElementById('loading-screen'); 
 
-        const GRID_SIZE = 41;
-        const CELL_SIZE = 30;
-        const VIEWPORT_SIZE = 600;
+        const GRID_SIZE = 101;
+        const CELL_SIZE = 40;
+        const VIEWPORT_SIZE = 800;
 
-        const MIN_PATH_DISTANCE_SPAWN = 7; 
+        const MIN_PATH_DISTANCE_SPAWN = 8; 
         const MAX_PATH_DISTANCE_SPAWN = 20; 
         
         const PLAYER_BASE_MOVE_SPEED = 150;
@@ -394,7 +394,7 @@
         let monsters = []; 
 
         const PROGRESSIVE_JUMPSCARE_CHANCE = 0.30; 
-        const STEPS_BEFORE_CHANCE_CHECK = 12; 
+        const STEPS_BEFORE_CHANCE_CHECK = 30; 
         let fearMeter = 0; 
 
         const CHASE_DURATION = 10000;
@@ -424,9 +424,7 @@
                 }).toDestination();
                 
                 Tone.context.resume();
-            } catch (e) {
-                console.error("Audio init error:", e);
-            }
+            } catch (e) {}
         }
         
         function playJumpscareSound() {
@@ -677,9 +675,7 @@
             
             for (let y = startY; y < endY; y++) {
                 for (let x = startX; x < endX; x++) {
-                    
                     const type = MAP[y][x];
-                    
                     const px = x * CELL_SIZE + offsetX;
                     const py = y * CELL_SIZE + offsetY;
                     
@@ -828,8 +824,6 @@
                 startMonsterMovement(newMonster);
                 return true;
             }
-            
-            console.log("Kon geen geschikte verre spawn-plek vinden voor het monster.");
             return false;
         }
 
@@ -875,7 +869,6 @@
             
             if (!success || monsters.length === 0) {
                 gameState = 'playing';
-                console.log("Kon geen verre monster spawn-plekken vinden, achtervolging afgebroken.");
                 return;
             }
             
@@ -953,7 +946,15 @@
 
                 overlay.style.backgroundColor = '#000';
 
-                const fullText = `GAME OVER\nOPGEPEUZELD DOOR HET ${monsterName.toUpperCase()}!`;
+                let fullText;
+                if (monsterName.toLowerCase().includes('kaas')) {
+                    fullText = `GAME OVER\nOPGEPEUZELD DOOR HET KAASMONSTER!`;
+                } else if (monsterName.toLowerCase().includes('kip')) {
+                    fullText = `GAME OVER\nOPGEPEUZELD DOOR HET BOTER KIP MONSTER!`;
+                } else {
+                    fullText = `GAME OVER\nOPGEPEUZELD DOOR IETS ONDER HET BED...`;
+                }
+
                 jumpscareTextEl.textContent = '';
                 captionEl.textContent = '';
 
@@ -981,6 +982,63 @@
                 event.stopPropagation();
 
                 Tone.start(); 
+
+                overlay.classList.remove('active', 'flash', 'glitch');
+                overlay.style.backgroundColor = '';
+                const jumpscareTextEl = document.getElementById('jumpscare-text');
+                const captionEl = document.getElementById('jumpscare-caption');
+                jumpscareTextEl.textContent = '';
+                jumpscareTextEl.style.opacity = 0;
+                captionEl.textContent = '';
+                captionEl.style.opacity = 0;
+
+                resetGame();
+
+                overlay.removeEventListener('click', restartHandler);
+                overlay.removeEventListener('keydown', restartHandler);
+                overlay.removeEventListener('touchend', restartHandler);
+            };
+
+            overlay.addEventListener('click', restartHandler, { once: true });
+            overlay.addEventListener('keydown', restartHandler, { once: true });
+            overlay.addEventListener('touchend', restartHandler, { once: true });
+        }
+
+        function showWinScreen() {
+            const jumpscareTextEl = document.getElementById('jumpscare-text');
+            const captionEl = document.getElementById('jumpscare-caption');
+            const monsterEl = document.getElementById('jumpscare-monster');
+
+            gameContainer.classList.remove('shake');
+            overlay.classList.add('active');
+            overlay.classList.remove('flash', 'glitch');
+            overlay.style.backgroundColor = '#000';
+
+            monsterEl.textContent = '🏆';
+
+            const fullText = `GEWONNEN!\nJE ONTSNAPTE UIT HET DUBBELE MONSTER DOOLHOF!`;
+            jumpscareTextEl.textContent = '';
+            captionEl.textContent = '';
+
+            let i = 0;
+            jumpscareTextEl.style.opacity = 1;
+            captionEl.style.opacity = 0;
+
+            const typeInterval = setInterval(() => {
+                jumpscareTextEl.textContent = fullText.slice(0, i);
+                i++;
+                if (i > fullText.length) {
+                    clearInterval(typeInterval);
+                    setTimeout(() => {
+                        captionEl.textContent = "Reward: +1 MOED 😈\nKlik / toets / tik om een nieuw doolhof te spelen.";
+                        captionEl.style.opacity = 1;
+                    }, 350);
+                }
+            }, 35);
+
+            const restartHandler = (event) => {
+                event.preventDefault();
+                event.stopPropagation();
 
                 overlay.classList.remove('active', 'flash', 'glitch');
                 overlay.style.backgroundColor = '';
@@ -1018,6 +1076,7 @@
                     document.removeEventListener('keydown', handleKeyDown);
                     document.removeEventListener('keyup', handleKeyUp);
                     if (playerMovementIntervalId) clearInterval(playerMovementIntervalId);
+                    showWinScreen();
                     return true;
                 }
                 
