@@ -4,22 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Het Dubbele Monster Doolhof</title>
-    <!-- Tone.js voor de Jumpscare Audio -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script> 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Press+Start+2P&display=swap');
 
         :root {
             --wall-color: #222;
-            --path-color: #000; /* True darkness */
+            --path-color: #000;
             --exit-color: #008800;
-            --jumpscare-color-flash: #ff0000; /* Helder rood voor de flits */
-            --jumpscare-color-end: #0a0a0a; /* Zwart voor Game Over */
-            --monster-cm-color: #ff0000; /* Red for Cheese Monster */
-            --monster-bcm-color: #ff8c00; /* Orange/Gold for Butter Chicken Monster */
-            --item-speed-color: #00ffff; /* Cyan for Speed Boost Drink */
-            --player-boost-color: #00ff00; /* Groene gloed voor geboost speler */
-            --player-base-color: #ffffff; /* Witte cirkel voor speler */
+            --jumpscare-color-flash: #ff0000;
+            --jumpscare-color-end: #0a0a0a;
+            --monster-cm-color: #ff0000;
+            --monster-bcm-color: #ff8c00;
+            --item-speed-color: #00ffff;
+            --player-boost-color: #00ff00;
+            --player-base-color: #ffffff;
 
             font-family: 'Press Start 2P', monospace;
             background-color: #0d0d0d;
@@ -53,7 +52,7 @@
             border: 4px solid var(--wall-color);
             border-radius: 8px;
             overflow: hidden;
-            background-color: var(--path-color); /* Maze background is pure black */
+            background-color: var(--path-color);
         }
 
         canvas {
@@ -128,14 +127,13 @@
             transition: width 0.1s linear;
         }
 
-        /* --- JUMPSCARE/DEATH OVERLAY STYLES --- */
         #jumpscare-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: var(--jumpscare-color-end);
+            background: radial-gradient(circle at center, #300 0%, #000 60%, #000 100%);
             display: none;
             flex-direction: column;
             align-items: center;
@@ -143,40 +141,97 @@
             text-align: center;
             z-index: 1000;
             cursor: none;
-            transition: opacity 0.05s ease-in-out;
-            box-shadow: 0 0 40px 10px #000; /* Subtiele schaduw */
+            opacity: 0;
+            transition: opacity 0.08s ease-in-out;
+            overflow: hidden;
         }
 
-        #jumpscare-overlay.active { display: flex; opacity: 1; }
-        
-        /* Flitsende animatie bij de botsing */
-        #jumpscare-overlay.flash {
-            animation: flash-disturb 0.3s steps(2) forwards;
-            background-color: var(--jumpscare-color-flash);
+        #jumpscare-overlay.active {
+            display: flex;
+            opacity: 1;
         }
-        
+
+        #jumpscare-overlay.flash {
+            animation: flash-disturb 0.25s steps(2) forwards;
+        }
+
         @keyframes flash-disturb {
-            0%   { background-color: var(--jumpscare-color-flash); }
-            50%  { background-color: var(--jumpscare-color-end); }
-            100% { background-color: var(--jumpscare-color-flash); }
+            0%   { background-color: #ffffff; filter: invert(1) contrast(3); }
+            30%  { background-color: #ff0000; filter: contrast(2); }
+            70%  { background-color: #000000; filter: none; }
+            100% { background-color: #000000; }
+        }
+
+        #jumpscare-overlay::before,
+        #jumpscare-overlay::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(255, 0, 0, 0.08),
+                rgba(255, 0, 0, 0.08) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            mix-blend-mode: screen;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #jumpscare-overlay.glitch::before {
+            animation: glitch-scan 0.45s linear infinite;
+            opacity: 1;
+        }
+
+        #jumpscare-overlay.glitch::after {
+            animation: glitch-flicker 0.25s steps(3) infinite;
+            opacity: 1;
+        }
+
+        @keyframes glitch-scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        @keyframes glitch-flicker {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.4; }
+        }
+
+        #jumpscare-monster {
+            font-size: 8rem;
+            text-shadow: 0 0 30px #ff0000, 0 0 15px #ff8c00;
+            transform: scale(1.2);
+            animation: monster-zoom 0.4s ease-out forwards;
+            filter: drop-shadow(0 0 10px #f00);
+        }
+
+        @keyframes monster-zoom {
+            0% { transform: scale(0.6) translateY(40px); opacity: 0; }
+            60% { transform: scale(1.4) translateY(-10px); opacity: 1; }
+            100% { transform: scale(1.1) translateY(0); }
         }
 
         #jumpscare-text {
-            font-size: 7rem;
+            font-size: 3rem;
             color: #fff;
             text-shadow: 0 0 15px #ff0000, 0 0 5px #ff8c00;
             font-family: 'Creepster', cursive;
             user-select: none;
-            line-height: 1;
+            line-height: 1.3;
+            margin-top: 10px;
+            white-space: pre-line;
+            opacity: 0;
         }
 
         #jumpscare-caption {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             color: #ffc107;
-            margin-top: 20px;
+            margin-top: 15px;
+            opacity: 0;
         }
 
-        /* Screen Shake Animation (Sterker gemaakt) */
         @keyframes screenshake {
             0% { transform: translate(0, 0) rotate(0deg); }
             25% { transform: translate(-10px, -10px) rotate(2deg); }
@@ -185,9 +240,8 @@
             100% { transform: translate(0, 0) rotate(0deg); }
         }
 
-        #game-container.shake { animation: screenshake 0.1s infinite; }
+        #game-container.shake { animation: screenshake 0.12s infinite; }
 
-        /* --- LOADING SCREEN STYLES --- */
         #loading-screen {
             position: absolute;
             top: 0;
@@ -216,14 +270,13 @@
             100% { opacity: 0.5; }
         }
 
-        /* Responsive adjustments */
         @media (max-width: 600px) {
             h1 { font-size: 1.5rem; }
-            #jumpscare-text { font-size: 4rem; }
+            #jumpscare-text { font-size: 2rem; }
+            #jumpscare-monster { font-size: 5rem; }
             #jumpscare-caption { font-size: 1rem; }
         }
 
-        /* Mobile Controls (onveranderd) */
         #mobile-controls {
             display: grid;
             grid-template-areas:
@@ -271,20 +324,15 @@
     <div id="game-container">
         <canvas id="mazeCanvas"></canvas>
         
-        <!-- Laadscherm -->
         <div id="loading-screen">
             <span style="font-size: 5rem;">🧠</span>
             <p id="loading-text">Doolhof Genereren... (2s vertraging)</p>
         </div>
         
-        <!-- Jumpscare/Dood Overlay -->
         <div id="jumpscare-overlay">
-            <p id="jumpscare-text">
-                OPGEPEUZELD!
-            </p>
-            <p id="jumpscare-caption">
-                (Druk op een willekeurige toets om de schrik te verwerken)
-            </p>
+            <div id="jumpscare-monster">👁️</div>
+            <p id="jumpscare-text"></p>
+            <p id="jumpscare-caption"></p>
         </div>
     </div>
     
@@ -309,7 +357,6 @@
     </div>
 
     <script>
-        // --- GAME CONSTANTEN EN INITIALISATIE ---
         const canvas = document.getElementById('mazeCanvas');
         const ctx = canvas.getContext('2d');
         const overlay = document.getElementById('jumpscare-overlay');
@@ -325,23 +372,18 @@
         const CELL_SIZE = 30;
         const VIEWPORT_SIZE = 600;
 
-        // Monster Spawn Afstand (op basis van het kortste pad in stappen)
         const MIN_PATH_DISTANCE_SPAWN = 7; 
         const MAX_PATH_DISTANCE_SPAWN = 20; 
         
-        // Snelheidsconstanten voor speler en monster
-        const PLAYER_BASE_MOVE_SPEED = 150; // ms per stap (standaard)
-        const PLAYER_BOOST_MOVE_SPEED = 75; // ms per stap (geboost)
+        const PLAYER_BASE_MOVE_SPEED = 150;
+        const PLAYER_BOOST_MOVE_SPEED = 75;
         const MONSTER_TYPES = {
-            // Snelheid gelijk aan speler
             CM: { emoji: '🧀', speed: 150, name: 'Kaasmonster' }, 
             BCM: { emoji: '🍗', speed: 150, name: 'Boter Kip Monster' }  
         };
         
-        // Item IDs: 1=Muur, 0=Pad, 2=Uitgang, 4=Snelheidsboost Drank
-        
         let MAP = []; 
-        let gameState = 'loading'; // Start in 'loading' staat
+        let gameState = 'loading';
 
         let player = {
             x: 1, 
@@ -355,7 +397,7 @@
         const STEPS_BEFORE_CHANCE_CHECK = 12; 
         let fearMeter = 0; 
 
-        const CHASE_DURATION = 10000; // 10 seconden
+        const CHASE_DURATION = 10000;
         const PLAYER_BOOST_TIME = 5000; 
 
         let chaseTimer = 0;
@@ -367,12 +409,10 @@
         let playerMovementIntervalId = null;
         let currentMoveSpeed = PLAYER_BASE_MOVE_SPEED; 
         
-        // Tone.js Jumpscare Setup
         let noiseSynth = null;
         
         function initAudio() {
             try {
-                // Initialiseer Tone.js
                 noiseSynth = new Tone.NoiseSynth({
                     noise: { type: "white" },
                     envelope: {
@@ -386,25 +426,19 @@
                 Tone.context.resume();
             } catch (e) {
                 console.error("Audio init error:", e);
-                // Val terug naar stille modus
             }
         }
         
         function playJumpscareSound() {
             if (noiseSynth) {
-                // Zorg ervoor dat de context is hervat, vooral na een klik
                 if (Tone.context.state !== 'running') {
                      Tone.start(); 
                 }
-                
-                // Speel een scherp, snel geluid
                 noiseSynth.triggerAttackRelease("4n", Tone.now()); 
                 noiseSynth.triggerAttackRelease("8n", Tone.now() + 0.05, 0.8);
             }
         }
 
-
-        // --- DOOLHOF GENERATIE (onveranderd) ---
         function initializeGrid(rows, cols) {
             const grid = Array(rows).fill(0).map(() => Array(cols).fill(1)); 
             return grid;
@@ -442,19 +476,15 @@
 
             grid[1][1] = 0; 
             carve(1, 1);
-            
             grid[rows - 2][cols - 2] = 2; 
 
             return grid;
         }
 
-
-        // --- BFS PADZOEKEN (onveranderd) ---
-
         function findPathBFS(startX, startY, targetX = null, targetY = null) {
-            const queue = [[startX, startY, 0]]; 
-            const visited = {}; 
-            visited[`${startX},${startY}`] = { parent: null, distance: 0 }; 
+            const queue = [[startX, startY, 0]];
+            const visited = {};
+            visited[`${startX},${startY}`] = { parent: null, distance: 0 };
             
             const directions = [
                 [0, -1], [0, 1], 
@@ -510,9 +540,6 @@
             
             return result;
         }
-
-
-        // --- KERN SPELFUNCTIES ---
 
         function startPlayerMovementLoop() {
             if (playerMovementIntervalId) {
@@ -578,7 +605,6 @@
                 }
             }
             
-            // Plaats 5 items willekeurig op paden
             for (let i = 0; i < 5 && pathCells.length > 0; i++) {
                 const index = Math.floor(Math.random() * pathCells.length);
                 const cell = pathCells.splice(index, 1)[0];
@@ -605,7 +631,7 @@
             MAP = generateMaze(GRID_SIZE, GRID_SIZE);
             placeItems(MAP);
 
-            overlay.classList.remove('active', 'dead', 'flash');
+            overlay.classList.remove('active', 'flash', 'glitch');
             gameContainer.classList.remove('shake');
             timerBar.classList.remove('active');
             boostBar.classList.remove('active');
@@ -657,24 +683,23 @@
                     const px = x * CELL_SIZE + offsetX;
                     const py = y * CELL_SIZE + offsetY;
                     
-                    if (type === 1) { // Muur
+                    if (type === 1) {
                         ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--wall-color');
                         ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
-                    } else if (type === 2) { // Uitgang
+                    } else if (type === 2) {
                         ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--exit-color');
                         ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
-                    } else if (type === 4) { // Snelheidsboost Drank
+                    } else if (type === 4) {
                         ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--path-color'); 
                         ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE); 
                         ctx.fillText('🥤', px + CELL_SIZE / 2, py + CELL_SIZE / 2);
-                    } else if (type === 0) { // Pad 
+                    } else if (type === 0) {
                         ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--path-color');
                         ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
                     }
                 }
             }
             
-            // Teken monsters
             if (gameState === 'chased') {
                 monsters.forEach(monster => {
                     if (monster.x >= startX && monster.x < endX && monster.y >= startY && monster.y < endY) {
@@ -685,13 +710,11 @@
                 });
             }
 
-            // Teken de speler als een cirkel met optionele gloed
             const playerRadius = CELL_SIZE * 0.3;
             ctx.beginPath();
             ctx.arc(centerX, centerY, playerRadius, 0, Math.PI * 2);
             
             if (player.isBoosted) {
-                // Instelling voor de glow
                 ctx.shadowBlur = 10;
                 ctx.shadowColor = getComputedStyle(document.documentElement).getPropertyValue('--player-boost-color');
                 ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--player-boost-color'); 
@@ -702,8 +725,6 @@
             
             ctx.fill();
             ctx.closePath();
-            
-            // Reset de canvas schaduw na het tekenen van de speler
             ctx.shadowBlur = 0; 
         }
 
@@ -771,7 +792,7 @@
             setTimeout(() => {
                 if (gameState === 'playing') statusMessage.textContent = "Gebruik WASD of Pijltjestoetsen om te bewegen. Vind de Uitgang (Groen).";
             }, 1000);
-            drawGame(); // Om de gloed te verwijderen
+            drawGame();
         }
         
         function spawnMonster(monsterType) {
@@ -871,7 +892,6 @@
             }
             statusMessage.textContent = message;
 
-            // START CENTRALE CHASE TIMER
             chaseIntervalId = setInterval(() => {
                 chaseTimer -= 100; 
                 const progress = Math.max(0, chaseTimer / CHASE_DURATION) * 100;
@@ -902,28 +922,56 @@
 
         function handleDeath(monsterName) {
             if (gameState === 'dead') return;
-            
+
             gameState = 'dead';
             clearAllMonsterIntervals();
             if (playerBoostTimeout) clearTimeout(playerBoostTimeout);
             if (playerBoostInterval) clearInterval(playerBoostInterval);
-            if (playerMovementIntervalId) clearInterval(playerMovementIntervalId); 
-            
-            // 1. Audio Jumpscare
+            if (playerMovementIntervalId) clearInterval(playerMovementIntervalId);
+
             playJumpscareSound();
-            
-            // 2. Visuele Flits en Shake
-            overlay.classList.add('active', 'flash');
+            setTimeout(playJumpscareSound, 80);
+
             gameContainer.classList.add('shake');
-            
-            // Flits gaat over in de Game Over staat
+            overlay.classList.add('active', 'flash', 'glitch');
+
+            const jumpscareTextEl = document.getElementById('jumpscare-text');
+            const captionEl = document.getElementById('jumpscare-caption');
+            const monsterEl = document.getElementById('jumpscare-monster');
+
+            if (monsterName.toLowerCase().includes('kaas')) {
+                monsterEl.textContent = '🧀';
+            } else if (monsterName.toLowerCase().includes('kip')) {
+                monsterEl.textContent = '🍗';
+            } else {
+                monsterEl.textContent = '👁️';
+            }
+
             setTimeout(() => {
                 overlay.classList.remove('flash');
-                overlay.classList.add('dead');
                 gameContainer.classList.remove('shake');
-                document.getElementById('jumpscare-text').innerHTML = `GAME OVER<br>OPGEPEUZELD DOOR HET ${monsterName.toUpperCase()}!`;
-                document.getElementById('jumpscare-caption').textContent = "Druk op een willekeurige toets om opnieuw te beginnen.";
-            }, 300); // Korte flitsduur
+
+                overlay.style.backgroundColor = '#000';
+
+                const fullText = `GAME OVER\nOPGEPEUZELD DOOR HET ${monsterName.toUpperCase()}!`;
+                jumpscareTextEl.textContent = '';
+                captionEl.textContent = '';
+
+                let i = 0;
+                jumpscareTextEl.style.opacity = 1;
+
+                const typeInterval = setInterval(() => {
+                    jumpscareTextEl.textContent = fullText.slice(0, i);
+                    i++;
+                    if (i > fullText.length) {
+                        clearInterval(typeInterval);
+                        setTimeout(() => {
+                            captionEl.textContent = "Druk op een willekeurige toets, klik of tik om opnieuw te beginnen.";
+                            captionEl.style.opacity = 1;
+                        }, 350);
+                    }
+                }, 35);
+            }, 280);
 
             document.removeEventListener('keydown', handleKeyDown);
             document.removeEventListener('keyup', handleKeyUp);
@@ -931,9 +979,18 @@
             const restartHandler = (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                // We moeten de audio context herstarten als we klikken
+
                 Tone.start(); 
+
+                overlay.classList.remove('active', 'flash', 'glitch');
+                overlay.style.backgroundColor = '';
+                jumpscareTextEl.textContent = '';
+                jumpscareTextEl.style.opacity = 0;
+                captionEl.textContent = '';
+                captionEl.style.opacity = 0;
+
                 resetGame();
+
                 overlay.removeEventListener('click', restartHandler);
                 overlay.removeEventListener('keydown', restartHandler);
                 overlay.removeEventListener('touchend', restartHandler);
@@ -954,7 +1011,7 @@
                 
                 const currentCell = MAP[newY][newX];
                 
-                if (currentCell === 2) { // Uitgang
+                if (currentCell === 2) {
                     gameState = 'won';
                     endChase("JE BENT ONTSNAPT! De monsterlijke honger kan je hier niet volgen!");
                     statusMessage.textContent = "OVERWINNING! Je hebt de uitgang gevonden!";
@@ -964,7 +1021,7 @@
                     return true;
                 }
                 
-                if (currentCell === 4) { // Snelheidsboost Drank
+                if (currentCell === 4) {
                     MAP[newY][newX] = 0; 
                     applyPlayerBoost();
                 }
@@ -987,7 +1044,6 @@
             const firstMove = trySingleMove(dx, dy);
 
             if (firstMove) {
-                // PROGRESSIEVE LOGICA
                 if (gameState === 'playing') {
                     fearMeter++;
                     
@@ -1000,7 +1056,6 @@
                     }
                 }
                 
-                // Afhandeling van de tweede stap bij snelheidsboost
                 if (player.isBoosted && firstMove) {
                     trySingleMove(dx, dy);
                 }
@@ -1008,8 +1063,6 @@
             
             drawGame();
         }
-
-        // --- INPUT HANDLERS (Toetsenbord) ---
 
         function getNormalizedKey(key) {
             const map = {
@@ -1044,8 +1097,6 @@
             }
             event.preventDefault();
         }
-
-        // --- INPUT HANDLERS (Mobiele Aanraking) ---
         
         window.movePlayer = function(direction) {
             if (gameState === 'dead' || gameState === 'won' || gameState === 'loading') return;
@@ -1074,11 +1125,9 @@
             keysPressed['a'] = false;
             keysPressed['d'] = false;
         };
-
-        // --- INITIALISATIE ---
         
         function handleLoadingComplete() {
-            initAudio(); // Initialiseer audio na de eerste gebruikersactie/tijdens de setup
+            initAudio();
             loadingScreen.style.opacity = '0';
             
             setTimeout(() => {
@@ -1089,10 +1138,7 @@
 
         window.onload = function() {
             setupCanvas();
-            
-            // Start de game flow na de vertraging
             setTimeout(handleLoadingComplete, 2000); 
-
             window.addEventListener('resize', setupCanvas); 
         };
     </script>
