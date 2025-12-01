@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Het Dubbele Monster Doolhof</title>
+    <title>joshthedev888.github.io - kaas en butterchicken escape</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script> 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Press+Start+2P&display=swap');
@@ -378,8 +378,8 @@
         const PLAYER_BASE_MOVE_SPEED = 150;
         const PLAYER_BOOST_MOVE_SPEED = 75;
         const MONSTER_TYPES = {
-            CM: { emoji: '🧀', speed: 150, name: 'Kaasmonster' }, 
-            BCM: { emoji: '🍗', speed: 150, name: 'Boter Kip Monster' }  
+            CM: { emoji: '🧀', speed: 140, name: 'Kaas' }, 
+            BCM: { emoji: '🍗', speed: 140, name: 'Butter Chicken' }  
         };
         
         let MAP = []; 
@@ -880,7 +880,7 @@
                 message = "!!! BEIDE MONSTERS ZIJN JE AAN HET JAGEN! REN! !!!";
                 timerProgress.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--monster-bcm-color');
             } else {
-                message = `!!! GEVAAR! HET ${monsterNames[0].toUpperCase()} IS JE AAN HET JAGEN! REN! !!!`;
+                message = `!!! GEVAAR! ${monsterNames[0].toUpperCase()} IS JE AAN HET JAGEN! REN! !!!`;
                 timerProgress.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--monster-cm-color');
             }
             statusMessage.textContent = message;
@@ -891,7 +891,7 @@
                 timerProgress.style.width = `${progress}%`;
 
                 if (chaseTimer <= 0) {
-                    endChase("Je overleefde de achtervolging! Ze zijn verdwenen in de duisternis.");
+                    endChase("Ze zijn verdwenen in de duisternis.");
                 }
             }, 100);
         }
@@ -948,11 +948,11 @@
 
                 let fullText;
                 if (monsterName.toLowerCase().includes('kaas')) {
-                    fullText = `GAME OVER\nOPGEPEUZELD DOOR HET KAASMONSTER!`;
+                    fullText = `GAME OVER\nNAH BRO IS OPGEGETEN DOOR KAAS!`;
                 } else if (monsterName.toLowerCase().includes('kip')) {
-                    fullText = `GAME OVER\nOPGEPEUZELD DOOR HET BOTER KIP MONSTER!`;
+                    fullText = `GAME OVER\nJE ZOU MAAR OPGEGETEN ZIJN DOOR BUTTER CHICKEN!`;
                 } else {
-                    fullText = `GAME OVER\nOPGEPEUZELD DOOR IETS ONDER HET BED...`;
+                    fullText = `GAME OVER\n HAHA JE BENT KAPOT SLECHT...`;
                 }
 
                 jumpscareTextEl.textContent = '';
@@ -1016,7 +1016,7 @@
 
             monsterEl.textContent = '🏆';
 
-            const fullText = `GEWONNEN!\nJE ONTSNAPTE UIT HET DUBBELE MONSTER DOOLHOF!`;
+            const fullText = `GEWONNEN\nJE ONTSNAPTE UIT HET DUBBELE MONSTER DOOLHOF LUCKY`;
             jumpscareTextEl.textContent = '';
             captionEl.textContent = '';
 
@@ -1030,7 +1030,7 @@
                 if (i > fullText.length) {
                     clearInterval(typeInterval);
                     setTimeout(() => {
-                        captionEl.textContent = "Reward: +1 MOED 😈\nKlik / toets / tik om een nieuw doolhof te spelen.";
+                        captionEl.textContent = "Klik / toets / tik om een nieuw doolhof te spelen.";
                         captionEl.style.opacity = 1;
                     }, 350);
                 }
@@ -1071,8 +1071,8 @@
                 
                 if (currentCell === 2) {
                     gameState = 'won';
-                    endChase("JE BENT ONTSNAPT! De monsterlijke honger kan je hier niet volgen!");
-                    statusMessage.textContent = "OVERWINNING! Je hebt de uitgang gevonden!";
+                    endChase("JE BENT ONTSNAPT LUCKY");
+                    statusMessage.textContent = "JE HEBT GEWONNEN";
                     document.removeEventListener('keydown', handleKeyDown);
                     document.removeEventListener('keyup', handleKeyUp);
                     if (playerMovementIntervalId) clearInterval(playerMovementIntervalId);
