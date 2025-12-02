@@ -319,9 +319,11 @@
 </head>
 <body>
 
+    <h3>High Score: <span id="highScore">0</span></h3>
+    
     <h1>Het Dubbele Monster Doolhof</h1>
 
-    <h3>Score: <span id="score"></span></h3>
+    <h3>Score: <span id="score">0</span></h3>
 
     <div id="game-container">
         <canvas id="mazeCanvas"></canvas>
@@ -387,11 +389,6 @@
         let MAP = []; 
         let gameState = 'loading';
         let score = 0;
-
-        if (!localStorage.getItem("highscore")) {
-            let highScore = 0;
-        else {
-            let highScore = localStorage.getItem("highscore");
 
         let player = {
             x: 1, 
@@ -573,6 +570,12 @@
                     handleMoveStep(dx, dy);
                     score++;
                     document.getElementById("score").textContent = score;
+
+                    if (!localStorage.getItem("highscore")) {
+                        document.getElementById("highScore").textContent = "0";
+                    } elif (localStorage.getItem("highscore")) {
+                        
+                    }
                 }
             }, currentMoveSpeed);
         }
