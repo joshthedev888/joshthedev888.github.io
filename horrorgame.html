@@ -321,6 +321,8 @@
 
     <h1>Het Dubbele Monster Doolhof</h1>
 
+    <h3>Score: <span id="score"></span></h3>
+
     <div id="game-container">
         <canvas id="mazeCanvas"></canvas>
         
@@ -565,6 +567,7 @@
                 if (dx !== 0 || dy !== 0) {
                     handleMoveStep(dx, dy);
                     score++;
+                    document.getElementById("score").textContent = score;
                 }
             }, currentMoveSpeed);
         }
