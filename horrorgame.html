@@ -378,12 +378,13 @@
         const PLAYER_BASE_MOVE_SPEED = 150;
         const PLAYER_BOOST_MOVE_SPEED = 75;
         const MONSTER_TYPES = {
-            CM: { emoji: '🧀', speed: 120, name: 'Kaas' }, 
-            BCM: { emoji: '🍗', speed: 120, name: 'Butter Chicken' }  
+            CM: { emoji: '🧀', speed: 90, name: 'Kaas' }, 
+            BCM: { emoji: '🍗', speed: 90, name: 'Butter Chicken' }  
         };
         
         let MAP = []; 
         let gameState = 'loading';
+        let score = 0;
 
         let player = {
             x: 1, 
@@ -562,7 +563,8 @@
                 else if (keysPressed['ArrowRight'] || keysPressed['d']) dx = 1;
 
                 if (dx !== 0 || dy !== 0) {
-                    handleMoveStep(dx, dy); 
+                    handleMoveStep(dx, dy);
+                    score++;
                 }
             }, currentMoveSpeed);
         }
