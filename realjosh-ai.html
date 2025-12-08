@@ -223,9 +223,11 @@
 
         const updateUIState = () => {
             const promptValue = promptInput.value.trim();
-            const isDisabled = isTyping || !promptValue || isWarmingUp; 
+            const isButtonDisabled = isTyping || !promptValue || isWarmingUp; 
 
-            if (isDisabled) {
+            const isInputDisabled = isTyping || isWarmingUp; 
+
+            if (isButtonDisabled) {
                 sendButton.disabled = true;
                 sendButton.classList.remove(...ACCENT_CLASS_ARRAY); 
                 sendButton.classList.add('bg-gray-300', 'text-gray-600', 'cursor-not-allowed');
@@ -235,8 +237,9 @@
                 sendButton.classList.remove('bg-gray-300', 'text-gray-600', 'cursor-not-allowed');
             }
 
-            promptInput.disabled = isDisabled;
-            promptInput.placeholder = isWarmingUp ? "Server wordt opgestart..." : (isTyping ? "realJosh.ai is bezig met verwerken..." : "Stel je vraag aan realJosh.ai...");
+            // Gebruik de nieuwe, minder strenge check voor de INPUT
+            promptInput.disabled = isInputDisabled;
+            promptInput.placeholder = isWarmingUp ? "Server wordt opgewarmd..." : (isTyping ? "realJosh.ai is bezig met verwerken..." : "Stel je vraag aan realJosh.ai...");
 
             if (isTyping || isWarmingUp) {
                  headerCpuIcon.classList.add('animate-pulse');
