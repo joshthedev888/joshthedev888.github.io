@@ -48,13 +48,11 @@
     </script>
 
     <style>
-        /* Base Settings */
         body {
             background-color: #f6f9fc;
             overflow-x: hidden;
         }
 
-        /* Mesh Gradient Background */
         .mesh-bg {
             position: fixed;
             top: 0;
@@ -66,10 +64,9 @@
                 radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
                 radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
                 radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-            background: #f6f9fc; /* Fallback */
+            background: #f6f9fc; 
         }
 
-        /* Diagonal Stripe Background Element */
         .stripe-diagonal {
             position: absolute;
             width: 100%;
@@ -81,7 +78,6 @@
             top: -150px;
         }
 
-        /* Card Styles */
         .glass-card {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
@@ -92,8 +88,7 @@
         .project-card:hover .icon-container {
             transform: scale(1.1) rotate(5deg);
         }
-
-        /* Google Search Styling Overrides (The tricky part) */
+        
         .gcse-search .gsc-control-cse {
             background: transparent !important;
             border: none !important;
@@ -162,7 +157,6 @@
                 <div class="w-8 h-8 bg-stripe-purple rounded-lg flex items-center justify-center text-white font-bold transform rotate-3">
                     J
                 </div>
-                <span class="font-bold text-stripe-dark tracking-tight">joshthedev</span>
             </div>
             
             <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
@@ -177,7 +171,7 @@
 
         <div id="mobile-menu" class="hidden absolute top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden p-2 origin-top transform transition-all duration-200 scale-95 opacity-0">
             <a href="horrorgame.html" class="block px-4 py-3 rounded-xl hover:bg-slate-50 text-sm font-medium text-slate-700 flex items-center gap-3">
-                <i class="ph ph-ghost text-red-500"></i> Kaas Escape
+                <i class="ph ph-ghost text-red-500"></i> Kaas en Butterchicken Escape
             </a>
             <a href="appelsap.html" class="block px-4 py-3 rounded-xl hover:bg-slate-50 text-sm font-medium text-slate-700 flex items-center gap-3">
                 <i class="ph ph-cube text-green-500"></i> Appelsap 3D
@@ -196,7 +190,7 @@
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                 </span>
-                Nieuwe update beschikbaar: JOSH.AI 1.1
+                Nieuwe update: JOSH.AI 1.1
             </div>
 
             <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-stripe-dark mb-6 animate-fade-in-up" style="animation-delay: 0.1s;">
@@ -207,7 +201,7 @@
             </h1>
 
             <p class="text-lg text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style="animation-delay: 0.2s;">
-                Een verzameling van experimenten, games en AI projecten. Alles is open source en gebouwd om te leren.
+                Een verzameling van experimenten, games en AI projecten. Alles is open source.
             </p>
 
             <div class="max-w-xl mx-auto transform hover:-translate-y-1 transition-transform duration-300 animate-fade-in-up" style="animation-delay: 0.3s;">
@@ -290,9 +284,8 @@
                 <span class="text-slate-500 text-sm font-medium">© 2025 Josh Sharma</span>
             </div>
             <div class="flex gap-6">
-                <a href="#" class="text-slate-400 hover:text-stripe-purple transition-colors"><i class="ph ph-github-logo text-xl"></i></a>
-                <a href="#" class="text-slate-400 hover:text-stripe-purple transition-colors"><i class="ph ph-twitter-logo text-xl"></i></a>
-                <a href="#" class="text-slate-400 hover:text-stripe-purple transition-colors"><i class="ph ph-envelope-simple text-xl"></i></a>
+                <a href="https://github.com/joshthedev888" target="_blank" class="text-slate-400 hover:text-stripe-purple transition-colors"><i class="ph ph-github-logo text-xl"></i></a>
+                <a href="mailto:ijoshsharma@gmail.com" class="text-slate-400 hover:text-stripe-purple transition-colors"><i class="ph ph-envelope-simple text-xl"></i></a>
             </div>
         </div>
     </footer>
