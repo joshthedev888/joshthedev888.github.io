@@ -3,57 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>realJosh.AI Chat (Gecorrigeerd)</title>
+    <title>realJosh.AI Chat (Light Mode)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #030712; 
+            /* Lichte achtergrond */
+            background-color: #f3f4f6;
         }
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #1f2937; 
+            /* Lichte scrollbar track */
+            background: #e5e7eb;
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #4f46e5; 
+            /* Accentkleur scrollbar */
+            background: #4f46e5;
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #6366f1; 
+            background: #6366f1;
         }
         .whitespace-pre-wrap {
             white-space: pre-wrap;
         }
     </style>
 </head>
-<body class="min-h-screen p-4 sm:p-8 flex justify-center items-center bg-gray-950">
+<body class="min-h-screen w-full flex justify-center items-center bg-gray-100 p-0">
 
-    <div id="app-container" class="max-w-4xl w-full flex flex-col h-[90vh] sm:h-[80vh] rounded-2xl shadow-2xl overflow-hidden border border-gray-800">
+    <div id="app-container" class="w-full h-screen flex flex-col rounded-none shadow-none overflow-hidden bg-white">
 
-        <header class="bg-gray-900 p-4 sm:p-6 flex justify-between items-center border-b border-gray-800 flex-shrink-0">
-            <div class="flex items-center space-x-4">
-                <a href="index.html" class="p-2 rounded-full text-white bg-indigo-700 hover:bg-indigo-600 transition duration-200 shadow-md flex items-center group">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 group-hover:scale-110 transition-transform"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    <span class="ml-2 hidden sm:inline">Terug naar Home</span>
-                </a>
-            </div>
+        <header class="bg-white p-4 sm:p-6 flex justify-between items-center border-b border-gray-200 flex-shrink-0 shadow-md">
             
             <div class="flex items-center">
-                <svg id="header-cpu-icon" class="w-8 h-8 mr-3 text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M15 9V7h-2V5H9v2H7v4h2v2H7v4h2v2h4v-2h2v-2h2v-4h-2v-2h2z"/></svg>
-                <h1 class="text-3xl font-extrabold text-white">
-                    realJosh.<span class="text-indigo-400">AI</span> 
+                <svg id="header-cpu-icon" class="w-8 h-8 mr-3 text-indigo-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M15 9V7h-2V5H9v2H7v4h2v2H7v4h2v2h4v-2h2v-2h2v-4h-2v-2h2z"/></svg>
+                <h1 class="text-3xl font-extrabold text-gray-800">
+                    realJosh.<span class="text-indigo-600">AI</span> (josh.ai bestaat al met copyright) 
                 </h1>
             </div>
-            <button class="text-gray-400 hover:text-indigo-400 p-2 rounded-full transition duration-200">
+            <button class="text-gray-500 hover:text-indigo-600 p-2 rounded-full transition duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.44a2 2 0 0 1-2 2h-.44a2 2 0 0 0-2 2v.44a2 2 0 0 1-2 2H2v.44a2 2 0 0 0 2 2h.44a2 2 0 0 1 2 2v.44a2 2 0 0 0 2 2h.44a2 2 0 0 1 2 2v.44a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.44a2 2 0 0 1 2-2h.44a2 2 0 0 0 2-2v-.44a2 2 0 0 1 2-2H22v-.44a2 2 0 0 0-2-2h-.44a2 2 0 0 1-2-2v-.44a2 2 0 0 0-2-2h-.44a2 2 0 0 1-2-2V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
         </header>
 
-        <div class="flex-1 p-1 sm:p-6 flex flex-col overflow-hidden bg-gray-900">
+        <div class="flex-1 p-4 sm:p-6 flex flex-col overflow-hidden bg-white">
             <div id="chat-history-container" class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 <div id="chat-end-ref"></div>
             </div>
@@ -63,13 +60,13 @@
                     type="text"
                     id="prompt-input"
                     placeholder="Stel je vraag aan realJosh.ai..."
-                    class="flex-1 p-4 rounded-l-xl bg-gray-800 text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 border-r-0 transition duration-200"
+                    class="flex-1 p-4 rounded-l-xl bg-gray-50 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 border border-gray-300 border-r-0 transition duration-200"
                     autofocus
                 />
                 <button
                     type="submit"
                     id="send-button"
-                    class="p-4 rounded-r-xl text-white font-semibold flex items-center justify-center transition duration-300 transform active:scale-95 bg-gray-700 text-gray-500 cursor-not-allowed"
+                    class="p-4 rounded-r-xl text-white font-semibold flex items-center justify-center transition duration-300 transform active:scale-95 bg-gray-300 text-gray-600 cursor-not-allowed"
                     disabled
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-0 sm:mr-2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
@@ -89,10 +86,10 @@
         let chatHistory = [];
         let isTyping = false;
 
-        const MAIN_COLOR = 'text-indigo-400';
-        const ACCENT_BUTTON_CLASSES = 'bg-indigo-600 hover:bg-indigo-500 shadow-lg';
+        const MAIN_COLOR = 'text-indigo-600';
+        const ACCENT_BUTTON_CLASSES = 'bg-indigo-600 hover:bg-indigo-700 shadow-lg';
         const ACCENT_CLASS_ARRAY = ACCENT_BUTTON_CLASSES.split(' '); 
-        const ERROR_COLOR = 'text-red-400';
+        const ERROR_COLOR = 'text-red-500';
 
         const chatContainer = document.getElementById('chat-history-container');
         const promptInput = document.getElementById('prompt-input');
@@ -150,12 +147,13 @@
                 .filter(msg => msg.sender !== 'ai' || !msg.text.startsWith('Een probleem')) // Filter foutberichten
                 .map(msg => ({
                     role: msg.sender === 'user' ? 'user' : 'model', 
-                    text: msg.text
+                    parts: [{ text: msg.text }]
                 }));
 
+            const contents = [...apiHistory, { role: 'user', parts: [{ text: userPrompt }] }];
+
             const payload = {
-                userPrompt: userPrompt,
-                chatHistory: apiHistory
+                contents: contents
             };
 
             try {
@@ -166,7 +164,7 @@
 
                     if (result.sources && result.sources.length > 0) {
                         const sourceList = result.sources
-                            .map((a, index) => `[${index + 1}] <a href="${a.uri}" target="_blank" class="text-indigo-300 hover:text-indigo-200 underline">${a.title}</a>`)
+                            .map((a, index) => `[${index + 1}] <a href="${a.uri}" target="_blank" class="text-indigo-600 hover:text-indigo-800 underline">${a.title}</a>`)
                             .join('\n');
                         
                         text += `\n\n---\n**Gevonden bronnen:**\n${sourceList}`;
@@ -175,10 +173,10 @@
                     return text;
                 }
                 
-                return "Sorry, de proxy gaf geen bruikbaar tekstresultaat terug. Is de serverlogica correct?";
+                return "Sorry, de proxy gaf geen bruikbaar tekstresultaat terug.";
 
             } catch (error) {
-                console.error("Fout in callGeminiAPI (via proxy):", error);
+                console.error("Fout in API call (via proxy):", error);
                 return `Een probleem is gedetecteerd met de server. ${error.message}. Dit komt waarschijnlijk door een probleem met de backend-server.`;
             }
         };
@@ -189,11 +187,11 @@
             if (isTyping || !promptValue) {
                 sendButton.disabled = true;
                 sendButton.classList.remove(...ACCENT_CLASS_ARRAY); 
-                sendButton.classList.add('bg-gray-700', 'text-gray-500', 'cursor-not-allowed');
+                sendButton.classList.add('bg-gray-300', 'text-gray-600', 'cursor-not-allowed');
             } else {
                 sendButton.disabled = false;
                 sendButton.classList.add(...ACCENT_CLASS_ARRAY); 
-                sendButton.classList.remove('bg-gray-700', 'text-gray-500', 'cursor-not-allowed');
+                sendButton.classList.remove('bg-gray-300', 'text-gray-600', 'cursor-not-allowed');
             }
 
             promptInput.disabled = isTyping;
@@ -219,14 +217,14 @@
             indicator.id = 'typing-indicator';
             indicator.className = 'flex justify-start mb-4 p-2';
             indicator.innerHTML = `
-                <div class="p-2 rounded-full mr-3 bg-gray-700 shadow-md flex-shrink-0 ${MAIN_COLOR}">
+                <div class="p-2 rounded-full mr-3 bg-indigo-100 shadow-md flex-shrink-0 ${MAIN_COLOR}">
                     ${ICON_MAP.Cpu}
                 </div>
-                <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 bg-gray-800 text-gray-400 rounded-tl-none border border-gray-700">
+                <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 bg-gray-200 text-gray-700 rounded-tl-none border border-gray-300">
                     <div class="flex space-x-1">
-                        <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-75"></div>
-                        <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-150"></div>
-                        <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-300"></div>
+                        <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce delay-75"></div>
+                        <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce delay-150"></div>
+                        <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce delay-300"></div>
                     </div>
                 </div>
             `;
@@ -244,7 +242,8 @@
 
             const iconSvg = ICON_MAP[iconName] || ICON_MAP.MessageSquare; 
             const iconClass = color || MAIN_COLOR;
-            const bgColor = isError ? 'bg-red-800' : 'bg-gray-800';
+            const bgColor = isError ? 'bg-red-200' : 'bg-gray-200';
+            const textColor = isError ? 'text-red-800' : 'text-gray-800';
             
             if (sender === 'user') {
                 messageEl.className = 'flex mb-4 p-2 justify-end';
@@ -256,10 +255,10 @@
             } else { 
                 messageEl.className = 'flex mb-4 p-2 justify-start';
                 messageEl.innerHTML = `
-                    <div class="p-2 rounded-full mr-3 bg-gray-700 shadow-md flex-shrink-0 ${iconClass}">
+                    <div class="p-2 rounded-full mr-3 bg-indigo-100 shadow-md flex-shrink-0 ${iconClass}">
                         ${iconSvg}
                     </div>
-                    <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 ${bgColor} text-gray-200 rounded-tl-none border border-gray-700 whitespace-pre-wrap">
+                    <div class="max-w-xs sm:max-w-lg p-4 rounded-xl shadow-lg transition duration-300 ${bgColor} ${textColor} rounded-tl-none border border-gray-300 whitespace-pre-wrap">
                         <p>${text}</p>
                     </div>
                 `;
@@ -335,7 +334,7 @@
             chatHistory = [
                 {
                     sender: 'ai',
-                    text: 'yo bro vraag wat je wilt',
+                    text: 'yo ik ben een ai die geforceerd is om je te beantwoorden dus doe iets zoals iets zeggen of een vraag stellen',
                     icon: 'Cpu',
                     color: MAIN_COLOR
                 }
