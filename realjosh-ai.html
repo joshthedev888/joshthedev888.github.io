@@ -50,6 +50,9 @@
             </button>
         </header>
 
+        <div class="bg-indigo-50 p-3 sm:px-6 text-center text-sm font-medium text-indigo-700 border-b border-indigo-200">
+             <strong>Grote update komt eraan:</strong> Binnenkort: <strong>realJosh.ai v2.1</strong>
+        </div>
         <div class="flex-1 p-4 sm:p-6 flex flex-col overflow-hidden bg-white">
             <div id="chat-history-container" class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 <div id="chat-end-ref"></div>
@@ -242,7 +245,7 @@
             promptInput.placeholder = isWarmingUp ? "Server wordt opgewarmd..." : (isTyping ? "realJosh.ai is bezig met verwerken..." : "Stel je vraag aan realJosh.ai...");
 
             if (isTyping || isWarmingUp) {
-                 headerCpuIcon.classList.add('animate-pulse');
+                headerCpuIcon.classList.add('animate-pulse');
             } else {
                 headerCpuIcon.classList.remove('animate-pulse');
             }
