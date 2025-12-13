@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>joshthedev88.github.io</title>
+    <title>josh1.tech</title> 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> 
 
     <script>
         tailwind.config = {
@@ -16,32 +17,15 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        'stripe-purple': '#635bff', // The iconic Stripe purple
-                        'stripe-dark': '#0a2540',   // Deep dark blue text
-                        'stripe-gray': '#f6f9fc',   // The specific light gray background
-                        'accent-teal': '#00d4ff',
+                        'background-light': '#f8fafc',
+                        'surface-light': '#ffffff',
+                        'text-dark': '#0f172a',
+                        'accent-cyan': '#06b6d4',
+                        'border-light': '#e2e8f0',
                     },
                     boxShadow: {
-                        'card': '0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0,0,0,0.05)',
-                        'card-hover': '0 20px 40px rgba(99, 91, 255, 0.15), 0 10px 20px rgba(0,0,0,0.05)',
-                        'glow': '0 0 20px rgba(99, 91, 255, 0.5)',
+                        'soft-glow': '0 0 15px rgba(6, 182, 212, 0.3)',
                     },
-                    animation: {
-                        'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-                        'blob': 'blob 7s infinite',
-                    },
-                    keyframes: {
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
-                        }
-                    }
                 }
             }
         }
@@ -49,211 +33,221 @@
 
     <style>
         body {
-            background-color: #f6f9fc;
-            overflow-x: hidden;
+            background-color: #f8fafc;
+            color: #0f172a;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        .mesh-bg {
-            position: fixed;
+        nav {
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .section-padding {
+            padding-top: 5rem;
+            padding-bottom: 5rem;
+        }
+
+        .project-card {
+            transition: all 0.3s ease;
+            transform: scale(1);
+            background-color: #ffffff;
+            border-color: #e2e8f0;
+        }
+
+        .project-card:hover {
+            border-color: #06b6d4;
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.15);
+        }
+        
+        .nav-link.active {
+            color: #06b6d4;
+            border-bottom: 2px solid #06b6d4;
+        }
+
+        #hero {
+            position: relative; 
+            overflow: hidden;
+            background: linear-gradient(rgba(248, 250, 252, 0.8), rgba(248, 250, 252, 0.8)); 
+        }
+
+        #threejs-canvas {
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            background: 
-                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-            background: #f6f9fc; 
-        }
-
-        .stripe-diagonal {
-            position: absolute;
             width: 100%;
-            height: 600px;
-            background: linear-gradient(150deg, #f6f9fc 15%, #ffffff 70%, #f6f9fc 94%);
-            transform: skewY(-6deg);
-            transform-origin: top left;
-            z-index: -1;
-            top: -150px;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.5;
         }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .project-card:hover .icon-container {
-            transform: scale(1.1) rotate(5deg);
+        #hero > div.relative {
+            z-index: 2;
         }
     </style>
 </head>
-<body class="font-sans text-stripe-dark antialiased selection:bg-stripe-purple selection:text-white">
+<body class="antialiased">
 
-    <div class="stripe-diagonal"></div>
-    
-    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div class="absolute top-[-10%] right-[-5%] w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-        <div class="absolute top-[-10%] left-[-5%] w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
-    </div>
+    <nav class="sticky top-0 z-50 backdrop-blur-md shadow-md border-b border-border-light">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="#hero" class="text-2xl font-extrabold tracking-tight text-accent-cyan hover:text-text-dark transition-colors">josh1.tech</a>
 
-    <nav class="fixed top-6 left-1/2 transform -translate-x-1/2 w-[90%] max-w-5xl z-50">
-        <div class="glass-card rounded-full px-6 py-3 flex justify-between items-center shadow-lg">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-stripe-purple rounded-lg flex items-center justify-center text-white font-bold transform rotate-3">
-                    J
+                <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                    <a href="#projects" class="nav-link text-text-dark hover:text-accent-cyan px-3 py-2 text-sm font-medium transition-colors">Projecten</a>
                 </div>
             </div>
-            
-            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
-                <a href="#projects" class="hover:text-stripe-purple transition-colors">Projecten</a>
-            </div>
-
-            <button id="menu-btn" class="md:hidden p-2 text-slate-600 hover:text-stripe-purple">
-                <i class="ph ph-list text-xl"></i>
-            </button>
-        </div>
-
-        <div id="mobile-menu" class="hidden absolute top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden p-2 origin-top transform transition-all duration-200 scale-95 opacity-0">
-            <a href="horrorgame.html" class="block px-4 py-3 rounded-xl hover:bg-slate-50 text-sm font-medium text-slate-700 flex items-center gap-3">
-                <i class="ph ph-ghost text-red-500"></i> Kaas en Butterchicken Escape
-            </a>
-            <a href="appelsap.html" class="block px-4 py-3 rounded-xl hover:bg-slate-50 text-sm font-medium text-slate-700 flex items-center gap-3">
-                <i class="ph ph-cube text-green-500"></i> Appelsap 3D
-            </a>
-            <a href="realjosh-ai.html" class="block px-4 py-3 rounded-xl hover:bg-slate-50 text-sm font-medium text-slate-700 flex items-center gap-3">
-                <i class="ph ph-robot text-stripe-purple"></i> Josh.AI
-            </a>
         </div>
     </nav>
 
-    <main class="pt-32 pb-20 px-4 md:px-8 max-w-6xl mx-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <section class="text-center mb-24 relative">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-semibold mb-6 animate-fade-in-up">
-                <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                </span>
-                Nieuwe update: JOSH.AI 1.1
-            </div>
+        <section id="hero" class="section-padding flex flex-col items-center text-center pt-24 pb-24 relative">
+            
+            <canvas id="threejs-canvas"></canvas>
 
-            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-stripe-dark mb-6 animate-fade-in-up" style="animation-delay: 0.1s;">
-                Random web dingen<br>
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-stripe-purple to-accent-teal">
-                    gemaakt door Josh
-                </span>
-            </h1>
-
-            <p class="text-lg text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style="animation-delay: 0.2s;">
-                Een verzameling van experimenten, games en AI projecten. Alles is open source.
-            </p>
-        </section>
-
-        <section id="projects" class="animate-fade-in-up" style="animation-delay: 0.4s;">
-            <div class="flex items-center justify-between mb-8">
-                <h2 class="text-2xl font-bold text-stripe-dark tracking-tight">Projecten</h2>
-                <div class="h-px bg-slate-200 flex-grow ml-6"></div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                <a href="horrorgame.html" class="group project-card bg-white rounded-2xl p-6 border border-slate-100 shadow-card hover:shadow-card-hover hover:border-stripe-purple/30 transition-all duration-300 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-150 duration-500"></div>
-                    
-                    <div class="icon-container w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-600 mb-4 relative z-10 transition-all duration-300">
-                        <i class="ph ph-ghost text-2xl"></i>
-                    </div>
-                    
-                    <h3 class="text-lg font-bold text-stripe-dark mb-2 relative z-10 group-hover:text-stripe-purple transition-colors">Kaas Escape</h3>
-                    <p class="text-slate-500 text-sm mb-6 relative z-10 leading-relaxed">
-                        Een 2D horror game waarin je moet ontsnappen. Gemaakt met de Tone.js audio library.
-                    </p>
-
-                    <div class="flex flex-wrap gap-2 relative z-10">
-                        <span class="px-2 py-1 bg-slate-50 border border-slate-200 text-slate-600 rounded-md text-xs font-semibold">Tone.js</span>
-                        <span class="px-2 py-1 bg-slate-50 border border-slate-200 text-slate-600 rounded-md text-xs font-semibold">Game</span>
-                    </div>
+            <div class="relative z-10">
+                <h1 class="text-5xl sm:text-7xl font-extrabold mb-4 leading-tight">
+                    josh1<span class="text-accent-cyan">.tech</span>
+                </h1>
+                <p class="text-xl text-slate-600 max-w-3xl mb-8">
+                    random web dingen gemaakt door josh
+                </p>
+                <a href="#projects" class="bg-accent-cyan text-white px-8 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors shadow-soft-glow hover:shadow-lg">
+                    Projecten <i class="ph ph-arrow-down ml-2"></i>
                 </a>
-
-                <a href="appelsap.html" class="group project-card bg-white rounded-2xl p-6 border border-slate-100 shadow-card hover:shadow-card-hover hover:border-stripe-purple/30 transition-all duration-300 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-green-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-150 duration-500"></div>
-                    
-                    <div class="icon-container w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 mb-4 relative z-10 transition-all duration-300">
-                        <i class="ph ph-cube text-2xl"></i>
-                    </div>
-                    
-                    <h3 class="text-lg font-bold text-stripe-dark mb-2 relative z-10 group-hover:text-stripe-purple transition-colors">Appelsap 3D</h3>
-                    <p class="text-slate-500 text-sm mb-6 relative z-10 leading-relaxed">
-                        Een interactieve 3D-platformer gebouwd met Three.js. Springen, rennen, appelsap.
-                    </p>
-
-                    <div class="flex flex-wrap gap-2 relative z-10">
-                        <span class="px-2 py-1 bg-slate-50 border border-slate-200 text-slate-600 rounded-md text-xs font-semibold">Three.js</span>
-                        <span class="px-2 py-1 bg-slate-50 border border-slate-200 text-slate-600 rounded-md text-xs font-semibold">3D</span>
-                    </div>
-                </a>
-
-                <a href="realjosh-ai.html" class="group project-card bg-white rounded-2xl p-6 border border-slate-100 shadow-card hover:shadow-card-hover hover:border-stripe-purple/30 transition-all duration-300 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-150 duration-500"></div>
-                    
-                    <div class="icon-container w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-stripe-purple mb-4 relative z-10 transition-all duration-300">
-                        <i class="ph ph-robot text-2xl"></i>
-                    </div>
-                    
-                    <h3 class="text-lg font-bold text-stripe-dark mb-2 relative z-10 group-hover:text-stripe-purple transition-colors">JOSH.AI 1.1</h3>
-                    <p class="text-slate-500 text-sm mb-6 relative z-10 leading-relaxed">
-                        Een slimme chatbot
-                    </p>
-
-                    <div class="flex flex-wrap gap-2 relative z-10">
-                        <span class="px-2 py-1 bg-slate-50 border border-slate-200 text-slate-600 rounded-md text-xs font-semibold">AI</span>
-                        <span class="px-2 py-1 bg-slate-50 border border-slate-200 text-slate-600 rounded-md text-xs font-semibold">API</span>
-                    </div>
-                </a>
-
             </div>
         </section>
 
-    </main>
+        <section id="projects" class="section-padding">
+            <h2 class="text-4xl font-bold mb-10 text-center border-b-2 border-border-light pb-4">Projecten / Games</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                
+                <a href="horrorgame.html" class="project-card block p-6 rounded-xl shadow-md border-2 hover:border-accent-cyan">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-2xl font-bold text-accent-cyan">Kaas Escape</h3>
+                        <i class="ph ph-game-controller text-3xl text-slate-400"></i>
+                    </div>
+                    <p class="text-slate-600 mb-4">v0.4</p>
+                </a>
+                
+                <a href="appelsap.html" class="project-card block p-6 rounded-xl shadow-md border-2 hover:border-accent-cyan">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-2xl font-bold text-accent-cyan">Appelsap 3D</h3>
+                        <i class="ph ph-cube text-3xl text-slate-400"></i>
+                    </div>
+                    <p class="text-slate-600 mb-4">v1.3</p>
+                </a>
 
-    <footer class="bg-white border-t border-slate-100 py-12">
-        <div class="max-w-6xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="flex items-center gap-2">
-                <div class="w-6 h-6 bg-slate-200 rounded flex items-center justify-center text-slate-600 text-xs font-bold">J</div>
-                <span class="text-slate-500 text-sm font-medium">© 2025 Josh Sharma</span>
+                <a href="realjosh-ai.html" class="project-card block p-6 rounded-xl shadow-md border-2 hover:border-accent-cyan">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-2xl font-bold text-accent-cyan">REALJOSH.AI</h3>
+                        <i class="ph ph-robot text-3xl text-slate-400"></i>
+                    </div>
+                    <p class="text-slate-600 mb-4">v1.9</p>
+                </a>
+                
             </div>
-            <div class="flex gap-6">
-                <a href="https://github.com/joshthedev888" target="_blank" class="text-slate-400 hover:text-stripe-purple transition-colors"><i class="ph ph-github-logo text-xl"></i></a>
-                <a href="mailto:ijoshsharma@gmail.com" class="text-slate-400 hover:text-stripe-purple transition-colors"><i class="ph ph-envelope-simple text-xl"></i></a>
-            </div>
-        </div>
-    </footer>
+        </section>
 
+        <footer class="text-center py-6 border-t border-border-light text-slate-500 text-sm">
+            &copy; 2025 Josh Sharma. Alle rechten voorbehouden.
+        </footer>
+    </div>
+    
     <script>
-        const menuBtn = document.getElementById('menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        let isMenuOpen = false;
+        const heroSection = document.getElementById('hero');
+        const canvas = document.getElementById('threejs-canvas');
+        
+        let scene, camera, renderer;
+        let particles;
+        let mouseX = 0, mouseY = 0;
+        const PARTICLE_COUNT = 500;
+        const AREA_SIZE = 5;
 
-        menuBtn.addEventListener('click', () => {
-            isMenuOpen = !isMenuOpen;
-            if (isMenuOpen) {
-                mobileMenu.classList.remove('hidden');
-                setTimeout(() => {
-                    mobileMenu.classList.remove('scale-95', 'opacity-0');
-                    mobileMenu.classList.add('scale-100', 'opacity-100');
-                }, 10);
-            } else {
-                mobileMenu.classList.remove('scale-100', 'opacity-100');
-                mobileMenu.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    mobileMenu.classList.add('hidden');
-                }, 200);
+        function initThreeJS() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, heroSection.clientWidth / heroSection.clientHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true }); 
+            
+            renderer.setSize(heroSection.clientWidth, heroSection.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            
+            camera.position.z = 5;
+
+            const particleGeometry = new THREE.BufferGeometry();
+            const positions = [];
+            const colors = [];
+            const color = new THREE.Color();
+            
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                positions.push(
+                    (Math.random() - 0.5) * AREA_SIZE, 
+                    (Math.random() - 0.5) * AREA_SIZE, 
+                    (Math.random() - 0.5) * AREA_SIZE
+                );
+                
+                color.setHSL(0.51 + Math.random() * 0.05, 0.8, 0.5 + Math.random() * 0.3);
+                colors.push(color.r, color.g, color.b);
             }
-        });
+
+            particleGeometry.setAttribute('position', new THREE.Float32Attribute(new Float32Array(positions), 3));
+            particleGeometry.setAttribute('color', new THREE.Float32Attribute(new Float32Array(colors), 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.05,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                sizeAttenuation: true
+            });
+
+            particles = new THREE.Points(particleGeometry, material);
+            scene.add(particles);
+
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('mousemove', onDocumentMouseMove);
+            
+            animate();
+        }
+        
+        function onWindowResize() {
+            if (heroSection && renderer) {
+                canvas.width = heroSection.clientWidth;
+                canvas.height = heroSection.clientHeight;
+
+                camera.aspect = heroSection.clientWidth / heroSection.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(heroSection.clientWidth, heroSection.clientHeight);
+            }
+        }
+
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            particles.rotation.x += 0.0002;
+            particles.rotation.y += 0.0005;
+
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.03;
+            camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.03;
+            camera.lookAt(scene.position);
+
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = function () {
+            onWindowResize();
+            initThreeJS();
+        };
     </script>
 </body>
 </html>
