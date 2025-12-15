@@ -16,7 +16,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6366f1; }
         .whitespace-pre-wrap { white-space: pre-wrap; }
-        /* Animatie voor afbeelding laden */
         .image-loading {
             min-height: 100px;
             background-color: #e5eeeb;
@@ -86,7 +85,6 @@
     </div>
 
     <script type="module">
-        // --- CONSTANTEN & GLOBALE STATEN ---
         const ICON_MAP = {
             Cpu: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M15 9V7h-2V5H9v2H7v4h2v2H7v4h2v2h4v-2h2v-2h2v-4h-2v-2h2z"/></svg>',
             AlertTriangle: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
@@ -94,7 +92,9 @@
             MessageSquare: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
         };
 
-        const PROXY_BASE_URL = 'https://joshthedev888-server.onrender.com/api/'; // Base URL voor de server
+        const PROXY_BASE_URL = 'https://joshthedev888-server.onrender.com/api/';
+        const PROXY_PROCESS_ENDPOINT = 'process-request'; 
+        
         const MAIN_COLOR = 'text-indigo-600';
         const ACCENT_BUTTON_CLASSES = 'bg-indigo-600 hover:bg-indigo-700 shadow-lg';
         const ACCENT_CLASS_ARRAY = ACCENT_BUTTON_CLASSES.split(' ');
@@ -104,10 +104,9 @@
         let isTyping = false;
         let isWarmingUp = true;
         
-        let selectedModel = 'mini'; // 'mini' (Gemma) of 'pro' (Gemini Pro Image/Chat)
-        let isPremiumUser = false; // Tijdelijke state voor de Pro-check
+        let selectedModel = 'mini'; 
+        let isPremiumUser = false; 
 
-        // --- DOM ELEMENTEN ---
         const chatContainer = document.getElementById('chat-history-container');
         const promptInput = document.getElementById('prompt-input');
         const sendButton = document.getElementById('send-button');
@@ -118,12 +117,10 @@
         const premiumToggle = document.getElementById('premium-toggle');
         const currentModelInfo = document.getElementById('current-model-info');
 
-        // --- UTILS ---
         const scrollToBottom = () => {
             chatEndRef.scrollIntoView({ behavior: "smooth" });
         };
         
-        // Simpele intentie detectie voor afbeeldingen
         const isImageRequest = (prompt) => {
             const lowerPrompt = prompt.toLowerCase();
             return lowerPrompt.includes('maak een afbeelding van') ||
@@ -132,80 +129,77 @@
                    lowerPrompt.includes('toon een foto van');
         };
 
-        // --- API CALLS ---
-
         const callProxy = async (endpoint, payload) => {
-            const response = await fetch(PROXY_BASE_URL + endpoint, {
+            const response = await fetch(PROXY_BASE_URL + endpoint, { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            const responseBody = await response.json();
+            let responseBody;
+            try {
+                responseBody = await response.json();
+            } catch (e) {
+                throw new Error(`Server reageerde met niet-JSON data of is offline. HTTP Status: ${response.status}`);
+            }
 
             if (!response.ok) {
-                // Hier vangen we de server-foutmeldingen op (400, 403, 429, 500)
                 const error = new Error(responseBody.error || `Onbekende HTTP-fout: ${response.status}`);
                 error.status = response.status;
                 error.premiumRequired = responseBody.premiumRequired;
                 error.rateLimited = responseBody.rateLimited;
+                error.fallbackText = responseBody.fallbackText; 
                 throw error;
             }
             
             return responseBody;
         };
         
-        // ----------------------------------------------------------------------------------
-        // NIEUW: FUNCTIE VOOR BEELDGENERATIE (PRO MODEL)
-        // ----------------------------------------------------------------------------------
-        const callImageAPI = async (prompt) => {
-            const payload = {
-                prompt: prompt,
-                isPremium: isPremiumUser // Premium status meesturen naar de backend
-            };
-
-            const result = await callProxy('generate-image', payload);
-            
-            // Resultaat is nu een object met data (Base64) en mimeType
-            return result;
-        };
-
-        // ----------------------------------------------------------------------------------
-        // OUDE FUNCTIE VOOR CHAT (GEMMA)
-        // ----------------------------------------------------------------------------------
-        const callChatAPI = async (userPrompt) => {
-            // Filter non-chat/error berichten uit de geschiedenis
+        const callProcessRequestAPI = async (userPrompt, isWakeUp = false) => {
             const apiHistory = chatHistory
-                .filter(msg => msg.sender !== 'ai' || !msg.text.startsWith('Een probleem')) 
+                .filter(msg => msg.sender !== 'ai' || !msg.isError) 
+                .filter(msg => msg.type !== 'image') 
                 .map(msg => ({
                     role: msg.sender === 'user' ? 'user' : 'model', 
                     parts: [{ text: msg.text }]
                 }));
-
-            const contents = [...apiHistory, { role: 'user', parts: [{ text: userPrompt }] }];
+            
+            const contents = isWakeUp
+                ? [{ role: 'user', parts: [{ text: "Wake up call" }] }]
+                : [...apiHistory, { role: 'user', parts: [{ text: userPrompt }] }];
 
             const payload = {
                 contents: contents, 
+                isPremium: isPremiumUser, 
             };
 
-            const result = await callProxy('chat-proxy', payload);
+            const result = await callProxy(PROXY_PROCESS_ENDPOINT, payload);
             
-            let text = result.text;
-            if (result.sources && result.sources.length > 0) {
-                const sourceList = result.sources
-                    .map((a, index) => `[${index + 1}] <a href="${a.uri}" target="_blank" class="text-indigo-600 hover:text-indigo-800 underline">${a.title}</a>`)
-                    .join('\n');
-                text += `\n\n---\n**Gevonden bronnen:**\n${sourceList}`;
+            if (result.isImage) {
+                return {
+                    type: 'image',
+                    description: result.description,
+                    data: result.data,
+                    mimeType: result.mimeType,
+                };
+            } else {
+                let text = result.text;
+                
+                if (result.sources && result.sources.length > 0) {
+                    const sourceList = result.sources
+                        .map((a, index) => `[${index + 1}] <a href="${a.uri}" target="_blank" class="text-indigo-600 hover:text-indigo-800 underline">${a.title}</a>`)
+                        .join('\n');
+                    text += `\n\n---\n**Gevonden bronnen:**\n${sourceList}`;
+                }
+
+                return {
+                    type: 'chat',
+                    text: text,
+                };
             }
-
-            return text;
         };
-        // ----------------------------------------------------------------------------------
         
-        // --- UI RENDERING FUNCTIES ---
-
         const updateUIState = () => {
-            // Update model-informatie in de header
             currentModelInfo.textContent = modelSelect.options[modelSelect.selectedIndex].text + (isPremiumUser ? ' (Premium Status: Aan)' : ' (Premium Status: Uit)');
 
             const promptValue = promptInput.value.trim();
@@ -332,8 +326,6 @@
             scrollToBottom();
         };
         
-        // --- CORE HANDLER ---
-
         const handleSend = async (e) => {
             e.preventDefault();
             const cleanPrompt = promptInput.value.trim();
@@ -344,71 +336,62 @@
             chatHistory.push(userMessage);
             promptInput.value = '';
 
-            const isImageAttempt = isImageRequest(cleanPrompt);
+            const isImageAttempt = isImageRequest(cleanPrompt); 
             const useProModel = selectedModel === 'pro';
 
             isTyping = true;
             renderChatHistory(); 
-            renderTypingIndicator(true, isImageAttempt && useProModel); // Render juiste indicator
+            renderTypingIndicator(true, isImageAttempt && useProModel); 
             updateUIState();
 
-            let aiMessage;
+            let finalMessage;
             
             try {
-                if (isImageAttempt && useProModel) {
-                    // --- BEELDGENERATIE LOGICA ---
-                    const imageResult = await callImageAPI(cleanPrompt);
-                    
-                    aiMessage = {
+                const apiResult = await callProcessRequestAPI(cleanPrompt);
+                
+                if (apiResult.type === 'image') {
+                    finalMessage = {
                         sender: 'ai',
-                        type: 'image', // NIEUW type
-                        description: imageResult.description,
-                        data: imageResult.data,
-                        mimeType: imageResult.mimeType,
+                        type: 'image',
+                        description: apiResult.description,
+                        data: apiResult.data,
+                        mimeType: apiResult.mimeType,
                     };
-
-                } else if (isImageAttempt && !useProModel) {
-                    // Image request maar op het 'mini' model
-                    aiMessage = {
+                } else {
+                    finalMessage = {
                         sender: 'ai',
-                        text: `Yo! De 'v2.0 mini' kan geen afbeeldingen maken, bro. Schakel over naar 'realJosh.ai v2.0 Pro' in de instellingen om die lijpe images te fixen!`,
-                        icon: 'AlertTriangle',
-                        color: ERROR_COLOR
-                    };
-                } 
-                else {
-                    // --- CHAT LOGICA (standaard) ---
-                    const aiText = await callChatAPI(cleanPrompt);
-                    
-                    aiMessage = {
-                        sender: 'ai',
-                        text: aiText,
+                        type: 'chat',
+                        text: apiResult.text,
                         icon: 'Cpu',
                         color: MAIN_COLOR
                     };
                 }
 
-                chatHistory.push(aiMessage);
+                chatHistory.push(finalMessage);
 
             } catch (error) {
                 console.error("Fout in handleSend:", error);
                 
-                let errorText = `Een probleem is gedetecteerd met de server. Fout: ${error.message}.`;
-                let errorIcon = 'AlertTriangle';
+                let errorText;
                 
-                if (error.status === 403 && error.premiumRequired) {
+                if (error.fallbackText) {
+                    errorText = error.fallbackText;
+                } else if (error.status === 403 && error.premiumRequired) {
                     errorText = `Yo, de server zegt: **${error.message}**. Je moet Premium inschakelen om deze feature te gebruiken. (Check de 'Premium (Test)' schakelaar hierboven!)`;
                 } else if (error.status === 429 && error.rateLimited) {
                     errorText = `Chill, bro! De server is even overbelast met coole afbeeldingen maken. **${error.message}** Probeer het later nog eens!`;
+                } else {
+                    errorText = `Een probleem is gedetecteerd met de server. Fout: ${error.message}.`;
                 }
                 
-                aiMessage = {
+                finalMessage = {
                     sender: 'ai',
                     text: errorText,
-                    icon: errorIcon,
-                    color: ERROR_COLOR
+                    icon: 'AlertTriangle',
+                    color: ERROR_COLOR,
+                    isError: true
                 };
-                chatHistory.push(aiMessage);
+                chatHistory.push(finalMessage);
                 
             } finally {
                 isTyping = false;
@@ -419,7 +402,6 @@
         };
 
         const wakeUpServer = async () => {
-            // (De wake-up logica blijft hetzelfde, gebruikt de chat-endpoint)
             isWarmingUp = true;
             updateUIState();
             
@@ -432,13 +414,8 @@
             chatHistory.push(warmUpMessage);
             renderChatHistory(); 
             
-            const wakeUpPayload = {
-                contents: [{ role: 'user', parts: [{ text: "Wake up call" }] }]
-            };
-
             try {
-                // Gebruik de chat endpoint voor de wake-up call
-                await callProxy('chat-proxy', wakeUpPayload); 
+                await callProcessRequestAPI(null, true); 
                 console.log("Server opgestart! Klaar voor gebruik.");
             } catch (error) {
                 console.error("Fout bij opstarten, maar we gaan door:", error.message);
@@ -462,17 +439,15 @@
         const init = () => {
             chatHistory = []; 
 
-            // --- EVENT LISTENERS ---
             inputForm.addEventListener('submit', handleSend);
             promptInput.addEventListener('input', updateUIState);
             
             modelSelect.addEventListener('change', (e) => {
                 selectedModel = e.target.value;
                 updateUIState();
-                // Optioneel: voeg een chatbericht toe over de modelwijziging
                 chatHistory.push({
                     sender: 'ai',
-                    text: `Cool! Je bent nu overgeschakeld naar **${modelSelect.options[modelSelect.selectedIndex].text}**. Zeg 'maak een afbeelding van...' om die lijpe feature te testen.`,
+                    text: `Cool! Je bent nu overgeschakeld naar <strong>${modelSelect.options[modelSelect.selectedIndex].text}</strong>. De server checkt nu je vraag en stuurt de juiste AI (Chat of Beeld) aan. Zeg 'maak een afbeelding van...' om die lijpe feature te testen.`,
                     icon: 'Cpu',
                     color: MAIN_COLOR
                 });
@@ -484,14 +459,13 @@
                 updateUIState();
                 chatHistory.push({
                     sender: 'ai',
-                    text: `**Premium Status:** is nu **${isPremiumUser ? 'AAN' : 'UIT'}**. Je kunt nu ${isPremiumUser ? 'wel' : 'geen'} afbeeldingen genereren met het Pro-model.`,
+                    text: `Pro: is nu ${isPremiumUser ? 'AAN' : 'UIT'}. Je kunt nu ${isPremiumUser ? 'wel' : 'geen'} afbeeldingen genereren met het Pro-model.`,
                     icon: 'AlertTriangle',
                     color: isPremiumUser ? MAIN_COLOR : ERROR_COLOR
                 });
                 renderChatHistory();
             });
             
-            // Start de app
             wakeUpServer(); 
             updateUIState(); 
         };
