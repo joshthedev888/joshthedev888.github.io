@@ -1,253 +1,228 @@
 <!DOCTYPE html>
-<html lang="nl" class="scroll-smooth">
+<html class="scroll-smooth" lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>josh1.tech</title> 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> 
+    <meta name="author" content="Josh Sharma">
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        'background-light': '#f8fafc',
-                        'surface-light': '#ffffff',
-                        'text-dark': '#0f172a',
-                        'accent-cyan': '#06b6d4',
-                        'border-light': '#e2e8f0',
-                    },
-                    boxShadow: {
-                        'soft-glow': '0 0 15px rgba(6, 182, 212, 0.3)',
-                    },
-                }
-            }
-        }
-    </script>
+    <meta name="description" content="random web dingen gemaakt door josh">
+    <meta name="keywords" content="Josh, josh1, Projecten, Portfolio">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="josh1.tech: random web dingen gemaakt door josh">
+    <meta property="og:description" content="een website voor random dingen en games die ik maak">
+    <meta property="og:url" content="https://www.josh1.tech/">
+    <meta property="og:type" content="website">
+
+    <title>josh1.tech</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
     <style>
         body {
-            background-color: #f8fafc;
-            color: #0f172a;
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.3s, color 0.3s;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        nav {
-            background-color: rgba(255, 255, 255, 0.95);
+        .mockup-chat-container {
+            width: 320px;
+            height: 400px; 
+            background-color: #1a1a1a; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05); 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .section-padding {
-            padding-top: 5rem;
-            padding-bottom: 5rem;
+        .dot {
+            animation: bounce 1.4s infinite ease-in-out both;
+            background-color: #6366F1; 
+        }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
         }
 
-        .project-card {
-            transition: all 0.3s ease;
-            transform: scale(1);
-            background-color: #ffffff;
-            border-color: #e2e8f0;
+        .mockup-scroll-area::-webkit-scrollbar {
+            width: 4px;
         }
-
-        .project-card:hover {
-            border-color: #06b6d4;
-            transform: scale(1.02);
-            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.15);
+        .mockup-scroll-area::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        .mockup-scroll-area::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 10px;
         }
         
-        .nav-link.active {
-            color: #06b6d4;
-            border-bottom: 2px solid #06b6d4;
-        }
-
-        #hero {
-            position: relative; 
-            overflow: hidden;
-            background: linear-gradient(rgba(248, 250, 252, 0.8), rgba(248, 250, 252, 0.8)); 
-        }
-
-        #threejs-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-            opacity: 0.5;
-        }
-
-        #hero > div.relative {
-            z-index: 2;
-        }
     </style>
+
 </head>
-<body class="antialiased">
+<body class="font-sans bg-black">
 
-    <nav class="sticky top-0 z-50 backdrop-blur-md shadow-md border-b border-border-light">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <a href="#hero" class="text-2xl font-extrabold tracking-tight text-accent-cyan hover:text-text-dark transition-colors">josh1.tech</a>
+    <nav class="text-white bg-gray-900 py-10">
+        <a class="inline-block" href="#animated-title-section">josh1.tech</a>
+        <a class="inline-block px-40" href="#ai-chat-section">realJosh.ai</a>
+        <a class="inline-block" href="#projects-section">Projecten</a>
 
-                <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                    <a href="#projects" class="nav-link text-text-dark hover:text-accent-cyan px-3 py-2 text-sm font-medium transition-colors">Projecten</a>
-                </div>
-            </div>
+        <div id="copyright-container">
+            <p>© <span id="currentYear"></span> Josh Sharma</p>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="animated-title-section" class="min-h-screen flex items-center justify-center bg-gray-900">
+        <h1 id="animated-title" class="whitespace-nowrap w-full max-w-6xl text-6xl md:text-8xl font-extrabold text-white text-center uppercase leading-snug tracking-tighter">josh1.tech</h1>
+    </section>
 
-        <section id="hero" class="section-padding flex flex-col items-center text-center pt-24 pb-24 relative">
+    <section id="ai-chat-section" class="min-h-screen flex flex-col items-center justify-center bg-black p-4 md:p-8">
+        
+        <h2 class="text-4xl md:text-6xl font-extrabold text-white text-center uppercase p-4 mb-10 tracking-wider opacity-0" id="ai-title">
+            realJosh.<span class="text-indigo-500">ai</span>
+        </h2>
+
+        <div id="chat-container" class="mockup-chat-container translate-y-20 opacity-0">
             
-            <canvas id="threejs-canvas"></canvas>
+            <header class="bg-[#242424] p-4 flex justify-between items-center border-b border-[#333] flex-shrink-0">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v.17c0 1.2-.5 2.3-1.37 3.13l-1.3 1.3A3 3 0 0 0 5 12a3 3 0 0 0 3 3h.17c1.2 0 2.3.5 3.13 1.37l1.3 1.3A3 3 0 0 0 16 19a3 3 0 0 0 3-3v-.17c0-1.2.5-2.3 1.37-3.13l1.3-1.3A3 3 0 0 0 19 8a3 3 0 0 0-3-3h-.17c-1.2 0-2.3-.5-3.13-1.37l-1.3-1.3A3 3 0 0 0 12 2z"/></svg>
+                    <h3 class="text-xl font-semibold text-gray-100">
+                        realJosh.<span class="text-indigo-500">AI</span>
+                    </h3>
+                </div>
+                <span class="text-xs text-green-400">Online</span>
+            </header>
 
-            <div class="relative z-10">
-                <h1 class="text-5xl sm:text-7xl font-extrabold mb-4 leading-tight">
-                    josh1<span class="text-accent-cyan">.tech</span>
-                </h1>
-                <p class="text-xl text-slate-600 max-w-3xl mb-8">
-                    random web dingen gemaakt door josh
-                </p>
-                <a href="#projects" class="bg-accent-cyan text-white px-8 py-3 rounded-full text-lg font-bold hover:bg-opacity-80 transition-colors shadow-soft-glow hover:shadow-lg">
-                    Projecten <i class="ph ph-arrow-down ml-2"></i>
+            <div id="chat-history-container" class="flex-1 p-4 overflow-y-auto space-y-3 mockup-scroll-area">
+                <div class="flex justify-start">
+                    <div class="p-1 rounded-full mr-2 bg-indigo-500 shadow-lg flex-shrink-0 text-white self-end">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v.17c0 1.2-.5 2.3-1.37 3.13l-1.3 1.3A3 3 0 0 0 5 12a3 3 0 0 0 3 3h.17c1.2 0 2.3.5 3.13 1.37l1.3 1.3A3 3 0 0 0 16 19a3 3 0 0 0 3-3v-.17c0-1.2.5-2.3 1.37-3.13l1.3-1.3A3 3 0 0 0 19 8a3 3 0 0 0-3-3h-.17c-1.2 0-2.3-.5-3.13-1.37l-1.3-1.3A3 3 0 0 0 12 2z"/></svg>
+                    </div>
+                    <div class="max-w-[85%] p-3 text-sm rounded-xl shadow-xl bg-gray-700 text-gray-100 rounded-tl-none transform origin-bottom-left transition duration-300 hover:shadow-2xl">
+                        <p class="animate-pulse-slow">yo bro wat wil je weten</p>
+                    </div>
+                </div>
+
+                <div id="user-message-template" class="flex justify-end">
+                    <div class="max-w-[85%] p-3 text-sm rounded-xl shadow-xl bg-indigo-600 text-white rounded-br-none transform origin-bottom-right transition duration-300 hover:shadow-2xl">
+                        <p>door wie ben jij gemaakt</p>
+                    </div>
+                </div>
+                
+                <div id="ai-response" class="flex justify-start hidden">
+                    <div class="p-1 rounded-full mr-2 bg-indigo-500 shadow-lg flex-shrink-0 text-white self-end">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v.17c0 1.2-.5 2.3-1.37 3.13l-1.3 1.3A3 3 0 0 0 5 12a3 3 0 0 0 3 3h.17c1.2 0 2.3.5 3.13 1.37l1.3 1.3A3 3 0 0 0 16 19a3 3 0 0 0 3-3v-.17c0-1.2.5-2.3 1.37-3.13l1.3-1.3A3 3 0 0 0 19 8a3 3 0 0 0-3-3h-.17c-1.2 0-2.3-.5-3.13-1.37l-1.3-1.3A3 3 0 0 0 12 2z"/></svg>
+                    </div>
+                    <div class="max-w-[85%] p-3 text-sm rounded-xl shadow-xl bg-gray-700 text-gray-100 rounded-tl-none transform origin-bottom-left transition duration-300 hover:shadow-2xl">
+                        <p>yo goede vraag! ik ben gemaakt door de enige echte josh.</p>
+                    </div>
+                </div>
+
+                <div id="typing-indicator" class="flex justify-start hidden">
+                    <div class="p-1 rounded-full mr-2 bg-indigo-500 shadow-lg flex-shrink-0 text-white self-end">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v.17c0 1.2-.5 2.3-1.37 3.13l-1.3 1.3A3 3 0 0 0 5 12a3 3 0 0 0 3 3h.17c1.2 0 2.3.5 3.13 1.37l1.3 1.3A3 3 0 0 0 16 19a3 3 0 0 0 3-3v-.17c0-1.2.5-2.3 1.37-3.13l1.3-1.3A3 3 0 0 0 19 8a3 3 0 0 0-3-3h-.17c-1.2 0-2.3-.5-3.13-1.37l-1.3-1.3A3 3 0 0 0 12 2z"/></svg>
+                    </div>
+                    <div class="max-w-[85%] p-3 rounded-xl shadow-xl bg-gray-700 text-gray-100 rounded-tl-none">
+                        <div class="flex space-x-1 items-center h-4">
+                            <div class="dot w-2 h-2 rounded-full"></div>
+                            <div class="dot w-2 h-2 rounded-full"></div>
+                            <div class="dot w-2 h-2 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-[#242424] border-t border-[#333] flex flex-col items-center flex-shrink-0">
+                <div class="flex w-full mb-3">
+                    <input
+                        type="text"
+                        value="Stel je vraag aan realJosh.ai..."
+                        class="flex-1 p-2 text-sm rounded-l-lg bg-gray-800 text-gray-400 border border-gray-600 border-r-0 focus:outline-none focus:border-indigo-500 transition duration-200"
+                        disabled
+                    />
+                    <button
+                        type="button"
+                        class="p-2 rounded-r-lg text-white text-sm flex items-center justify-center bg-gray-700 hover:bg-gray-600 transition duration-200 cursor-not-allowed"
+                        disabled
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+                    </button>
+                </div>
+                
+                <a href="https://josh1.tech/realjosh-ai/" target="_blank" class="w-full p-2 text-sm text-center rounded-lg text-white font-bold bg-indigo-600 hover:bg-indigo-700 transition duration-300 shadow-lg transform hover:scale-[1.01]">
+                    Ga naar de ECHTE Chat
                 </a>
             </div>
-        </section>
 
-        <section id="projects" class="section-padding">
-            <h2 class="text-4xl font-bold mb-10 text-center border-b-2 border-border-light pb-4">Projecten / Games</h2>
+        </div>
+    </section>
+
+    <section id="projects-section" class="min-h-screen bg-white text-gray-900 py-24 flex flex-col items-center">
+        
+        <div class="text-center max-w-4xl px-4 mb-16">
+            <h2 class="text-5xl md:text-6xl font-extrabold mb-4 text-gray-900 opacity-0" id="projects-title">Projecten</h2>
+            <p class="text-xl text-gray-600 opacity-0" id="projects-subtitle">
+                random dingen die ik gemaakt heb
+            </p>
+        </div>
+
+        <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl px-4 w-full">
             
-            <div class="grid md:grid-cols-3 gap-8">
-                
-                <a href="horrorgame.html" class="project-card block p-6 rounded-xl shadow-md border-2 hover:border-accent-cyan">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-2xl font-bold text-accent-cyan">Kaas Escape</h3>
-                        <i class="ph ph-game-controller text-3xl text-slate-400"></i>
-                    </div>
-                    <p class="text-slate-600 mb-4">v0.4</p>
-                </a>
-                
-                <a href="appelsap.html" class="project-card block p-6 rounded-xl shadow-md border-2 hover:border-accent-cyan">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-2xl font-bold text-accent-cyan">Appelsap 3D</h3>
-                        <i class="ph ph-cube text-3xl text-slate-400"></i>
-                    </div>
-                    <p class="text-slate-600 mb-4">v1.3</p>
-                </a>
-
-                <a href="realjosh-ai.html" class="project-card block p-6 rounded-xl shadow-md border-2 hover:border-accent-cyan">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-2xl font-bold text-accent-cyan">REALJOSH.AI</h3>
-                        <i class="ph ph-robot text-3xl text-slate-400"></i>
-                    </div>
-                    <p class="text-slate-600 mb-4">v1.9</p>
-                </a>
-                
+            <div class="project-card bg-gray-50 rounded-xl shadow-xl overflow-hidden transform transition duration-500 hover:scale-[1.03] hover:shadow-2xl opacity-0 translate-y-10">
+                <div class="p-6">
+                    <h3 class="text-2xl font-bold mb-2 text-indigo-600">Appeltaart (eerst "Appelsap" genoemd)</h3>
+                    <p class="text-gray-700 mb-4">Een 3D platformer met random generatie</p>
+                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mr-2">Tailwind CSS</span>
+                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Three.js</span>
+                </div>
+                <div class="bg-gray-100 p-4 border-t border-gray-200 flex justify-between items-center">
+                    <a href="file:///C:/Users/JoshSharma/development/JavaScript/josh1.tech/appeltaart.html" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition duration-200">
+                        Speel &rarr;
+                    </a>
+                </div>
             </div>
-        </section>
 
-        <footer class="text-center py-6 border-t border-border-light text-slate-500 text-sm">
-            &copy; 2025 Josh Sharma. Alle rechten voorbehouden.
-        </footer>
-    </div>
-    
-    <script>
-        const heroSection = document.getElementById('hero');
-        const canvas = document.getElementById('threejs-canvas');
-        
-        let scene, camera, renderer;
-        let particles;
-        let mouseX = 0, mouseY = 0;
-        const PARTICLE_COUNT = 500;
-        const AREA_SIZE = 5;
+            <div class="project-card bg-gray-50 rounded-xl shadow-xl overflow-hidden transform transition duration-500 hover:scale-[1.03] hover:shadow-2xl opacity-0 translate-y-10">
+                <div class="p-6">
+                    <h3 class="text-2xl font-bold mb-2 text-indigo-600">Kaas & Butter chicken escape</h3>
+                    <p class="text-gray-700 mb-4">credits naar Tijn Beerthuizen en Om Bhattacharya voor het idee</p>
+                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mr-2">JavaScript</span>
+                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Algoritme</span>
+                </div>
+                <div class="bg-gray-100 p-4 border-t border-gray-200 flex justify-between items-center">
+                    <a href="#" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition duration-200">
+                        Speel &rarr;
+                    </a>
+                </div>
+            </div>
 
-        function initThreeJS() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, heroSection.clientWidth / heroSection.clientHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true }); 
-            
-            renderer.setSize(heroSection.clientWidth, heroSection.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            
-            camera.position.z = 5;
+            <div class="project-card bg-gray-50 rounded-xl shadow-xl overflow-hidden transform transition duration-500 hover:scale-[1.03] hover:shadow-2xl opacity-0 translate-y-10">
+                <div class="p-6">
+                    <h3 class="text-2xl font-bold mb-2 text-indigo-600">realJosh.ai v2.1</h3>
+                    <p class="text-gray-700 mb-4">De enige echte realJosh.ai</p>
+                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mr-2">AI</span>
+                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Node.js</span>
+                </div>
+                <div class="bg-gray-100 p-4 border-t border-gray-200 flex justify-between items-center">
+                    <a href="#" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition duration-200">
+                        Chat met realJosh.ai &rarr;
+                    </a>
+                </div>
+            </div>
 
-            const particleGeometry = new THREE.BufferGeometry();
-            const positions = [];
-            const colors = [];
-            const color = new THREE.Color();
-            
-            for (let i = 0; i < PARTICLE_COUNT; i++) {
-                positions.push(
-                    (Math.random() - 0.5) * AREA_SIZE, 
-                    (Math.random() - 0.5) * AREA_SIZE, 
-                    (Math.random() - 0.5) * AREA_SIZE
-                );
-                
-                color.setHSL(0.51 + Math.random() * 0.05, 0.8, 0.5 + Math.random() * 0.3);
-                colors.push(color.r, color.g, color.b);
-            }
+        </div>
 
-            particleGeometry.setAttribute('position', new THREE.Float32Attribute(new Float32Array(positions), 3));
-            particleGeometry.setAttribute('color', new THREE.Float32Attribute(new Float32Array(colors), 3));
+    </section>
 
-            const material = new THREE.PointsMaterial({
-                size: 0.05,
-                vertexColors: true,
-                blending: THREE.AdditiveBlending,
-                transparent: true,
-                sizeAttenuation: true
-            });
-
-            particles = new THREE.Points(particleGeometry, material);
-            scene.add(particles);
-
-            window.addEventListener('resize', onWindowResize);
-            document.addEventListener('mousemove', onDocumentMouseMove);
-            
-            animate();
-        }
-        
-        function onWindowResize() {
-            if (heroSection && renderer) {
-                canvas.width = heroSection.clientWidth;
-                canvas.height = heroSection.clientHeight;
-
-                camera.aspect = heroSection.clientWidth / heroSection.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(heroSection.clientWidth, heroSection.clientHeight);
-            }
-        }
-
-        function onDocumentMouseMove(event) {
-            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            particles.rotation.x += 0.0002;
-            particles.rotation.y += 0.0005;
-
-            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.03;
-            camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.03;
-            camera.lookAt(scene.position);
-
-
-            renderer.render(scene, camera);
-        }
-
-        window.onload = function () {
-            onWindowResize();
-            initThreeJS();
-        };
-    </script>
+    <script src="js/copyright.js"></script>
+    <script src="js/animations.js"></script>
 </body>
 </html>
