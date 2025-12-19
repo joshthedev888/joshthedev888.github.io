@@ -1,329 +1,743 @@
-<!DOCTYPE html>
+Nothing screw this lets make this game way better but in Three.js                                                                <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appelsap Pro - Full Engine</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
-    <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
-        canvas { display: block; }
-        
-        /* UI LAYERS */
-        #ui-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        .interactive { pointer-events: auto; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appelsap - joshthedev888.github.io</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a1c3c;
+            font-family: 'Inter', sans-serif;
+        }
 
-        #menu-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 5, 15, 0.9); display: flex; justify-content: center; align-items: center; z-index: 100;
-        }
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
 
-        .main-panel {
-            background: #121225; padding: 40px; border-radius: 30px; border: 5px solid #a855f7;
-            text-align: center; color: white; width: 500px; box-shadow: 0 0 60px rgba(168, 85, 247, 0.4);
-        }
+        .ui-box {
+            position: absolute;
+            color: white;
+            padding: 12px 20px;
+            background: rgba(20, 20, 40, 0.85); 
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+            text-align: center;
+            line-height: 1.4;
+            border: 2px solid #a855f7; 
+        }
 
-        .control-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; }
-        
-        .btn {
-            background: #a855f7; border: none; color: white; padding: 12px 20px;
-            border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;
-        }
-        .btn:hover { background: #c084fc; transform: scale(1.05); }
-        .btn.active { background: #22c55e; box-shadow: 0 0 15px #22c55e; }
+        .menu-button {
+            display: block;
+            padding: 8px 10px;
+            background: #a855f7;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .menu-button:hover {
+            background: #8b3abf;
+        }
+        
+        #menu-box {
+            top: 20px;
+            left: 20px;
+            transform: none;
+            max-width: 150px;
+            padding: 0;
+            background: none;
+            border: none;
+            box-shadow: none;
+        }
 
-        #crosshair {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 12px; height: 12px; border: 2px solid white; border-radius: 50%;
-            display: none; opacity: 0.5;
-        }
+        #controls {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.1em;
+            width: 90%;
+            max-width: 400px;
+        }
 
-        #hud { position: absolute; top: 20px; width: 100%; text-align: center; color: white; font-size: 2em; font-weight: bold; text-shadow: 2px 2px #000; }
-    </style>
+        #score-box {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 300px;
+            font-size: 1.2em;
+            color: #fff;
+            background: rgba(42, 42, 68, 0.8);
+            border: 2px solid #a855f7;
+        }
+
+        .score-value {
+            color: #fca311; 
+            font-weight: bold;
+            display: inline-block;
+            min-width: 50px;
+        }
+
+        @media (max-width: 600px) {
+            #controls {
+                font-size: 0.9em;
+                padding: 8px 15px;
+            }
+            #score-box {
+                top: 10px;
+                font-size: 1em;
+                padding: 8px 15px;
+            }
+            #menu-box {
+                top: 10px;
+                left: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div id="game-container">
+    </div>
+    
+    <div id="menu-box" class="ui-box">
+        <a href="index.html" class="menu-button">Terug naar Menu</a>
+    </div>
 
-<div id="ui-wrapper">
-    <div id="hud">SCORE: <span id="score">0</span></div>
-    <div id="crosshair"></div>
-</div>
+    <div id="score-box" class="ui-box">
+        Score: <span id="score-value" class="score-value">0</span> |
+        Hoogste Score: <span id="high-score-value" class="score-value">0</span>
+    </div>
 
-<div id="menu-overlay">
-    <div class="main-panel interactive">
-        <h1 style="color: #fca311; font-size: 3em; margin-bottom: 10px;">APPELSAP</h1>
-        <p style="margin-bottom: 30px; opacity: 0.7;">Refined Physics & Customization</p>
+    <div id="controls" class="ui-box">
+        Gebruik W A S D of Pijltjestoetsen om te bewegen.
+        <br>
+        Gebruik SPATIE om te springen of te wall jumpen.
+    </div>
 
-        <div class="control-row">
-            <span>Character Kleur:</span>
-            <input type="color" id="color-input" value="#0077b6" style="cursor:pointer; width:50px; height:30px;">
-        </div>
+    <script>
+        let scene, camera, renderer;
+        let world, timeStep = 1 / 60;
+        let playerBody, playerMesh;
+        let controls = {
+            forward: false,
+            backward: false,
+            left: false,
+            right: false,
+            jump: false,
+            canJump: true
+        };
 
-        <div class="control-row">
-            <span>Moeilijkheid:</span>
-            <div>
-                <button class="btn diff-btn" onclick="updateDiff('easy', this)">EASY</button>
-                <button class="btn diff-btn active" onclick="updateDiff('medium', this)">MED</button>
-                <button class="btn diff-btn" onclick="updateDiff('hard', this)">HARD</button>
-                <button class="btn diff-btn" onclick="updateDiff('insane', this)">INSANE</button>
-            </div>
-        </div>
+        const jumpVelocity = 11;
+        const moveSpeed = 60;
+        const wallJumpVerticalVelocity = 40;
+        const wallJumpHorizontalFactor = 0.1;
+        let lastTime;
 
-        <div class="control-row">
-            <span>Zicht:</span>
-            <button class="btn" onclick="toggleView()" id="view-btn">3rd PERSON</button>
-        </div>
+        let score = 0;
+        let highScore = 0;
+        let lastPlatformZ = 0;
+        let platformMeshes = [];
+        let platformBodies = [];
+        let laserMeshes = [];
+        let laserBodies = [];
+        const PLAYER_HEIGHT = 1.8;
+        
+        let wallContactX = 0;
+        let wallContactZ = 0;
 
-        <div class="control-row">
-            <span>Shiftlock:</span>
-            <button class="btn" onclick="toggleSL()" id="sl-btn">OFF</button>
-        </div>
+        function loadHighScore() {
+            const storedScore = localStorage.getItem('platformerHighScore');
+            if (storedScore) {
+                highScore = parseInt(storedScore, 10);
+            }
+            document.getElementById('high-score-value').textContent = highScore;
+        }
 
-        <button class="btn" id="start-btn" style="width: 100%; padding: 20px; font-size: 1.5em; margin-top: 20px; background: #22c55e;">START RUN</button>
-    </div>
-</div>
+        function saveHighScore() {
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('platformerHighScore', highScore);
+                document.getElementById('high-score-value').textContent = highScore;
+            }
+        }
 
-<script>
-    // --- 1. CORE VARIABLES ---
-    let scene, camera, renderer, world;
-    let playerBody, playerMesh, torsoMesh;
-    let yaw = new THREE.Object3D(), pitch = new THREE.Object3D();
-    let score = 0, lastPlatformZ = 0;
-    
-    // Objects arrays
-    let platformObjects = [], laserObjects = [];
-    
-    // --- 2. SETTINGS & STATE ---
-    let isFirstPerson = false, shiftlock = false;
-    let activeDiff = "medium";
-    const diffMap = {
-        easy: { gap: [3, 5], width: 12, speed: 10, laser: 0 },
-        medium: { gap: [6, 9], width: 9, speed: 13, laser: 0.1 },
-        hard: { gap: [9, 13], width: 6, speed: 16, laser: 0.3 },
-        insane: { gap: [13, 18], width: 3.5, speed: 20, laser: 0.6 }
-    };
+        function updateScore() {
+            const currentScore = Math.floor(-playerBody.position.z);
+            if (currentScore > score) {
+                score = currentScore;
+                document.getElementById('score-value').textContent = score;
+                saveHighScore();
+            }
+        }
 
-    const keys = { w: false, a: false, s: false, d: false, space: false, ArrowLeft: false, ArrowRight: false };
-    let canJump = false, wallContactNormal = new CANNON.Vec3();
+        function initThree() {
+            const twilightColor = 0x1a1c3c;
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(twilightColor); 
+            scene.fog = new THREE.Fog(twilightColor, 15, 120); 
 
-    // --- 3. INITIALIZATION ---
-    function init() {
-        scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050510);
-        scene.fog = new THREE.Fog(0x050510, 20, 140);
+            const container = document.getElementById('game-container');
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 5, 8);
 
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        document.body.appendChild(renderer.domElement);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
 
-        // Camera Setup with Mouse/Key Control Parent
-        scene.add(yaw);
-        yaw.add(pitch);
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        pitch.add(camera);
+            const hemiLight = new THREE.HemisphereLight(0xeeeeff, 0x111122, 1.5); 
+            scene.add(hemiLight);
 
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(10, 50, 10);
-        light.castShadow = true;
-        scene.add(light);
-        scene.add(new THREE.AmbientLight(0x404040, 0.6));
+            const directionalLight = new THREE.DirectionalLight(0xffccaa, 1);
+            directionalLight.position.set(10, 30, 10);
+            directionalLight.target.position.set(0, 0, 0); 
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 100;
+            directionalLight.shadow.camera.left = -20;
+            directionalLight.shadow.camera.right = 20;
+            directionalLight.shadow.camera.top = 20;
+            directionalLight.shadow.camera.bottom = -20;
+            scene.add(directionalLight);
+        }
 
-        initPhysics();
-        setupPlayer();
-        createBaseEnvironment();
-        bindInput();
-        animate();
-    }
+        function initCannon() {
+            world = new CANNON.World();
+            world.gravity.set(0, -30, 0);
+            world.broadphase = new CANNON.NaiveBroadphase();
+            world.solver.iterations = 10;
+        }
 
-    function initPhysics() {
-        world = new CANNON.World();
-        world.gravity.set(0, -38, 0); // High gravity for snappy gameplay
-        world.solver.iterations = 10;
-    }
+        function createPlayer() {
+            const playerShape = new CANNON.Cylinder(0.5, 0.5, PLAYER_HEIGHT, 16);
+            const q = new CANNON.Quaternion();
+            q.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
 
-    // --- 4. PLAYER & CHARACTER SYSTEM ---
-    function setupPlayer() {
-        // Physics Body: Capsule replacement
-        const shape = new CANNON.Cylinder(0.5, 0.5, 1.8, 16);
-        playerBody = new CANNON.Body({ mass: 5, position: new CANNON.Vec3(0, 5, 0), fixedRotation: true });
-        const q = new CANNON.Quaternion();
-        q.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
-        playerBody.addShape(shape, new CANNON.Vec3(), q);
-        world.addBody(playerBody);
+            playerBody = new CANNON.Body({
+                mass: 5,
+                position: new CANNON.Vec3(0, 5, 0),
+                fixedRotation: true
+            });
+            playerBody.addShape(playerShape, new CANNON.Vec3(), q);
+            world.addBody(playerBody);
 
-        // Visual Construction (Better Character)
-        playerMesh = new THREE.Group();
-        const skin = new THREE.MeshPhongMaterial({ color: 0xffdbac });
-        const clothes = new THREE.MeshPhongMaterial({ color: 0x0077b6 });
+            playerMesh = new THREE.Group();
+            const skinColor = 0xffe0bd;
+            const clothingColor = 0x0077b6;
+            
+            const headGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+            const headMaterial = new THREE.MeshPhongMaterial({ color: skinColor });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.y = 0.9; 
+            head.castShadow = true;
+            playerMesh.add(head);
 
-        const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), skin);
-        head.position.y = 1.1;
-        
-        torsoMesh = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.4), clothes);
-        torsoMesh.position.y = 0.4;
+            const torsoGeometry = new THREE.BoxGeometry(0.6, 0.8, 0.4);
+            const torsoMaterial = new THREE.MeshPhongMaterial({ color: clothingColor });
+            const torso = new THREE.Mesh(torsoGeometry, torsoMaterial);
+            torso.position.y = 0.4;
+            torso.castShadow = true;
+            playerMesh.add(torso);
 
-        const legGeo = new THREE.BoxGeometry(0.25, 0.8, 0.25);
-        const lLeg = new THREE.Mesh(legGeo, clothes); lLeg.position.set(-0.2, -0.4, 0);
-        const rLeg = new THREE.Mesh(legGeo, clothes); rLeg.position.set(0.2, -0.4, 0);
+            const legGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.9, 8);
+            const legMaterial = new THREE.MeshPhongMaterial({ color: clothingColor });
 
-        playerMesh.add(head, torsoMesh, lLeg, rLeg);
-        scene.add(playerMesh);
+            const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            leftLeg.position.set(-0.15, -0.45, 0);
+            leftLeg.castShadow = true;
+            playerMesh.add(leftLeg);
+            playerMesh.leftLeg = leftLeg;
 
-        // Physics Logic for Jumping
-        playerBody.addEventListener('collide', (e) => {
-            const contact = e.contact;
-            const norm = new CANNON.Vec3();
-            if (contact.bi.id === playerBody.id) contact.ni.negate(norm); else norm.copy(contact.ni);
+            const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            rightLeg.position.set(0.15, -0.45, 0);
+            rightLeg.castShadow = true;
+            playerMesh.add(rightLeg);
+            playerMesh.rightLeg = rightLeg;
+            
+            const armGeometry = new THREE.BoxGeometry(0.2, 0.6, 0.2);
+            const armMaterial = new THREE.MeshPhongMaterial({ color: skinColor });
 
-            if (norm.y > 0.5) {
-                canJump = true;
-                wallContactNormal.set(0,0,0);
-            } else if (Math.abs(norm.y) < 0.3) {
-                wallContactNormal.copy(norm);
-            }
-        });
-    }
+            const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+            leftArm.position.set(-0.4, 0.4, 0);
+            leftArm.castShadow = true;
+            playerMesh.add(leftArm);
+            playerMesh.leftArm = leftArm;
 
-    // --- 5. PROCEDURAL WORLD ---
-    function spawnPlatform(x, y, z, w, d, color) {
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, 0.8, d), new THREE.MeshStandardMaterial({color: color, emissive: color, emissiveIntensity: 0.1}));
-        mesh.position.set(x, y, z);
-        mesh.receiveShadow = true;
-        scene.add(mesh);
+            const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+            rightArm.position.set(0.4, 0.4, 0);
+            rightArm.castShadow = true;
+            playerMesh.add(rightArm);
+            playerMesh.rightArm = rightArm;
+            
+            scene.add(playerMesh);
 
-        const body = new CANNON.Body({ mass: 0, position: new CANNON.Vec3(x, y, z) });
-        body.addShape(new CANNON.Box(new CANNON.Vec3(w/2, 0.4, d/2)));
-        world.addBody(body);
-        platformObjects.push({mesh, body});
-    }
+            playerBody.addEventListener('collide', (e) => {
+                const contactNormal = new CANNON.Vec3();
+                const upAxis = new CANNON.Vec3(0, 1, 0);
+                const contact = e.contact;
+                const sideThreshold = 0.2;
 
-    function createBaseEnvironment() {
-        spawnPlatform(0, 0, 0, 15, 15, 0x555555);
-        lastPlatformZ = -7.5;
-        for(let i=0; i<10; i++) generateNext();
-    }
+                if (contact.bi.id === playerBody.id) {
+                    contact.ni.negate(contactNormal);
+                } else {
+                    contactNormal.copy(contact.ni);
+                }
 
-    function generateNext() {
-        const cfg = diffMap[activeDiff];
-        const gap = cfg.gap[0] + Math.random() * (cfg.gap[1] - cfg.gap[0]);
-        const nextZ = lastPlatformZ - gap;
-        const nextX = (Math.random() - 0.5) * 12;
-        const color = new THREE.Color().setHSL(Math.random(), 0.7, 0.5);
-        
-        spawnPlatform(nextX, (Math.random()-0.5)*2, nextZ, cfg.width, 6, color);
-        lastPlatformZ = nextZ - 3;
+                if (contactNormal.dot(upAxis) > 0.5) {
+                    controls.canJump = true;
+                } else if (Math.abs(contactNormal.dot(upAxis)) < sideThreshold) { 
+                    wallContactX = contactNormal.x;
+                    wallContactZ = contactNormal.z;
+                }
+            });
+        }
 
-        if(Math.random() < cfg.laser) spawnLaser(nextZ);
-    }
+        function createPlatform(x, y, z, w, h, d, color, rotationY = 0) {
+            const geometry = new THREE.BoxGeometry(w, h, d);
+            const material = new THREE.MeshPhongMaterial({ color: color });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, y, z);
+            mesh.rotation.y = rotationY;
+            mesh.receiveShadow = true;
+            mesh.castShadow = true;
+            scene.add(mesh);
+            platformMeshes.push(mesh);
 
-    function spawnLaser(z) {
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(25, 0.3, 0.3), new THREE.MeshBasicMaterial({color: 0xff0000}));
-        mesh.position.set(0, 2 + Math.random()*2, z);
-        scene.add(mesh);
-        laserObjects.push(mesh);
-    }
+            const shape = new CANNON.Box(new CANNON.Vec3(w / 2, h / 2, d / 2));
+            const body = new CANNON.Body({ mass: 0, position: new CANNON.Vec3(x, y, z) });
+            
+            if (rotationY !== 0) {
+                const q = new CANNON.Quaternion();
+                q.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), rotationY);
+                body.quaternion.copy(q);
+            }
 
-    // --- 6. INPUT & SETTINGS LOGIC ---
-    function updateDiff(d, btn) {
-        activeDiff = d;
-        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
+            body.addShape(shape);
+            world.addBody(body);
+            platformBodies.push(body);
+        }
 
-    function toggleView() {
-        isFirstPerson = !isFirstPerson;
-        document.getElementById('view-btn').innerText = isFirstPerson ? "1st PERSON" : "3rd PERSON";
-        document.getElementById('crosshair').style.display = isFirstPerson ? "block" : "none";
-    }
+        function createLaser(x, y, z, w, h, d) {
+            const laserColor = 0xff0000;
+            const mesh = new THREE.Mesh(
+                new THREE.BoxGeometry(w, h, d),
+                new THREE.MeshBasicMaterial({ color: laserColor, transparent: true, opacity: 0.7 })
+            );
+            mesh.position.set(x, y, z);
+            scene.add(mesh);
+            laserMeshes.push(mesh);
 
-    function toggleSL() {
-        shiftlock = !shiftlock;
-        document.getElementById('sl-btn').innerText = shiftlock ? "ON" : "OFF";
-    }
+            const shape = new CANNON.Box(new CANNON.Vec3(w / 2, h / 2, d / 2));
+            const body = new CANNON.Body({ mass: 0, position: new CANNON.Vec3(x, y, z) });
+            
+            body.addShape(shape);
+            world.addBody(body);
+            laserBodies.push(body);
+        }
 
-    function bindInput() {
-        document.getElementById('start-btn').onclick = () => {
-            document.getElementById('menu-overlay').style.display = 'none';
-            torsoMesh.material.color.set(document.getElementById('color-input').value);
-            document.body.requestPointerLock();
-        };
+        function cleanupPlatforms() {
+            const cleanupZ = playerBody.position.z + 20;
 
-        window.addEventListener('keydown', (e) => { if(e.code in keys || e.key in keys) keys[e.code === 'Space' ? 'space' : e.key.toLowerCase()] = true; });
-        window.addEventListener('keyup', (e) => { if(e.code in keys || e.key in keys) keys[e.code === 'Space' ? 'space' : e.key.toLowerCase()] = false; });
+            for (let i = platformBodies.length - 1; i >= 0; i--) {
+                const body = platformBodies[i];
+                if (i > 0 && body.position.z > cleanupZ) { 
+                    world.removeBody(body);
+                    scene.remove(platformMeshes[i]);
+                    platformMeshes[i].geometry.dispose();
+                    platformMeshes[i].material.dispose();
 
-        document.addEventListener('mousemove', (e) => {
-            if (document.pointerLockElement) {
-                yaw.rotation.y -= e.movementX * 0.002;
-                pitch.rotation.x -= e.movementY * 0.002;
-                pitch.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch.rotation.x));
-            }
-        });
-    }
+                    platformBodies.splice(i, 1);
+                    platformMeshes.splice(i, 1);
+                }
+            }
 
-    // --- 7. THE MAIN LOOP ---
-    function animate() {
-        requestAnimationFrame(animate);
-        world.step(1/60);
+            for (let i = laserBodies.length - 1; i >= 0; i--) {
+                const body = laserBodies[i];
+                if (body.position.z > cleanupZ) { 
+                    world.removeBody(body);
+                    scene.remove(laserMeshes[i]);
+                    laserMeshes[i].geometry.dispose();
+                    laserMeshes[i].material.dispose();
 
-        // Camera Keyboard Backup (Arrow Keys)
-        if(keys.arrowleft) yaw.rotation.y += 0.04;
-        if(keys.arrowright) yaw.rotation.y -= 0.04;
+                    laserBodies.splice(i, 1);
+                    laserMeshes.splice(i, 1);
+                }
+            }
+        }
 
-        // Player Movement
-        const cfg = diffMap[activeDiff];
-        const move = new THREE.Vector3();
-        if(keys.w) move.z -= 1; if(keys.s) move.z += 1;
-        if(keys.a) move.x -= 1; if(keys.d) move.x += 1;
-        
-        move.applyQuaternion(yaw.quaternion).normalize();
-        playerBody.velocity.x = move.x * cfg.speed;
-        playerBody.velocity.z = move.z * cfg.speed;
+        function generateNextSection() {
+            const difficultyLevel = Math.min(1, score / 500);
 
-        // FIXED Wall Jump & Physics
-        if(keys.space) {
-            if(canJump) {
-                playerBody.velocity.y = 15;
-                canJump = false;
-            } else if (wallContactNormal.length() > 0.1) {
-                // FIX: Instead of adding force, we SET velocity to avoid physics glitches
-                playerBody.velocity.set(wallContactNormal.x * 12, 17, wallContactNormal.z * 12);
-                wallContactNormal.set(0,0,0);
-            }
-            keys.space = false;
-        }
+            const minGap = 4 + 3 * difficultyLevel;
+            const maxGap = 8 + 5 * difficultyLevel;
+            const gapZ = minGap + Math.random() * (maxGap - minGap);
 
-        // Camera Logic (Shiftlock/First Person)
-        yaw.position.copy(playerBody.position);
-        if(shiftlock || isFirstPerson) {
-            playerMesh.quaternion.copy(yaw.quaternion);
-        }
+            const minHeightDiff = -1;
+            const maxHeightDiff = 2 + 3 * difficultyLevel;
+            const platformHeightDiff = minHeightDiff + Math.random() * (maxHeightDiff - minHeightDiff);
 
-        if(isFirstPerson) {
-            camera.position.set(0, 0.7, 0);
-            playerMesh.visible = false;
-        } else {
-            camera.position.set(0, 5, 12);
-            camera.lookAt(playerBody.position.x, playerBody.position.y + 1, playerBody.position.z);
-            playerMesh.visible = true;
-            playerMesh.position.copy(playerBody.position);
-        }
+            let newZ = lastPlatformZ - gapZ;
+            let newY = Math.max(0, platformBodies[platformBodies.length - 1].position.y + platformHeightDiff);
+            let newX = (-10 + Math.random() * 20) * difficultyLevel * 0.5;
 
-        // Game Loop Logic
-        score = Math.max(score, Math.floor(Math.abs(playerBody.position.z)));
-        document.getElementById('score').innerText = score;
+            const type = Math.floor(Math.random() * 5);
 
-        if(playerBody.position.z < lastPlatformZ + 60) generateNext();
-        if(playerBody.position.y < -20) {
-            playerBody.position.set(0, 10, 0);
-            playerBody.velocity.set(0,0,0);
-            score = 0;
-        }
+            const baseColor = new THREE.Color(`hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`).getHex();
+            
+            let platformDepth = 6;
+            let platformRotationY = 0;
+            let platformWidth = 8;
+            let platformHeight = 0.5;
 
-        renderer.render(scene, camera);
-    }
+            if (Math.random() < 0.1 && type !== 4) { 
+                const laserY = newY + 1.5 + Math.random() * 1.5;
+                const laserZ = newZ + gapZ / 2;
+                const laserWidth = 20;
+                createLaser(0, laserY, laserZ, laserWidth, 0.2, 0.2);
+            }
 
-    init();
-</script>
+
+            if (type === 4) {
+                const stepHeight = 1.8 + 0.5 * difficultyLevel;
+                const stepGap = 2.5 - 0.5 * difficultyLevel;
+                const numSteps = 3;
+                
+                let climbX = newX;
+                let climbY = newY - stepHeight;
+                let climbZ = newZ + (numSteps - 1) * stepGap; 
+
+                for (let i = 0; i < numSteps; i++) {
+                    climbY += stepHeight;
+                    climbZ -= stepGap;
+                    climbX += (Math.random() - 0.5) * 2;
+                    
+                    createPlatform(climbX, climbY, climbZ, 2.5, 0.5, 2.5, baseColor);
+                }
+                
+                lastPlatformZ = climbZ - 2.5 / 2; 
+
+            } else {
+                switch (type) {
+                    case 0:
+                        platformWidth = 8 - 3 * difficultyLevel;
+                        platformDepth = 6;
+                        break;
+                    
+                    case 1:
+                        platformWidth = 1.5; 
+                        platformDepth = 8;
+                        break;
+
+                    case 2:
+                        platformWidth = 4 - 2 * difficultyLevel; 
+                        platformHeight = 3 + 4 * difficultyLevel; 
+                        platformDepth = 4;
+                        break;
+
+                    case 3:
+                        platformWidth = 6;
+                        platformDepth = 6;
+                        platformRotationY = (Math.random() - 0.5) * Math.PI * 0.15 * difficultyLevel; 
+                        break;
+                }
+
+                createPlatform(newX, newY, newZ, platformWidth, platformHeight, platformDepth, baseColor, platformRotationY);
+                lastPlatformZ = newZ - platformDepth / 2;
+            }
+        }
+
+        function createInitialWorld() {
+            createPlatform(0, 0, 0, 15, 0.5, 15, 0x44aa44);
+            lastPlatformZ = -7.5;
+
+            for (let i = 0; i < 7; i++) {
+                generateNextSection();
+            }
+        }
+
+        function setupControls() {
+            const keyMap = {
+                'w': 'forward', 'ArrowUp': 'forward',
+                's': 'backward', 'ArrowDown': 'backward',
+                'a': 'left', 'ArrowLeft': 'left',
+                'd': 'right', 'ArrowRight': 'right',
+                ' ': 'jump'
+            };
+
+            const setControlState = (key, state) => {
+                const control = keyMap[key];
+                if (control) controls[control] = state;
+            };
+
+            window.addEventListener('keydown', (event) => setControlState(event.key, true));
+            window.addEventListener('keyup', (event) => setControlState(event.key, false));
+        }
+
+        function updatePlayerMovement(delta) {
+            const currentYVelocity = playerBody.velocity.y;
+            const velocityVector = new CANNON.Vec3(0, 0, 0);
+
+            if (controls.forward) { velocityVector.z -= 1; }
+            if (controls.backward) { velocityVector.z += 1; }
+            if (controls.left) { velocityVector.x -= 1; }
+            if (controls.right) { velocityVector.x += 1; }
+            
+            const moving = velocityVector.length() > 0;
+
+            if (moving) {
+                velocityVector.normalize();
+            }
+
+            if (controls.canJump) {
+                if (moving) {
+                    playerBody.velocity.x = velocityVector.x * moveSpeed;
+                    playerBody.velocity.z = velocityVector.z * moveSpeed;
+                } else {
+                    playerBody.velocity.x *= 0.7; 
+                    playerBody.velocity.z *= 0.7;
+                }
+            } else {
+                const airControlSpeed = moveSpeed * 0.3;
+
+                if (moving) {
+                    const forceX = velocityVector.x * airControlSpeed * playerBody.mass;
+                    const forceZ = velocityVector.z * airControlSpeed * playerBody.mass;
+                    
+                    playerBody.applyForce(
+                        new CANNON.Vec3(forceX, 0, forceZ),
+                        playerBody.position
+                    );
+                }
+            }
+            
+            playerBody.velocity.y = currentYVelocity;
+
+            let jumpUsed = false;
+            
+            if (controls.jump && controls.canJump) {
+                playerBody.velocity.y = jumpVelocity;
+                controls.canJump = false;
+                jumpUsed = true;
+            }
+
+            const isTouchingWall = wallContactX !== 0 || wallContactZ !== 0;
+
+            if (controls.jump && !controls.canJump && isTouchingWall) {
+                const wallJumpStrength = moveSpeed * wallJumpHorizontalFactor; 
+                
+                playerBody.velocity.y = wallJumpVerticalVelocity;
+
+                playerBody.velocity.x = 0;
+                playerBody.velocity.z = 0;
+
+                playerBody.velocity.x += wallContactX * wallJumpStrength;
+                playerBody.velocity.z += wallContactZ * wallJumpStrength;
+
+                jumpUsed = true;
+            }
+            
+            if (jumpUsed) {
+                controls.jump = false;
+            }
+
+            if (controls.canJump) {
+                const horizontalSpeedSq = playerBody.velocity.x * playerBody.velocity.x + playerBody.velocity.z * playerBody.velocity.z;
+                if (horizontalSpeedSq > moveSpeed * moveSpeed) {
+                    const ratio = moveSpeed / Math.sqrt(horizontalSpeedSq);
+                    playerBody.velocity.x *= ratio;
+                    playerBody.velocity.z *= ratio;
+                }
+            }
+        }
+        
+        function updateAvatarAnimation(time) {
+            const speed = Math.sqrt(playerBody.velocity.x * playerBody.velocity.x + playerBody.velocity.z * playerBody.velocity.z);
+            
+            const animationFactor = Math.min(1, speed / moveSpeed); 
+            const walkCycleSpeed = 15;
+            const maxSwing = Math.PI / 4;
+
+            const isAirborne = controls.canJump === false;
+
+            if (animationFactor > 0 && !isAirborne) {
+                const angle = Math.sin(time * walkCycleSpeed) * maxSwing * animationFactor;
+
+                playerMesh.rightArm.rotation.x = angle * 0.7; 
+                playerMesh.leftArm.rotation.x = -angle * 0.7;
+
+                playerMesh.rightLeg.rotation.x = -angle; 
+                playerMesh.leftLeg.rotation.x = angle;
+
+            } else {
+                const restAngle = 0;
+                const damping = 0.15; 
+
+                playerMesh.rightArm.rotation.x += (restAngle - playerMesh.rightArm.rotation.x) * damping;
+                playerMesh.leftArm.rotation.x += (restAngle - playerMesh.leftArm.rotation.x) * damping;
+                playerMesh.rightLeg.rotation.x += (restAngle - playerMesh.rightLeg.rotation.x) * damping;
+                playerMesh.leftLeg.rotation.x += (restAngle - playerMesh.leftLeg.rotation.x) * damping;
+
+                if (isAirborne) {
+                     playerMesh.rightArm.rotation.x = -maxSwing / 3;
+                     playerMesh.leftArm.rotation.x = maxSwing / 3;
+                }
+            }
+        }
+
+
+        function updateCamera() {
+            const followDistance = 10;
+            const followHeight = 5;
+            const playerPos = playerBody.position;
+
+            camera.position.x = playerPos.x;
+            camera.position.y = playerPos.y + followHeight;
+            camera.position.z = playerPos.z + followDistance;
+
+            camera.lookAt(playerPos.x, playerPos.y + PLAYER_HEIGHT / 2, playerPos.z);
+        }
+        
+        function syncPlayerMesh() {
+            playerMesh.position.copy(playerBody.position);
+            playerMesh.quaternion.copy(playerBody.quaternion);
+        }
+
+        function checkLaserCollision() {
+            const playerPos = playerBody.position;
+            const playerRadius = 0.5; 
+            const playerHeight = PLAYER_HEIGHT;
+
+            for (const laserBody of laserBodies) {
+                const laserPos = laserBody.position;
+                
+                const w = 20, h = 0.2, d = 0.2; 
+                
+                const laserMinX = laserPos.x - w / 2;
+                const laserMaxX = laserPos.x + w / 2;
+                const laserMinY = laserPos.y - h / 2;
+                const laserMaxY = laserPos.y + h / 2;
+                const laserMinZ = laserPos.z - d / 2;
+                const laserMaxZ = laserPos.z + d / 2;
+                
+                const playerMinY = playerPos.y - playerHeight / 2;
+                const playerMaxY = playerPos.y + playerHeight / 2;
+                
+                const overlapX = playerPos.x + playerRadius > laserMinX && playerPos.x - playerRadius < laserMaxX;
+                const overlapY = playerMaxY > laserMinY && playerMinY < laserMaxY;
+                const overlapZ = playerPos.z + playerRadius > laserMinZ && playerPos.z - playerRadius < laserMaxZ;
+                
+                if (overlapX && overlapY && overlapZ) {
+                    checkGameOver(); 
+                    return;
+                }
+            }
+        }
+
+
+        function checkGameOver() {
+            if (playerBody.position.y < -20) {
+                saveHighScore();
+
+                score = 0;
+                document.getElementById('score-value').textContent = 0;
+
+                playerBody.position.set(0, 10, 0); 
+                playerBody.velocity.set(0, 0, 0);
+
+                for (let i = platformBodies.length - 1; i >= 1; i--) { 
+                    world.removeBody(platformBodies[i]);
+                    scene.remove(platformMeshes[i]);
+                    platformMeshes[i].geometry.dispose();
+                    platformMeshes[i].material.dispose();
+                }
+                platformBodies.splice(1);
+                platformMeshes.splice(1);
+                
+                for (let i = laserBodies.length - 1; i >= 0; i--) {
+                    world.removeBody(laserBodies[i]);
+                    scene.remove(laserMeshes[i]);
+                    laserMeshes[i].geometry.dispose();
+                    laserMeshes[i].material.dispose();
+                }
+                laserBodies.splice(0);
+                laserMeshes.splice(0);
+
+                lastPlatformZ = -7.5;
+                for (let i = 0; i < 7; i++) {
+                    generateNextSection();
+                }
+            }
+        }
+
+        function animate(currentTime) {
+            requestAnimationFrame(animate);
+
+            if (lastTime !== undefined) {
+                const delta = (currentTime - lastTime) / 1000;
+                
+                wallContactX = 0;
+                wallContactZ = 0;
+                
+                world.step(timeStep, delta, 3);
+
+                updatePlayerMovement(delta);
+
+                updateAvatarAnimation(currentTime / 1000);
+
+                syncPlayerMesh();
+
+                updateCamera();
+
+                updateScore();
+
+                checkLaserCollision();
+
+                checkGameOver();
+
+                if (playerBody.position.z < lastPlatformZ + 15) { 
+                    generateNextSection();
+                    cleanupPlatforms();
+                }
+            }
+
+            renderer.render(scene, camera);
+            lastTime = currentTime;
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('game-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        window.onload = function() {
+            initThree();
+            initCannon();
+            loadHighScore();
+            createPlayer();
+            createInitialWorld();
+            setupControls();
+
+            window.addEventListener('resize', onWindowResize);
+
+            animate();
+        };
+    </script>
 </body>
 </html>
