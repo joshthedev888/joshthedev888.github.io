@@ -26,7 +26,7 @@
 
 <div id="auth-overlay">
     <div class="auth-card">
-        <h2 id="auth-title">Appelsap Online</h2>
+        <h2 id="auth-title">Appeltaart</h2>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Wachtwoord">
         <input type="text" id="username-input" placeholder="Display Naam" style="display:none;">
@@ -161,9 +161,12 @@
 
         addPortal(level, x, y, z) {
             const d = this.worldData[level];
+            const pGrp = new THREE.Group();
             const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.2, 16, 32), new THREE.MeshPhongMaterial({ color: d.color, emissive: d.color, emissiveIntensity: 0.5 }));
-            ring.position.set(x, y + 2.5, z); this.scene.add(ring);
-            this.portals.push({ mesh: ring, level });
+            pGrp.add(ring);
+            pGrp.position.set(x, y + 2.5, z);
+            this.scene.add(pGrp);
+            this.portals.push({ mesh: pGrp, level });
         },
 
         gen() {
@@ -171,7 +174,8 @@
             if (currentDist >= this.nextLobbyZ - 40 && !this.isLobbyGenerated) {
                 this.isLobbyGenerated = true; const lz = -this.nextLobbyZ;
                 this.spawnPlatform(0, 0, lz, 25, 30);
-                this.addPortal(this.worldLevel < 5 ? this.worldLevel + 1 : 1, 0, 0, lz);
+                const nextLevel = this.worldLevel < 5 ? this.worldLevel + 1 : 1;
+                this.addPortal(nextLevel, 0, 0, lz);
                 this.lastZ = lz - 20;
             } else if (!this.isLobbyGenerated) {
                 const nZ = this.lastZ - (9 + Math.random() * 7);
@@ -184,16 +188,16 @@
             requestAnimationFrame(() => this.animate());
             const time = Date.now() * 0.002;
 
-            // --- JUMP LOGIC (ORIGINELE VERSIE) ---
+            // --- JUMP LOGIC (Hetzelfde als jouw verzoek) ---
             if(this.keys['Space'] && this.grounded) { 
                 this.velY = this.jumpPower; 
                 this.grounded = false; 
-                this.player.position.y += 0.2; // Kleine lift om uit de grond te komen
+                this.player.position.y += 0.2; 
             }
             this.velY -= this.gravity;
             this.player.position.y += this.velY;
 
-            // Beweging
+            // Beweging & Animatie
             const moveX = (this.keys['KeyD'] ? 1 : 0) - (this.keys['KeyA'] ? 1 : 0);
             const moveZ = (this.keys['KeyS'] ? 1 : 0) - (this.keys['KeyW'] ? 1 : 0);
             if(moveX !== 0 || moveZ !== 0) {
@@ -221,7 +225,7 @@
             this.portals.forEach(p => { p.mesh.rotation.y += 0.05; if(this.player.position.distanceTo(p.mesh.position) < 2.5) this.startWorld(p.level, false); });
             if(this.player.position.z < this.lastZ + 100) this.gen();
             
-            // Camera & UI
+            // Camera (Sin/Cos Formule)
             const cd = 7;
             this.camera.position.set(this.player.position.x + Math.sin(this.yaw)*Math.cos(this.pitch)*cd, this.player.position.y + Math.sin(this.pitch)*cd + 4, this.player.position.z + Math.cos(this.yaw)*Math.cos(this.pitch)*cd);
             this.camera.lookAt(this.player.position.x, this.player.position.y+1.5, this.player.position.z);
@@ -247,6 +251,7 @@
         }
     };
 
+    // Firebase logica
     let isSignup = false;
     document.getElementById('toggle-auth').onclick = () => {
         isSignup = !isSignup;
@@ -262,7 +267,7 @@
             if (isSignup) {
                 const res = await createUserWithEmailAndPassword(auth, email, pass);
                 await updateProfile(res.user, { displayName: document.getElementById('username-input').value });
-                await setDoc(doc(db, "users", res.user.uid), { title: "Survivor" });
+                await setDoc(doc(db, "users", res.user.uid), { title: "Beginner" });
             } else { await signInWithEmailAndPassword(auth, email, pass); }
         } catch (e) { alert(e.message); }
     };
@@ -274,7 +279,7 @@
             document.getElementById('game-box').style.display = 'block';
             document.getElementById('display-name').innerText = user.displayName.toUpperCase();
             const userDoc = await getDoc(doc(db, "users", user.uid));
-            game.currentTitle = userDoc.exists() ? userDoc.data().title : "Survivor";
+            game.currentTitle = userDoc.exists() ? userDoc.data().title : "Beginner";
             if(!game.isRunning) game.init();
             updateLeaderboard();
         } else { document.getElementById('auth-overlay').style.display = 'flex'; }
@@ -302,7 +307,7 @@
         let t = code === "DEV123" ? "Dev" : code === "CREATOR77" ? "Bedenker" : null;
         if(t) {
             await setDoc(doc(db, "users", auth.currentUser.uid), { title: t }, { merge: true });
-            game.currentTitle = t; alert("Code geactiveerd");
+            game.currentTitle = t; alert("Code geactiveerd!");
         }
     };
     
