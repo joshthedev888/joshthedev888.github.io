@@ -1,30 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Appelsap 3D - Online Firebase Edition</title>
+    <title>Appelsap 3D - Rainbow Firebase Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
         #game-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; }
         
+        /* Auth Scherm */
         #auth-overlay { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #1a1a2e, #020205); display: flex; align-items: center; justify-content: center; z-index: 100; }
-        .auth-card { background: rgba(255,255,255,0.05); border: 1px solid #00d4ff; padding: 40px; border-radius: 15px; width: 300px; text-align: center; color: white; backdrop-filter: blur(10px); }
+        .auth-card { background: rgba(255,255,255,0.05); border: 1px solid #00d4ff; padding: 40px; border-radius: 15px; width: 300px; text-align: center; color: white; backdrop-filter: blur(10px); border: 1px solid rgba(0,212,255,0.3); }
+        .auth-card h2 { margin-top: 0; color: #00d4ff; }
         .auth-card input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #333; background: #000; color: white; outline: none; }
-        .btn-main { width: 100%; padding: 12px; background: #00d4ff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        
-        #ui { position: absolute; z-index: 10; width: 100%; pointer-events: none; color: white; display: none; height: 100%; }
-        .panel { pointer-events: auto; background: rgba(0,0,0,0.8); border: 1px solid #00d4ff; padding: 15px; border-radius: 10px; }
-        #hud { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); text-align: center; }
-        #leaderboard { position: absolute; right: 20px; top: 20px; width: 200px; }
-        .lb-entry { display: flex; justify-content: space-between; font-size: 13px; margin: 5px 0; border-bottom: 1px solid #222; }
-        .lb-entry .lb-user { color: #00d4ff; } /* Default user color */
-        .lb-entry .lb-score { color: white; }
-        
-        /* Specifieke styling voor titels in leaderboard (optioneel, kan ook in JS) */
-        .lb-entry .lb-title-dev { /* Wordt via JS aangepast met gradient */ }
-        .lb-entry .lb-title-bedenker { /* Wordt via JS aangepast met gradient */ }
+        .btn-main { width: 100%; padding: 12px; background: #00d4ff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        .btn-main:hover { background: #fff; }
 
-        #customizer { position: absolute; left: 20px; top: 20px; width: 140px; }
+        /* HUD & UI */
+        #ui { position: absolute; z-index: 10; width: 100%; pointer-events: none; color: white; display: none; height: 100%; }
+        .panel { pointer-events: auto; background: rgba(0,0,0,0.8); border: 1px solid #00d4ff; padding: 15px; border-radius: 10px; backdrop-filter: blur(5px); }
+        #hud { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); text-align: center; min-width: 100px; }
+        #leaderboard { position: absolute; right: 20px; top: 20px; width: 220px; }
+        .lb-entry { display: flex; justify-content: space-between; font-size: 12px; margin: 5px 0; border-bottom: 1px solid #222; padding-bottom: 2px; }
+        #customizer { position: absolute; left: 20px; top: 20px; width: 150px; }
+        .toggle-link { font-size: 12px; color: #aaa; cursor: pointer; margin-top: 15px; display: block; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -32,18 +30,18 @@
 <div id="auth-overlay">
     <div class="auth-card">
         <h2 id="auth-title">Appelsap Online</h2>
-        <input type="email" id="email" placeholder="Email (voor uniek account)">
+        <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Wachtwoord">
-        <input type="text" id="username" placeholder="Display Naam" style="display:none;">
+        <input type="text" id="username-input" placeholder="Display Naam" style="display:none;">
         <button class="btn-main" id="auth-btn">Inloggen</button>
-        <span id="toggle-auth" style="font-size:12px; cursor:pointer; text-decoration:underline; display:block; margin-top:15px;">Nog geen account? Registreer</span>
+        <span class="toggle-link" id="toggle-auth">Nog geen account? Registreer</span>
     </div>
 </div>
 
 <div id="game-box"></div>
 <div id="ui">
     <div id="hud" class="panel">
-        <div id="world-name" style="color:#ffcc00; font-size: 11px; font-weight: bold;">WORLD 1</div>
+        <div id="world-name" style="color:#ffcc00; font-size: 11px; font-weight: bold;">NEON VOID</div>
         <div style="font-size: 26px; font-weight: bold;"><span id="dist-val">0</span>m</div>
     </div>
     <div id="leaderboard" class="panel">
@@ -52,8 +50,8 @@
     </div>
     <div id="customizer" class="panel">
         <div id="display-name" style="font-size: 14px; margin-bottom: 10px; font-weight: bold; color:#00d4ff;">-</div>
-        <button onclick="redeemCode()" style="width:100%; margin-top:5px; font-size:10px; background:#ffcc00; color:black; border:none; padding:5px; cursor:pointer;">REDEEM CODE</button>
-        <button id="logout-btn" style="width:100%; font-size:10px; background: #ff4444; border:none; color:white; padding: 5px; cursor:pointer; margin-top:5px;">LOGOUT</button>
+        <button id="redeem-btn" style="width:100%; font-size:10px; background:#ffcc00; color:black; border:none; padding: 8px; cursor:pointer; font-weight:bold; border-radius:4px;">REDEEM CODE</button>
+        <button id="logout-btn" style="width:100%; font-size:10px; background: #ff4444; border:none; color:white; padding: 8px; cursor:pointer; margin-top:8px; border-radius:4px;">LOGOUT</button>
     </div>
 </div>
 
@@ -77,33 +75,26 @@
 
     let isSignup = false;
 
-    // --- AUTH & USER PROFILE LOGIC ---
+    // --- AUTH FUNCTIES ---
     const toggleAuth = () => {
         isSignup = !isSignup;
         document.getElementById('auth-title').innerText = isSignup ? "Registreren" : "Inloggen";
-        document.getElementById('username').style.display = isSignup ? "block" : "none";
+        document.getElementById('username-input').style.display = isSignup ? "block" : "none";
         document.getElementById('auth-btn').innerText = isSignup ? "Maak Account" : "Inloggen";
         document.getElementById('toggle-auth').innerText = isSignup ? "Al een account? Log in" : "Nog geen account? Registreer";
     };
 
     const handleAuth = async () => {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        const username = document.getElementById('username').value; // Alleen relevant voor signup
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('password').value.trim();
+        const username = document.getElementById('username-input').value.trim();
 
         try {
             if (isSignup) {
-                if (username.length < 3) {
-                    alert("Kies een weergavenaam van minimaal 3 tekens.");
-                    return;
-                }
+                if(!username) return alert("Vul een naam in");
                 const res = await createUserWithEmailAndPassword(auth, email, pass);
                 await updateProfile(res.user, { displayName: username });
-                // Initialiseer user data met standaard titel
-                await setDoc(doc(db, "users", res.user.uid), {
-                    title: "Survivor"
-                });
-                alert("Welkom! Je bent geregistreerd.");
+                await setDoc(doc(db, "users", res.user.uid), { title: "Survivor" });
             } else {
                 await signInWithEmailAndPassword(auth, email, pass);
             }
@@ -117,37 +108,49 @@
             document.getElementById('ui').style.display = 'block';
             document.getElementById('display-name').innerText = (user.displayName || "Speler").toUpperCase();
             
-            // Haal user data op (inclusief titel)
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            game.currentTitle = userDoc.exists() ? userDoc.data().title : "Survivor";
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                game.currentTitle = userDoc.exists() ? userDoc.data().title : "Survivor";
+            } catch(e) { 
+                console.log("Fout bij ophalen titel:", e);
+                game.currentTitle = "Survivor"; 
+            }
 
-            game.start(user);
+            if(!game.isRunning) game.start();
             updateLeaderboard();
-            game.updateNameTag(); // Initialiseer de naamtag met de juiste titel en kleur
         } else {
             document.getElementById('auth-overlay').style.display = 'flex';
         }
     });
 
-    // --- LEADERBOARD & SCORE LOGIC ---
     const updateLeaderboard = async () => {
-        const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(5));
-        const snap = await getDocs(q);
-        let html = "";
-        for (const doc of snap.docs) {
-            const data = doc.data();
-            let titleColor = `color: #ffcc00;`; // Standaardkleur voor normale titels
-            if (data.title === "Dev" || data.title === "Bedenker") {
-                titleColor = `background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); -webkit-background-clip: text; -webkit-text-fill-color: transparent;`;
-            }
-            html += `
-                <div class="lb-entry">
-                    <span class="lb-user" style="font-weight:bold; ${titleColor}">${data.title ? `[${data.title}]` : ''} ${data.name}</span>
-                    <span class="lb-score">${data.score}m</span>
-                </div>
-            `;
+        try {
+            const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(5));
+            const snap = await getDocs(q);
+            let html = "";
+            snap.forEach(doc => {
+                const data = doc.data();
+                const isSpecial = (data.title === "Dev" || data.title === "Bedenker");
+                const titleStyle = isSpecial ? "font-weight:bold; color:#00ffcc;" : "color:#ffcc00;";
+                html += `<div class="lb-entry"><span style="${titleStyle}">[${data.title || 'Speler'}] ${data.name}</span><span style="color:white">${data.score}m</span></div>`;
+            });
+            document.getElementById('lb-content').innerHTML = html || "Nog geen scores";
+        } catch(e) { console.log("LB Error:", e); }
+    };
+
+    window.redeemCode = async () => {
+        const code = prompt("Voer code in:").toUpperCase();
+        let newTitle = "";
+        if(code === "DEV123") newTitle = "Dev";
+        else if(code === "CREATOR77") newTitle = "Bedenker";
+        else return alert("Ongeldige code");
+
+        if(auth.currentUser) {
+            await setDoc(doc(db, "users", auth.currentUser.uid), { title: newTitle }, { merge: true });
+            game.currentTitle = newTitle;
+            game.updateNameTag();
+            alert("Titel aangepast naar: " + newTitle);
         }
-        document.getElementById('lb-content').innerHTML = html || "Nog geen scores";
     };
 
     const saveScore = async (score) => {
@@ -155,178 +158,152 @@
         await setDoc(doc(db, "scores", auth.currentUser.uid), {
             name: auth.currentUser.displayName || "Anoniem",
             score: score,
-            title: game.currentTitle // Sla de huidige titel van de speler op
+            title: game.currentTitle
         }, { merge: true });
         updateLeaderboard();
     };
 
-    // --- REDEEM CODE LOGIC ---
-    const redeemCode = async () => {
-        const code = prompt("Voer je code in:").toUpperCase();
-        let newTitle = "";
-
-        if (code === "DEV123") {
-            newTitle = "Dev";
-            alert("Welkom Meester! Titel 'Dev' geactiveerd.");
-        } else if (code === "CREATOR77") {
-            newTitle = "Bedenker";
-            alert("Code geaccepteerd! Je bent nu de 'Bedenker'.");
-        } else {
-            return alert("Ongeldige code.");
-        }
-
-        if (auth.currentUser) {
-            await setDoc(doc(db, "users", auth.currentUser.uid), {
-                title: newTitle
-            }, { merge: true });
-            
-            game.currentTitle = newTitle; // Update lokale game state
-            game.updateNameTag(); // Update de naamtag direct
-        }
-    };
-
-    document.getElementById('auth-btn').onclick = handleAuth;
-    document.getElementById('toggle-auth').onclick = toggleAuth;
-    document.getElementById('logout-btn').onclick = () => signOut(auth);
-
-    // --- GAME LOGIC ---
+    // --- GAME ENGINE ---
     const game = {
-        worldLevel: 1, speed: 0.3, jumpPower: 0.48, velY: 0, gravity: 0.02,
-        keys: {}, platforms: [], portals: [], grounded: false,
-        yaw: 0, pitch: 0, lastZ: -8, nextLobbyZ: 750,
-        currentTitle: "Survivor", // Dit wordt geüpdatet vanuit Firebase
+        isRunning: false, currentTitle: "Survivor",
+        keys: {}, platforms: [], lastZ: -8, yaw: 0, velY: 0, gravity: 0.015, speed: 0.25,
 
-        worldData: {
-            1: { name: "NEON VOID", fog: 0x050510, plate: 0x333344, title: "Survivor", color: 0x00ffff },
-            2: { name: "LAVA CAVES", fog: 0x220000, plate: 0x552200, title: "Lava Jumper", color: 0xff4400 }
-        },
-
-        start(user) {
+        start() {
+            this.isRunning = true;
             this.scene = new THREE.Scene();
             this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
             this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('game-box').innerHTML = ""; // Clear
             document.getElementById('game-box').appendChild(this.renderer.domElement);
+            
             this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
             
             this.player = new THREE.Group();
-            this.player.add(new THREE.Mesh(new THREE.BoxGeometry(0.7,0.9,0.4), new THREE.MeshPhongMaterial({color:0x00d4ff})));
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.9,0.4), new THREE.MeshPhongMaterial({color:0x00d4ff}));
+            body.position.y = 0.45;
+            this.player.add(body);
             this.scene.add(this.player);
 
-            this.nameTag = this.createLabel(user.displayName || "Player", 0.6);
+            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128;
+            this.nameTag = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) }));
+            this.nameTag.scale.set(3, 0.75, 1);
             this.scene.add(this.nameTag);
 
-            this.resetWorld(1, true);
+            this.resetWorld();
+            
             window.onkeydown = (e) => this.keys[e.code] = true;
             window.onkeyup = (e) => this.keys[e.code] = false;
             document.addEventListener('mousemove', (e) => {
-                if(document.pointerLockElement) { this.yaw -= e.movementX*0.003; this.pitch = Math.max(-1.5, Math.min(1.5, this.pitch - e.movementY*0.003)); }
+                if(document.pointerLockElement) this.yaw -= e.movementX*0.003;
             });
-            document.addEventListener('click', () => document.body.requestPointerLock());
+            document.addEventListener('click', () => {
+                if(this.isRunning) document.body.requestPointerLock();
+            });
+
             this.animate();
         },
 
-        createLabel(text, size) {
-            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128;
-            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) }));
-            sprite.scale.set(size*4, size, 1);
-            return sprite;
-        },
-
-        // Update de naamtag inclusief titel en animatie
         updateNameTag() {
+            if (!auth.currentUser || !this.nameTag) return;
             const ctx = this.nameTag.material.map.image.getContext('2d');
             ctx.clearRect(0,0,512,128);
-
-            // Gebruikersnaam
+            
+            const name = auth.currentUser.displayName ? auth.currentUser.displayName.toUpperCase() : "PLAYER";
             ctx.font = "bold 50px Arial"; ctx.fillStyle = "white"; ctx.textAlign = "center";
-            ctx.fillText(auth.currentUser.displayName.toUpperCase(), 256, 50);
+            ctx.fillText(name, 256, 50);
 
-            // Titel met of zonder regenboog
-            const title = this.currentTitle;
-            ctx.font = "35px Arial";
-            if (title === "Dev" || title === "Bedenker") {
-                // Hier tekenen we de regenbooggradiënt
-                const gradient = ctx.createLinearGradient(0, 0, 512, 0);
-                const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'];
-                const timeFactor = (Date.now() * 0.0005) % 1; // Sneller laten bewegen
-                for (let i = 0; i < colors.length; i++) {
-                    gradient.addColorStop(((i / colors.length) + timeFactor) % 1, colors[i]);
-                }
-                ctx.fillStyle = gradient;
-            } else {
-                ctx.fillStyle = "#ffcc00"; // Standaardkleur
-            }
-            ctx.fillText(title, 256, 110);
+            ctx.font = "bold 40px Arial";
+            if(this.currentTitle === "Dev" || this.currentTitle === "Bedenker") {
+                const grad = ctx.createLinearGradient(0,0,512,0);
+                const hue = (Date.now() * 0.15) % 360; // Regenboog effect
+                grad.addColorStop(0, `hsl(${hue}, 100%, 50%)`);
+                grad.addColorStop(0.5, `hsl(${(hue+60)%360}, 100%, 50%)`);
+                grad.addColorStop(1, `hsl(${(hue+120)%360}, 100%, 50%)`);
+                ctx.fillStyle = grad;
+            } else { ctx.fillStyle = "#ffcc00"; }
+            
+            ctx.fillText(this.currentTitle, 256, 110);
             this.nameTag.material.map.needsUpdate = true;
         },
 
-        resetWorld(level, resetPos) {
-            this.worldLevel = level;
-            this.platforms.forEach(p => this.scene.remove(p.mesh));
+        resetWorld() {
+            this.platforms.forEach(p => this.scene.remove(p));
             this.platforms = [];
-            const d = this.worldData[level] || this.worldData[1];
-            this.scene.background = new THREE.Color(d.fog);
-            this.scene.fog = new THREE.Fog(d.fog, 15, 100);
-            document.getElementById('world-name').innerText = d.name;
-
-            if(resetPos) { this.player.position.set(0,2,0); this.lastZ = -10; }
-            for(let i=0; i<20; i++) this.gen();
+            this.player.position.set(0,2,0);
+            this.lastZ = -5;
+            this.scene.background = new THREE.Color(0x050510);
+            this.scene.fog = new THREE.Fog(0x050510, 10, 80);
             
-            this.updateNameTag(); // Zorgt dat de titel met de juiste stijl wordt getekend
+            // Start platform
+            const startPlat = new THREE.Mesh(new THREE.BoxGeometry(10,1,10), new THREE.MeshStandardMaterial({color:0x333344}));
+            this.scene.add(startPlat);
+            this.platforms.push(startPlat);
+
+            for(let i=0; i<15; i++) this.gen();
+            this.updateNameTag();
         },
 
         gen() {
-            const nZ = this.lastZ - (8 + Math.random()*8);
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(7,1,7), new THREE.MeshStandardMaterial({color:this.worldData[this.worldLevel].plate}));
-            mesh.position.set((Math.random()-0.5)*12, (Math.random()-0.5)*3, nZ);
+            const nZ = this.lastZ - (7 + Math.random()*7);
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(6,1,6), new THREE.MeshStandardMaterial({color:0x333344}));
+            mesh.position.set((Math.random()-0.5)*10, (Math.random()-0.5)*2, nZ);
             this.scene.add(mesh);
-            this.platforms.push({mesh, w:7, d:7});
+            this.platforms.push(mesh);
             this.lastZ = nZ;
         },
 
         animate() {
             requestAnimationFrame(() => this.animate());
             
-            // Update de regenboogtitel elke frame
-            if (game.currentTitle === "Dev" || game.currentTitle === "Bedenker") {
-                game.updateNameTag();
-            }
+            if (this.currentTitle === "Dev" || this.currentTitle === "Bedenker") this.updateNameTag();
+            
+            // Beweging
+            if(this.keys['KeyW']) this.player.position.z -= Math.cos(this.yaw) * this.speed;
+            if(this.keys['KeyW']) this.player.position.x -= Math.sin(this.yaw) * this.speed;
+            if(this.keys['Space'] && Math.abs(this.velY) < 0.01) this.velY = 0.4;
 
-            if(this.keys['Space'] && this.grounded) { this.velY = this.jumpPower; this.grounded = false; }
             this.velY -= this.gravity;
             this.player.position.y += this.velY;
 
-            const moveX = (this.keys['KeyD']?1:0) - (this.keys['KeyA']?1:0);
-            const moveZ = (this.keys['KeyS']?1:0) - (this.keys['KeyW']?1:0);
-            this.player.position.x += (Math.sin(this.yaw)*moveZ + Math.cos(this.yaw)*moveX)*this.speed;
-            this.player.position.z += (Math.cos(this.yaw)*moveZ - Math.sin(this.yaw)*moveX)*this.speed;
-
-            this.grounded = false;
+            // Collision
+            let grounded = false;
             this.platforms.forEach(p => {
-                const dx = Math.abs(this.player.position.x - p.mesh.position.x);
-                const dz = Math.abs(this.player.position.z - p.mesh.position.z);
-                if(dx < 3.8 && dz < 3.8 && this.player.position.y - p.mesh.position.y > 0 && this.player.position.y - p.mesh.position.y < 1.1) {
-                    this.player.position.y = p.mesh.position.y + 0.6; this.velY = 0; this.grounded = true;
+                const dx = Math.abs(this.player.position.x - p.position.x);
+                const dz = Math.abs(this.player.position.z - p.position.z);
+                if(dx < 3.5 && dz < 3.5 && this.player.position.y - p.position.y > 0 && this.player.position.y - p.position.y < 1) {
+                    this.player.position.y = p.position.y + 0.5; this.velY = 0; grounded = true;
                 }
             });
 
-            if(this.player.position.z < this.lastZ + 100) this.gen();
+            if(this.player.position.z < this.lastZ + 80) this.gen();
             
             const dist = Math.floor(Math.abs(this.player.position.z));
             document.getElementById('dist-val').innerText = dist;
             
-            this.camera.position.set(this.player.position.x + Math.sin(this.yaw)*7, this.player.position.y+4, this.player.position.z + Math.cos(this.yaw)*7);
-            this.camera.lookAt(this.player.position.x, this.player.position.y+1.5, this.player.position.z);
-            this.nameTag.position.set(this.player.position.x, this.player.position.y+2.7, this.player.position.z);
+            // Camera
+            const camDist = 8;
+            this.camera.position.set(
+                this.player.position.x + Math.sin(this.yaw) * camDist, 
+                this.player.position.y + 3, 
+                this.player.position.z + Math.cos(this.yaw) * camDist
+            );
+            this.camera.lookAt(this.player.position.x, this.player.position.y + 1, this.player.position.z);
+            this.nameTag.position.set(this.player.position.x, this.player.position.y + 2.5, this.player.position.z);
 
-            if(this.player.position.y < -20) {
+            if(this.player.position.y < -15) {
                 saveScore(dist);
-                this.resetWorld(this.worldLevel, true);
+                this.resetWorld();
             }
             this.renderer.render(this.scene, this.camera);
         }
     };
+
+    // Event listeners
+    document.getElementById('auth-btn').onclick = handleAuth;
+    document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
+    document.getElementById('toggle-auth').onclick = toggleAuth;
+    document.getElementById('redeem-btn').onclick = () => window.redeemCode();
 </script>
 </body>
 </html>
