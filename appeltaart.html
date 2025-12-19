@@ -1,27 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Appelsap 3D - Online Progression</title>
+    <title>Appelsap 3D - Full Animation & Firebase</title>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
         #game-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; }
         
-        /* Auth Scherm */
         #auth-overlay { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, #1a1a2e, #020205); display: flex; align-items: center; justify-content: center; z-index: 100; }
         .auth-card { background: rgba(255,255,255,0.05); border: 2px solid #00d4ff; padding: 40px; border-radius: 15px; width: 300px; text-align: center; color: white; backdrop-filter: blur(10px); }
         .auth-card input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #333; background: #000; color: white; outline: none; }
         .btn-main { width: 100%; padding: 12px; background: #00d4ff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
 
-        /* HUD & UI */
         #ui { position: absolute; z-index: 10; width: 100%; pointer-events: none; color: white; display: none; height: 100%; }
-        .panel { pointer-events: auto; background: rgba(0,0,0,0.85); border: 1px solid #00d4ff; padding: 12px; border-radius: 10px; }
+        .panel { pointer-events: auto; background: rgba(0,0,0,0.85); border: 2px solid #fff; padding: 12px; border-radius: 10px; }
         #hud { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); text-align: center; min-width: 180px; }
         #leaderboard { position: absolute; right: 20px; top: 20px; width: 220px; }
-        #customizer { position: absolute; left: 20px; top: 20px; width: 150px; }
+        #customizer { position: absolute; left: 20px; top: 20px; width: 150px; border-color: #00d4ff; }
         .label-ui { font-size: 10px; color: #00d4ff; font-weight: bold; margin-top: 8px; text-transform: uppercase; }
         input[type="color"] { width: 100%; height: 25px; border: none; cursor: pointer; background: none; display: block; }
-        .lb-entry { display: flex; justify-content: space-between; font-size: 12px; margin: 5px 0; border-bottom: 1px solid #222; }
+        .lb-entry { display: flex; justify-content: space-between; font-size: 11px; margin: 5px 0; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -33,27 +31,26 @@
         <input type="password" id="password" placeholder="Wachtwoord">
         <input type="text" id="username-input" placeholder="Display Naam" style="display:none;">
         <button class="btn-main" id="auth-btn">Inloggen</button>
-        <span id="toggle-auth" style="font-size:12px; cursor:pointer; text-decoration:underline; display:block; margin-top:15px;">Nog geen account? Registreer</span>
+        <span id="toggle-auth" style="font-size:12px; cursor:pointer; text-decoration:underline; display:block; margin-top:15px;">Registreer account</span>
     </div>
 </div>
 
 <div id="game-box"></div>
 <div id="ui">
     <div id="hud" class="panel">
-        <div id="world-name" style="color:#ffcc00; font-size: 11px; font-weight: bold;">WORLD 1</div>
+        <div id="world-name" style="color:#ffcc00; font-size: 12px;">WORLD 1</div>
         <div style="font-size: 24px; font-weight: bold;"><span id="dist-val">0</span>m</div>
         <div id="next-goal" style="font-size:10px; color:#aaa;">DOEL: 750m</div>
     </div>
     <div id="leaderboard" class="panel">
-        <div style="font-weight: bold; color: #ffcc00; margin-bottom: 10px; text-align: center;">GLOBAL TOP</div>
         <div id="lb-content">Laden...</div>
     </div>
     <div id="customizer" class="panel">
-        <div id="display-name" style="font-size: 13px; font-weight: bold; color:#00d4ff; margin-bottom:8px;">-</div>
+        <div id="display-name" style="font-size: 12px; font-weight: bold; margin-bottom:5px;">-</div>
         <div class="label-ui">Shirt</div><input type="color" id="c1" value="#00d4ff">
-        <div class="label-ui">Pants</div><input type="color" id="c2" value="#0055ff">
-        <button id="redeem-btn" style="width:100%; margin-top:10px; font-size:10px; background:#ffcc00; border:none; padding:5px; cursor:pointer; font-weight:bold;">REDEEM CODE</button>
-        <button id="logout-btn" style="width:100%; margin-top:5px; font-size:10px; background:#ff4444; border:none; color:white; padding:5px; cursor:pointer;">LOGOUT</button>
+        <div class="label-ui">Broek</div><input type="color" id="c2" value="#0055ff">
+        <button id="redeem-btn" style="width:100%; margin-top:10px; font-size:10px; background:#ffcc00; border:none; padding:5px; cursor:pointer; font-weight:bold;">CODE INWISSELEN</button>
+        <button id="logout-btn" style="width:100%; margin-top:5px; font-size:10px; background:#ff4444; border:none; color:white; padding:5px; cursor:pointer;">LOG UIT</button>
     </div>
 </div>
 
@@ -75,19 +72,18 @@
     const auth = getAuth(fbApp);
     const db = getFirestore(fbApp);
 
-    // --- GAME LOGIC ---
     const game = {
-        isRunning: false, currentTitle: "Survivor",
+        isRunning: false, currentTitle: "Beginner",
         worldLevel: 1, speed: 0.3, jumpPower: 0.48, velY: 0, gravity: 0.02,
         keys: {}, platforms: [], portals: [], grounded: false,
         yaw: 0, pitch: 0, lastZ: -8, nextLobbyZ: 750, isLobbyGenerated: false,
 
         worldData: {
-            1: { name: "NEON VOID", fog: 0x050510, plate: 0x333344, title: "Survivor", color: 0x00ffff },
-            2: { name: "LAVA CAVES", fog: 0x220000, plate: 0x552200, title: "Lava Jumper", color: 0xff4400 },
-            3: { name: "JUNGLE RUN", fog: 0x001100, plate: 0x004411, title: "Forest King", color: 0x00ff44 },
-            4: { name: "ICE PEAK", fog: 0x112222, plate: 0x224466, title: "Frosty", color: 0x0088ff },
-            5: { name: "CYBER CORE", fog: 0x110011, plate: 0x440044, title: "Matrix God", color: 0xff00ff }
+            1: { name: "NINJA WORLD", fog: 0x050510, plate: 0x333344, title: "Ninja", color: 0x00ffff },
+            2: { name: "SIGMA AREA", fog: 0x220000, plate: 0x552200, title: "Gecertificeerde Sigma", color: 0xff4400 },
+            3: { name: "JUNGLE RUN", fog: 0x001100, plate: 0x004411, title: "Boskoning", color: 0x00ff44 },
+            4: { name: "ICE PEAK", fog: 0x112222, plate: 0x224466, title: "Bevroren", color: 0x0088ff },
+            5: { name: "CYBER CORE", fog: 0x110011, plate: 0x440044, title: "Survivor", color: 0xff00ff }
         },
 
         init() {
@@ -118,14 +114,19 @@
             this.player = new THREE.Group();
             this.matShirt = new THREE.MeshPhongMaterial({ color: 0x00d4ff });
             this.matPants = new THREE.MeshPhongMaterial({ color: 0x0055ff });
+            
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.45, 0.45), new THREE.MeshPhongMaterial({ color: 0xffdbac }));
             head.position.y = 1.9;
             const torso = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.4), this.matShirt);
             torso.position.y = 1.2;
-            const limb = new THREE.BoxGeometry(0.3, 0.7, 0.3);
-            const legL = new THREE.Mesh(limb, this.matPants); legL.position.set(-0.2, 0.4, 0);
-            const legR = new THREE.Mesh(limb, this.matPants); legR.position.set(0.2, 0.4, 0);
-            this.player.add(torso, head, legL, legR);
+            
+            const limbGeo = new THREE.BoxGeometry(0.25, 0.7, 0.25);
+            this.armL = new THREE.Mesh(limbGeo, this.matShirt); this.armL.position.set(-0.5, 1.2, 0);
+            this.armR = new THREE.Mesh(limbGeo, this.matShirt); this.armR.position.set(0.5, 1.2, 0);
+            this.legL = new THREE.Mesh(limbGeo, this.matPants); this.legL.position.set(-0.2, 0.4, 0);
+            this.legR = new THREE.Mesh(limbGeo, this.matPants); this.legR.position.set(0.2, 0.4, 0);
+            
+            this.player.add(torso, head, this.armL, this.armR, this.legL, this.legR);
             this.scene.add(this.player);
 
             const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128;
@@ -134,35 +135,19 @@
             this.scene.add(this.nameTag);
         },
 
-        updateNameTag() {
-            if(!auth.currentUser || !this.nameTag) return;
-            const ctx = this.nameTag.material.map.image.getContext('2d');
-            ctx.clearRect(0,0,512,128);
-            ctx.font = "bold 50px Arial"; ctx.fillStyle = "white"; ctx.textAlign = "center";
-            ctx.fillText(auth.currentUser.displayName.toUpperCase(), 256, 50);
-
-            ctx.font = "bold 40px Arial";
-            if(this.currentTitle === "Dev" || this.currentTitle === "Bedenker") {
-                const hue = (Date.now() * 0.15) % 360;
-                ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-            } else { ctx.fillStyle = "#ffcc00"; }
-            ctx.fillText(this.currentTitle, 256, 110);
-            this.nameTag.material.map.needsUpdate = true;
-        },
-
-        startWorld(level, resetPosition = false) {
+        startWorld(level, resetPos = false) {
             this.worldLevel = level;
             this.isLobbyGenerated = false;
             this.platforms.forEach(p => this.scene.remove(p.mesh));
             this.portals.forEach(p => this.scene.remove(p.mesh));
             this.platforms = []; this.portals = [];
 
-            const d = this.worldData[level] || this.worldData[1];
+            const d = this.worldData[level];
             this.scene.background = new THREE.Color(d.fog);
             this.scene.fog = new THREE.Fog(d.fog, 15, 100);
             document.getElementById('world-name').innerText = d.name;
 
-            if(resetPosition) {
+            if(resetPos) {
                 this.player.position.set(0, 2, 0);
                 this.lastZ = -10; this.nextLobbyZ = 750;
                 this.spawnPlatform(0, 0, 0, 22, 22);
@@ -171,6 +156,7 @@
                 this.lastZ = this.player.position.z - 10;
                 this.nextLobbyZ = (Math.floor(Math.abs(this.player.position.z) / 750) + 1) * 750;
             }
+            document.getElementById('next-goal').innerText = "DOEL: " + this.nextLobbyZ + "m";
             for(let i=0; i<15; i++) this.gen();
         },
 
@@ -182,7 +168,8 @@
         },
 
         addPortal(level, x, y, z) {
-            const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.2, 16, 32), new THREE.MeshPhongMaterial({ color: this.worldData[level].color }));
+            const d = this.worldData[level];
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.2, 16, 32), new THREE.MeshPhongMaterial({ color: d.color, emissive: d.color, emissiveIntensity: 0.5 }));
             ring.position.set(x, y + 2.5, z);
             this.scene.add(ring);
             this.portals.push({ mesh: ring, level });
@@ -192,10 +179,10 @@
             const currentDist = Math.abs(this.lastZ);
             if (currentDist >= this.nextLobbyZ - 40 && !this.isLobbyGenerated) {
                 this.isLobbyGenerated = true;
-                this.spawnPlatform(0, 0, -this.nextLobbyZ, 25, 30);
-                const nextLevel = this.worldLevel < 5 ? this.worldLevel + 1 : 1;
-                this.addPortal(nextLevel, 0, 0, -this.nextLobbyZ);
-                this.lastZ = -this.nextLobbyZ - 20;
+                const lz = -this.nextLobbyZ;
+                this.spawnPlatform(0, 0, lz, 25, 30);
+                this.addPortal(this.worldLevel < 5 ? this.worldLevel + 1 : 1, 0, 0, lz);
+                this.lastZ = lz - 20;
             } else if (!this.isLobbyGenerated) {
                 const nZ = this.lastZ - (9 + Math.random() * 7);
                 this.spawnPlatform((Math.random()-0.5)*13, (Math.random()-0.5)*3.5, nZ, 7, 7);
@@ -206,22 +193,33 @@
         animate() {
             requestAnimationFrame(() => this.animate());
             const time = Date.now() * 0.002;
-            this.updateNameTag();
+
+            const moveX = (this.keys['KeyD'] ? 1 : 0) - (this.keys['KeyA'] ? 1 : 0);
+            const moveZ = (this.keys['KeyS'] ? 1 : 0) - (this.keys['KeyW'] ? 1 : 0);
+            const isMoving = moveX !== 0 || moveZ !== 0;
+
+            if(isMoving && this.grounded) {
+                const s = Math.sin(time * 10);
+                this.legL.rotation.x = s * 0.5; this.legR.rotation.x = -s * 0.5;
+                this.armL.rotation.x = -s * 0.5; this.armR.rotation.x = s * 0.5;
+            } else {
+                this.legL.rotation.x = this.legR.rotation.x = this.armL.rotation.x = this.armR.rotation.x = 0;
+            }
 
             if(this.keys['Space'] && this.grounded) { this.velY = this.jumpPower; this.grounded = false; }
             this.velY -= this.gravity;
             this.player.position.y += this.velY;
 
-            const moveX = (this.keys['KeyD'] ? 1 : 0) - (this.keys['KeyA'] ? 1 : 0);
-            const moveZ = (this.keys['KeyS'] ? 1 : 0) - (this.keys['KeyW'] ? 1 : 0);
-            this.player.position.x += (Math.sin(this.yaw)*moveZ + Math.cos(this.yaw)*moveX)*this.speed;
-            this.player.position.z += (Math.cos(this.yaw)*moveZ - Math.sin(this.yaw)*moveX)*this.speed;
+            if(isMoving) {
+                this.player.position.x += (Math.sin(this.yaw)*moveZ + Math.cos(this.yaw)*moveX)*this.speed;
+                this.player.position.z += (Math.cos(this.yaw)*moveZ - Math.sin(this.yaw)*moveX)*this.speed;
+            }
 
             let onGround = false;
             this.platforms.forEach(p => {
                 const dx = Math.abs(this.player.position.x - p.mesh.position.x);
                 const dz = Math.abs(this.player.position.z - p.mesh.position.z);
-                if(dx < p.w/2 + 0.3 && dz < p.d/2 + 0.3 && this.player.position.y - p.mesh.position.y > 0 && this.player.position.y - p.mesh.position.y < 1.1) {
+                if(dx < p.w/2 + 0.35 && dz < p.d/2 + 0.35 && this.player.position.y - p.mesh.position.y > 0 && this.player.position.y - p.mesh.position.y < 1.1) {
                     this.player.position.y = p.mesh.position.y + 0.6; this.velY = 0; onGround = true;
                 }
             });
@@ -234,28 +232,41 @@
 
             if(this.player.position.z < this.lastZ + 100) this.gen();
             
-            const dist = Math.floor(Math.abs(this.player.position.z));
-            document.getElementById('dist-val').innerText = dist;
-
-            this.camera.position.set(this.player.position.x + Math.sin(this.yaw)*7, this.player.position.y+4, this.player.position.z + Math.cos(this.yaw)*7);
+            const cd = 7;
+            this.camera.position.set(
+                this.player.position.x + Math.sin(this.yaw)*Math.cos(this.pitch)*cd, 
+                this.player.position.y + Math.sin(this.pitch)*cd + 4, 
+                this.player.position.z + Math.cos(this.yaw)*Math.cos(this.pitch)*cd
+            );
             this.camera.lookAt(this.player.position.x, this.player.position.y+1.5, this.player.position.z);
-            this.nameTag.position.set(this.player.position.x, this.player.position.y + 2.7, this.player.position.z);
+            this.player.rotation.y = this.yaw + Math.PI;
+            this.nameTag.position.set(this.player.position.x, this.player.position.y + 2.8, this.player.position.z);
 
-            if(this.player.position.y < -25) {
-                saveScore(dist);
-                this.startWorld(this.worldLevel, true);
-            }
+            document.getElementById('dist-val').innerText = Math.floor(Math.abs(this.player.position.z));
+            if(this.player.position.y < -25) { saveScore(Math.floor(Math.abs(this.player.position.z))); this.startWorld(this.worldLevel, true); }
+            this.updateNameTag();
             this.renderer.render(this.scene, this.camera);
+        },
+
+        updateNameTag() {
+            if(!auth.currentUser || !this.nameTag) return;
+            const ctx = this.nameTag.material.map.image.getContext('2d');
+            ctx.clearRect(0,0,512,128);
+            ctx.font = "bold 50px Arial"; ctx.fillStyle = "white"; ctx.textAlign = "center";
+            ctx.fillText(auth.currentUser.displayName.toUpperCase(), 256, 55);
+            const hue = (Date.now() * 0.15) % 360;
+            ctx.fillStyle = (this.currentTitle === "Dev" || this.currentTitle === "Bedenker") ? `hsl(${hue},100%,50%)` : "#ffcc00";
+            ctx.font = "bold 40px Arial"; ctx.fillText(this.currentTitle, 256, 110);
+            this.nameTag.material.map.needsUpdate = true;
         }
     };
 
-    // --- FIREBASE UI & AUTH ---
     let isSignup = false;
     document.getElementById('toggle-auth').onclick = () => {
         isSignup = !isSignup;
         document.getElementById('auth-title').innerText = isSignup ? "Registreren" : "Inloggen";
         document.getElementById('username-input').style.display = isSignup ? "block" : "none";
-        document.getElementById('auth-btn').innerText = isSignup ? "Maak Account" : "Inloggen";
+        document.getElementById('auth-btn').innerText = isSignup ? "Start" : "Inloggen";
     };
 
     document.getElementById('auth-btn').onclick = async () => {
@@ -284,40 +295,35 @@
     });
 
     const updateLeaderboard = async () => {
-        const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(5));
+        const q = query(collection(db, "scores"), orderBy("score", "desc"), limit(6));
         const snap = await getDocs(q);
         let html = "";
         snap.forEach(d => {
             const data = d.data();
-            html += `<div class="lb-entry"><span>[${data.title}] ${data.name}</span><span>${data.score}m</span></div>`;
+            html += `<div class="lb-entry"><span style="color:#00d4ff">[${data.title}] ${data.name}</span><span>${data.score}m</span></div>`;
         });
         document.getElementById('lb-content').innerHTML = html;
     };
 
     const saveScore = async (score) => {
         if(!auth.currentUser) return;
-        await setDoc(doc(db, "scores", auth.currentUser.uid), {
-            name: auth.currentUser.displayName, score: score, title: game.currentTitle
-        }, { merge: true });
+        await setDoc(doc(db, "scores", auth.currentUser.uid), { name: auth.currentUser.displayName, score: score, title: game.currentTitle }, { merge: true });
         updateLeaderboard();
     };
 
     document.getElementById('redeem-btn').onclick = async () => {
         const code = prompt("Code?").toUpperCase();
-        let t = "";
-        if(code === "DEV123") t = "Dev";
-        if(code === "CREATOR77") t = "Bedenker";
+        let t = code === "DEV123" ? "Dev" : code === "CREATOR77" ? "Bedenker" : null;
         if(t) {
             await setDoc(doc(db, "users", auth.currentUser.uid), { title: t }, { merge: true });
             game.currentTitle = t;
-            alert("Titel: " + t);
+            alert("Code geactiveerd.");
         }
     };
     
     document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
     document.getElementById('c1').onchange = (e) => game.matShirt.color.set(e.target.value);
     document.getElementById('c2').onchange = (e) => game.matPants.color.set(e.target.value);
-
 </script>
 </body>
 </html>
