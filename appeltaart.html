@@ -298,8 +298,35 @@
 
     const saveScore = async (score) => {
         if(!auth.currentUser) return;
-        await setDoc(doc(db, "scores", auth.currentUser.uid), { name: auth.currentUser.displayName, score: score, title: game.currentTitle }, { merge: true });
-        updateLeaderboard();
+        
+        const scoreDocRef = doc(db, "scores", auth.currentUser.uid);
+        
+        try {
+            const docSnap = await getDoc(scoreDocRef);
+            
+            let shouldUpdate = true;
+            
+            if (docSnap.exists()) {
+                const lastScore = docSnap.data().score || 0;
+
+                if (score <= lastScore) {
+                    shouldUpdate = false;
+                }
+            }
+
+            if (shouldUpdate) {
+                await setDoc(scoreDocRef, { 
+                    name: auth.currentUser.displayName, 
+                    score: score, 
+                    title: game.currentTitle 
+                }, { merge: true });
+                
+                console.log("New high score saved!");
+                updateLeaderboard();
+            }
+        } catch (e) {
+            console.error("Error saving score: ", e);
+        }
     };
 
     document.getElementById('redeem-btn').onclick = async () => {
