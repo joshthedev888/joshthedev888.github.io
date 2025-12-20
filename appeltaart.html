@@ -190,61 +190,68 @@
             requestAnimationFrame(() => this.animate());
             const time = Date.now() * 0.002;
 
-            if(this.keys['Space'] && this.grounded) { 
-                this.velY = this.jumpPower; 
-                this.grounded = false; 
-                this.player.position.y += 0.2; 
+            if (this.keys['Space'] && this.grounded) {
+                this.velY = this.jumpPower;
+                this.grounded = false;
+                this.player.position.y += 0.2;
             }
             this.velY -= this.gravity;
             this.player.position.y += this.velY;
 
-            // Beweging & Animatie
             const moveX = (this.keys['KeyD'] ? 1 : 0) - (this.keys['KeyA'] ? 1 : 0);
             const moveZ = (this.keys['KeyS'] ? 1 : 0) - (this.keys['KeyW'] ? 1 : 0);
-            if(moveX !== 0 || moveZ !== 0) {
-                this.player.position.x += (Math.sin(this.yaw)*moveZ + Math.cos(this.yaw)*moveX)*this.speed;
-                this.player.position.z += (Math.cos(this.yaw)*moveZ - Math.sin(this.yaw)*moveX)*this.speed;
-                if(this.grounded) {
+            if (moveX !== 0 || moveZ !== 0) {
+                this.player.position.x += (Math.sin(this.yaw) * moveZ + Math.cos(this.yaw) * moveX) * this.speed;
+                this.player.position.z += (Math.cos(this.yaw) * moveZ - Math.sin(this.yaw) * moveX) * this.speed;
+                if (this.grounded) {
                     const s = Math.sin(time * 10);
                     this.legL.rotation.x = s * 0.5; this.legR.rotation.x = -s * 0.5;
                     this.armL.rotation.x = -s * 0.5; this.armR.rotation.x = s * 0.5;
                 }
-            } else { this.legL.rotation.x = this.legR.rotation.x = this.armL.rotation.x = this.armR.rotation.x = 0; }
+            } else {
+                this.legL.rotation.x = this.legR.rotation.x = this.armL.rotation.x = this.armR.rotation.x = 0;
+            }
 
-            // Collision
             let onGround = false;
             this.platforms.forEach(p => {
                 const dx = Math.abs(this.player.position.x - p.mesh.position.x);
                 const dz = Math.abs(this.player.position.z - p.mesh.position.z);
-                if(dx < p.w/2 + 0.35 && dz < p.d/2 + 0.35 && this.player.position.y - p.mesh.position.y > 0 && this.player.position.y - p.mesh.position.y < 1.1) {
-                    this.player.position.y = p.mesh.position.y + 0.6; this.velY = 0; onGround = true;
+                if (dx < p.w / 2 + 0.35 && dz < p.d / 2 + 0.35 && this.player.position.y - p.mesh.position.y > 0 && this.player.position.y - p.mesh.position.y < 1.1) {
+                    this.player.position.y = p.mesh.position.y + 0.6;
+                    this.velY = 0;
+                    onGround = true;
                 }
             });
             this.grounded = onGround;
 
-            // Portals & Generation
-            this.portals.forEach(p => { p.mesh.rotation.y += 0.05; if(this.player.position.distanceTo(p.mesh.position) < 2.5) this.startWorld(p.level, false); });
-            if(this.player.position.z < this.lastZ + 100) this.gen();
-            
-            // Camera (Sin/Cos Formule)
+            this.portals.forEach(p => {
+                p.mesh.rotation.y += 0.05;
+                if (this.player.position.distanceTo(p.mesh.position) < 2.5) this.startWorld(p.level, false);
+            });
+
+            if (this.player.position.z < this.lastZ + 100) this.gen();
+
             const cd = 7;
-            this.camera.position.set(this.player.position.x + Math.sin(this.yaw)*Math.cos(this.pitch)*cd, this.player.position.y + Math.sin(this.pitch)*cd + 4, this.player.position.z + Math.cos(this.yaw)*Math.cos(this.pitch)*cd);
-            this.camera.lookAt(this.player.position.x, this.player.position.y+1.5, this.player.position.z);
+            this.camera.position.set(
+                this.player.position.x + Math.sin(this.yaw) * Math.cos(this.pitch) * cd,
+                this.player.position.y + Math.sin(this.pitch) * cd + 4,
+                this.player.position.z + Math.cos(this.yaw) * Math.cos(this.pitch) * cd
+            );
+            this.camera.lookAt(this.player.position.x, this.player.position.y + 1.5, this.player.position.z);
             this.player.rotation.y = this.yaw + Math.PI;
             this.nameTag.position.set(this.player.position.x, this.player.position.y + 2.8, this.player.position.z);
 
             document.getElementById('dist-val').innerText = Math.floor(Math.abs(this.player.position.z));
-            if(this.player.position.y < -30) { 
-                const currentScore = Math.floor(Math.abs(this.player.position.z));
 
+            if (this.player.position.y < -30) {
+                const currentScore = Math.floor(Math.abs(this.player.position.z));
                 if (currentScore > localHighScore) {
                     localHighScore = currentScore;
-                    saveScore(currentScore); 
+                    saveScore(currentScore);
                 }
+                this.startWorld(this.worldLevel, true);
             }
 
-    this.startWorld(this.worldLevel, true); 
-}
             this.updateNameTag();
             this.renderer.render(this.scene, this.camera);
         },
