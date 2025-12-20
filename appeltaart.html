@@ -58,6 +58,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, limit, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { JoshGameEngine, THREE } from 'https://josh1.tech/JoshGameEngine/JoshGameEngine.js';
 
     const firebaseConfig = {
         apiKey: "AIzaSyBsGNce9U0D74rp06oNBajVEGDA2oQ1YVQ",
@@ -68,113 +69,86 @@
         appId: "1:736259678856:web:cdce57fdcb04e99072b53d"
     };
 
-    let localHighScore = 0;
-
     const fbApp = initializeApp(firebaseConfig);
     const auth = getAuth(fbApp);
     const db = getFirestore(fbApp);
 
+    const JGE = new JoshGameEngine({ debugMode: true });
+
     const game = {
         isRunning: false, currentTitle: "Beginner",
         worldLevel: 1, speed: 0.3, jumpPower: 0.48, velY: 0, gravity: 0.02,
-        keys: {}, platforms: [], portals: [], grounded: false,
-        yaw: 0, pitch: 0, lastZ: -8, nextLobbyZ: 750, isLobbyGenerated: false,
+        platforms: [], portals: [], grounded: false,
+        lastZ: -8, nextLobbyZ: 750, isLobbyGenerated: false, localHighScore: 0,
 
-        worldData: {
-            1: { name: "NINJA WORLD", fog: 0x050510, plate: 0x333344, title: "Ninja", color: 0x00ffff },
-            2: { name: "SIGMA AREA", fog: 0x220000, plate: 0x552200, title: "Gecertificeerde Sigma", color: 0xff4400 },
-            3: { name: "JUNGLE RUN", fog: 0x001100, plate: 0x004411, title: "Boskoning", color: 0x00ff44 },
-            4: { name: "ICE PEAK", fog: 0x112222, plate: 0x224466, title: "Bevroren", color: 0x0088ff },
-            5: { name: "CYBER CORE", fog: 0x110011, plate: 0x440044, title: "Survivor", color: 0xff00ff }
-        },
+        async init() {
+            await JGE.showSplash();
 
-        init() {
             this.isRunning = true;
-            this.scene = new THREE.Scene();
-            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            this.renderer = new THREE.WebGLRenderer({ antialias: true });
-            this.renderer.setSize(window.innerWidth, window.innerHeight);
-            document.getElementById('game-box').appendChild(this.renderer.domElement);
 
-            this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-            this.createPlayer();
-            this.startWorld(1, true);
-
-            window.onkeydown = (e) => this.keys[e.code] = true;
-            window.onkeyup = (e) => this.keys[e.code] = false;
-            document.addEventListener('mousemove', (e) => {
-                if (document.pointerLockElement) {
-                    this.yaw -= e.movementX * 0.003;
-                    this.pitch = Math.max(-1.5, Math.min(1.5, this.pitch - e.movementY * 0.003));
-                }
-            });
-            document.addEventListener('click', () => { if(this.isRunning) document.body.requestPointerLock(); });
-            this.animate();
-        },
-
-        createPlayer() {
-            this.player = new THREE.Group();
-            this.matShirt = new THREE.MeshPhongMaterial({ color: 0x00d4ff });
-            this.matPants = new THREE.MeshPhongMaterial({ color: 0x0055ff });
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.45, 0.45), new THREE.MeshPhongMaterial({ color: 0xffdbac }));
-            head.position.y = 1.9;
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.4), this.matShirt);
-            torso.position.y = 1.2;
-            const limbGeo = new THREE.BoxGeometry(0.3, 0.7, 0.3);
-            this.armL = new THREE.Mesh(limbGeo, this.matShirt); this.armL.position.set(-0.5, 1.2, 0);
-            this.armR = new THREE.Mesh(limbGeo, this.matShirt); this.armR.position.set(0.5, 1.2, 0);
-            this.legL = new THREE.Mesh(limbGeo, this.matPants); this.legL.position.set(-0.2, 0.4, 0);
-            this.legR = new THREE.Mesh(limbGeo, this.matPants); this.legR.position.set(0.2, 0.4, 0);
-            this.player.add(torso, head, this.armL, this.armR, this.legL, this.legR);
-            this.scene.add(this.player);
-
-            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128;
+            JGE.init('game-box');
+            
+            this.playerData = JGE.createPlayer();
+            this.player = this.playerData.mesh;
+            
+            const canvas = document.createElement('canvas'); 
+            canvas.width = 512; canvas.height = 128;
             this.nameTag = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) }));
             this.nameTag.scale.set(3, 0.75, 1);
-            this.scene.add(this.nameTag);
+            JGE.scene.add(this.nameTag);
+
+            this.startWorld(1, true);
+
+            JGE.start(() => this.loop());
         },
 
         startWorld(level, resetPos = false) {
-            this.worldLevel = level; this.isLobbyGenerated = false;
-            this.platforms.forEach(p => this.scene.remove(p.mesh));
-            this.portals.forEach(p => this.scene.remove(p.mesh));
-            this.platforms = []; this.portals = [];
-            const d = this.worldData[level];
-            this.scene.background = new THREE.Color(d.fog);
-            this.scene.fog = new THREE.Fog(d.fog, 15, 100);
-            document.getElementById('world-name').innerText = d.name;
+            this.worldLevel = level;
+            this.isLobbyGenerated = false;
+            this.platforms.forEach(p => JGE.scene.remove(p.mesh));
+            this.portals.forEach(p => JGE.scene.remove(p.mesh));
+            this.platforms = [];
+            this.portals = [];
+
+            const world = JGE.setWorld(level);
+            document.getElementById('world-name').innerText = world.name;
+
             if(resetPos) {
-                this.player.position.set(0, 2, 0); this.lastZ = -10; this.nextLobbyZ = 750;
+                this.player.position.set(0, 2, 0);
+                this.lastZ = -10;
+                this.nextLobbyZ = 750;
                 this.spawnPlatform(0, 0, 0, 22, 22);
             } else {
                 this.spawnPlatform(this.player.position.x, 0, this.player.position.z, 20, 20);
                 this.lastZ = this.player.position.z - 10;
                 this.nextLobbyZ = (Math.floor(Math.abs(this.player.position.z) / 750) + 1) * 750;
             }
-            document.getElementById('next-goal').innerText = "DOEL: " + this.nextLobbyZ + "m";
+            
+            document.getElementById('next-goal').innerText = `DOEL: ${this.nextLobbyZ}m`;
             for(let i=0; i<15; i++) this.gen();
         },
 
         spawnPlatform(x, y, z, w, d) {
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, 1, d), new THREE.MeshStandardMaterial({ color: this.worldData[this.worldLevel].plate }));
-            mesh.position.set(x, y, z); this.scene.add(mesh);
-            this.platforms.push({ mesh, w, d, offset: Math.random()*10 });
+            const world = JGE.getWorld(this.worldLevel);
+            const mesh = JGE.createPlatform({ x, y, z, width: w, depth: d, color: world.plate });
+            this.platforms.push({ mesh, w, d });
         },
 
         addPortal(level, x, y, z) {
-            const d = this.worldData[level];
+            const d = JGE.getWorld(level);
             const pGrp = new THREE.Group();
             const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.2, 16, 32), new THREE.MeshPhongMaterial({ color: d.color, emissive: d.color, emissiveIntensity: 0.5 }));
             pGrp.add(ring);
             pGrp.position.set(x, y + 2.5, z);
-            this.scene.add(pGrp);
+            JGE.scene.add(pGrp);
             this.portals.push({ mesh: pGrp, level });
         },
 
         gen() {
             const currentDist = Math.abs(this.lastZ);
             if (currentDist >= this.nextLobbyZ - 40 && !this.isLobbyGenerated) {
-                this.isLobbyGenerated = true; const lz = -this.nextLobbyZ;
+                this.isLobbyGenerated = true;
+                const lz = -this.nextLobbyZ;
                 this.spawnPlatform(0, 0, lz, 25, 30);
                 const nextLevel = this.worldLevel < 5 ? this.worldLevel + 1 : 1;
                 this.addPortal(nextLevel, 0, 0, lz);
@@ -186,11 +160,10 @@
             }
         },
 
-        animate() {
-            requestAnimationFrame(() => this.animate());
+        loop() {
             const time = Date.now() * 0.002;
 
-            if (this.keys['Space'] && this.grounded) {
+            if (JGE.keys['Space'] && this.grounded) {
                 this.velY = this.jumpPower;
                 this.grounded = false;
                 this.player.position.y += 0.2;
@@ -198,18 +171,21 @@
             this.velY -= this.gravity;
             this.player.position.y += this.velY;
 
-            const moveX = (this.keys['KeyD'] ? 1 : 0) - (this.keys['KeyA'] ? 1 : 0);
-            const moveZ = (this.keys['KeyS'] ? 1 : 0) - (this.keys['KeyW'] ? 1 : 0);
+            const moveX = (JGE.keys['KeyD'] ? 1 : 0) - (JGE.keys['KeyA'] ? 1 : 0);
+            const moveZ = (JGE.keys['KeyS'] ? 1 : 0) - (JGE.keys['KeyW'] ? 1 : 0);
+            
             if (moveX !== 0 || moveZ !== 0) {
-                this.player.position.x += (Math.sin(this.yaw) * moveZ + Math.cos(this.yaw) * moveX) * this.speed;
-                this.player.position.z += (Math.cos(this.yaw) * moveZ - Math.sin(this.yaw) * moveX) * this.speed;
+                this.player.position.x += (Math.sin(JGE.mouse.yaw) * moveZ + Math.cos(JGE.mouse.yaw) * moveX) * this.speed;
+                this.player.position.z += (Math.cos(JGE.mouse.yaw) * moveZ - Math.sin(JGE.mouse.yaw) * moveX) * this.speed;
+                
                 if (this.grounded) {
                     const s = Math.sin(time * 10);
-                    this.legL.rotation.x = s * 0.5; this.legR.rotation.x = -s * 0.5;
-                    this.armL.rotation.x = -s * 0.5; this.armR.rotation.x = s * 0.5;
+                    this.playerData.legL.rotation.x = s * 0.5; this.playerData.legR.rotation.x = -s * 0.5;
+                    this.playerData.armL.rotation.x = -s * 0.5; this.playerData.armR.rotation.x = s * 0.5;
                 }
             } else {
-                this.legL.rotation.x = this.legR.rotation.x = this.armL.rotation.x = this.armR.rotation.x = 0;
+                this.playerData.legL.rotation.x = this.playerData.legR.rotation.x = 0;
+                this.playerData.armL.rotation.x = this.playerData.armR.rotation.x = 0;
             }
 
             let onGround = false;
@@ -231,29 +207,19 @@
 
             if (this.player.position.z < this.lastZ + 100) this.gen();
 
-            const cd = 7;
-            this.camera.position.set(
-                this.player.position.x + Math.sin(this.yaw) * Math.cos(this.pitch) * cd,
-                this.player.position.y + Math.sin(this.pitch) * cd + 4,
-                this.player.position.z + Math.cos(this.yaw) * Math.cos(this.pitch) * cd
-            );
-            this.camera.lookAt(this.player.position.x, this.player.position.y + 1.5, this.player.position.z);
-            this.player.rotation.y = this.yaw + Math.PI;
+            JGE.updateThirdPersonCamera(this.player);
             this.nameTag.position.set(this.player.position.x, this.player.position.y + 2.8, this.player.position.z);
-
             document.getElementById('dist-val').innerText = Math.floor(Math.abs(this.player.position.z));
 
             if (this.player.position.y < -30) {
-                const currentScore = Math.floor(Math.abs(this.player.position.z));
-                if (currentScore > localHighScore) {
-                    localHighScore = currentScore;
-                    saveScore(currentScore);
+                const score = Math.floor(Math.abs(this.player.position.z));
+                if (score > this.localHighScore) {
+                    this.localHighScore = score;
+                    saveScore(score);
                 }
                 this.startWorld(this.worldLevel, true);
             }
-
             this.updateNameTag();
-            this.renderer.render(this.scene, this.camera);
         },
 
         updateNameTag() {
@@ -269,7 +235,6 @@
         }
     };
 
-    // Firebase logica
     let isSignup = false;
     document.getElementById('toggle-auth').onclick = () => {
         isSignup = !isSignup;
@@ -301,9 +266,7 @@
             if(!game.isRunning) game.init();
             updateLeaderboard();
             const scoreDoc = await getDoc(doc(db, "scores", user.uid));
-            if (scoreDoc.exists()) {
-                localHighScore = scoreDoc.data().score || 0;
-            }
+            if (scoreDoc.exists()) game.localHighScore = scoreDoc.data().score || 0;
         } else { document.getElementById('auth-overlay').style.display = 'flex'; }
     });
 
@@ -319,33 +282,45 @@
     };
 
     const saveScore = async (score) => {
-    if (!auth.currentUser) return;
+        if (!auth.currentUser) return;
+        const scoreDocRef = doc(db, "scores", auth.currentUser.uid);
+        try {
+            await runTransaction(db, async (transaction) => {
+                const sfDoc = await transaction.get(scoreDocRef);
+                if (!sfDoc.exists() || score > sfDoc.data().score) {
+                    transaction.set(scoreDocRef, {
+                        name: auth.currentUser.displayName,
+                        score: score,
+                        title: game.currentTitle
+                    }, { merge: true });
+                }
+            });
+            updateLeaderboard();
+        } catch (e) { console.error(e); }
+    };
 
-    const scoreDocRef = doc(db, "scores", auth.currentUser.uid);
-
-    try {
-        await runTransaction(db, async (transaction) => {
-            const sfDoc = await transaction.get(scoreDocRef);
-            
-            if (!sfDoc.exists() || score > sfDoc.data().score) {
-                transaction.set(scoreDocRef, {
-                    name: auth.currentUser.displayName,
-                    score: score,
-                    title: game.currentTitle
-                }, { merge: true });
-            }
-        });
-        
-        updateLeaderboard();
-        
-    } catch (e) {
-        console.error("Transaction failed: ", e);
-    }
-};
-    
     document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
-    document.getElementById('c1').onchange = (e) => game.matShirt.color.set(e.target.value);
-    document.getElementById('c2').onchange = (e) => game.matPants.color.set(e.target.value);
+    document.getElementById('c1').onchange = (e) => game.playerData.shirt.color.set(e.target.value);
+    document.getElementById('c2').onchange = (e) => game.playerData.pants.color.set(e.target.value);
+
+    document.getElementById('redeem-btn').onclick = async () => {
+        const code = prompt("Code:");
+        if (code === "JOSH_DEV_2025") {
+            const title = "Dev";
+            await setDoc(doc(db, "users", auth.currentUser.uid), { title }, { merge: true });
+            await setDoc(doc(db, "scores", auth.currentUser.uid), { title }, { merge: true });
+            game.currentTitle = title;
+            updateLeaderboard();
+        }
+
+        if (code === "OMSIDEE_2025") {
+            const title = "Bedenker";
+            await setDoc(doc(db, "users", auth.currentUser.uid), { title }, { merge: true });
+            await setDoc(doc(db, "scores", auth.currentUser.uid), { title }, { merge: true });
+            game.currentTitle = title;
+            updateLeaderboard();
+        }
+    };
 </script>
 </body>
 </html>
