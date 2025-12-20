@@ -68,6 +68,8 @@
         appId: "1:736259678856:web:cdce57fdcb04e99072b53d"
     };
 
+    let localHighScore = 0;
+
     const fbApp = initializeApp(firebaseConfig);
     const auth = getAuth(fbApp);
     const db = getFirestore(fbApp);
@@ -188,7 +190,6 @@
             requestAnimationFrame(() => this.animate());
             const time = Date.now() * 0.002;
 
-            // --- JUMP LOGIC (Hetzelfde als jouw verzoek) ---
             if(this.keys['Space'] && this.grounded) { 
                 this.velY = this.jumpPower; 
                 this.grounded = false; 
@@ -233,7 +234,17 @@
             this.nameTag.position.set(this.player.position.x, this.player.position.y + 2.8, this.player.position.z);
 
             document.getElementById('dist-val').innerText = Math.floor(Math.abs(this.player.position.z));
-            if(this.player.position.y < -30) { saveScore(Math.floor(Math.abs(this.player.position.z))); this.startWorld(this.worldLevel, true); }
+            if(this.player.position.y < -30) { 
+                const currentScore = Math.floor(Math.abs(this.player.position.z));
+
+                if (currentScore > localHighScore) {
+                    localHighScore = currentScore;
+                    saveScore(currentScore); 
+                }
+            }
+
+    this.startWorld(this.worldLevel, true); 
+}
             this.updateNameTag();
             this.renderer.render(this.scene, this.camera);
         },
@@ -282,6 +293,10 @@
             game.currentTitle = userDoc.exists() ? userDoc.data().title : "Beginner";
             if(!game.isRunning) game.init();
             updateLeaderboard();
+            const scoreDoc = await getDoc(doc(db, "scores", user.uid));
+            if (scoreDoc.exists()) {
+                localHighScore = scoreDoc.data().score || 0;
+            }
         } else { document.getElementById('auth-overlay').style.display = 'flex'; }
     });
 
