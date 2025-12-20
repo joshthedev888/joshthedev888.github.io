@@ -57,7 +57,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, orderBy, limit, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBsGNce9U0D74rp06oNBajVEGDA2oQ1YVQ",
@@ -297,46 +297,29 @@
     };
 
     const saveScore = async (score) => {
-        if(!auth.currentUser) return;
-        
-        const scoreDocRef = doc(db, "scores", auth.currentUser.uid);
-        
-        try {
-            const docSnap = await getDoc(scoreDocRef);
-            
-            let shouldUpdate = true;
-            
-            if (docSnap.exists()) {
-                const lastScore = docSnap.data().score || 0;
+    if (!auth.currentUser) return;
 
-                if (score <= lastScore) {
-                    shouldUpdate = false;
-                }
-            }
+    const scoreDocRef = doc(db, "scores", auth.currentUser.uid);
 
-            if (shouldUpdate) {
-                await setDoc(scoreDocRef, { 
-                    name: auth.currentUser.displayName, 
-                    score: score, 
-                    title: game.currentTitle 
+    try {
+        await runTransaction(db, async (transaction) => {
+            const sfDoc = await transaction.get(scoreDocRef);
+            
+            if (!sfDoc.exists() || score > sfDoc.data().score) {
+                transaction.set(scoreDocRef, {
+                    name: auth.currentUser.displayName,
+                    score: score,
+                    title: game.currentTitle
                 }, { merge: true });
-                
-                console.log("New high score saved!");
-                updateLeaderboard();
             }
-        } catch (e) {
-            console.error("Error saving score: ", e);
-        }
-    };
-
-    document.getElementById('redeem-btn').onclick = async () => {
-        const code = prompt("Code?").toUpperCase();
-        let t = code === "DEV123" ? "Dev" : code === "CREATOR77" ? "Bedenker" : null;
-        if(t) {
-            await setDoc(doc(db, "users", auth.currentUser.uid), { title: t }, { merge: true });
-            game.currentTitle = t; alert("Code geactiveerd!");
-        }
-    };
+        });
+        
+        updateLeaderboard();
+        
+    } catch (e) {
+        console.error("Transaction failed: ", e);
+    }
+};
     
     document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
     document.getElementById('c1').onchange = (e) => game.matShirt.color.set(e.target.value);
