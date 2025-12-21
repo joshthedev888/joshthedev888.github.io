@@ -73,7 +73,17 @@
     const auth = getAuth(fbApp);
     const db = getFirestore(fbApp);
 
-    const JGE = new JoshGameEngine({ debugMode: true });
+    const worlds = [
+        { id: 1, name: "NINJA WORLD", fog: 0x050510, plate: 0x333344, title: "Ninja", color: 0x00ffff },
+        { id: 2, name: "SIGMA AREA", fog: 0x110011, plate: 0x220022, title: "Gecertificeerde Sigma", color: 0xff00ff },
+        { id: 3, name: "LAVA CAVE", fog: 0x220000, plate: 0x441100, title: "Survivor", color: 0xff4400 },
+        { id: 4, name: "SKY TEMPLE", fog: 0x112244, plate: 0x446688, title: "Pilot", color: 0x0088ff },
+        { id: 5, name: "VOID REALM", fog: 0x000000, plate: 0x111111, title: "Legend", color: 0xffffff }
+    ];
+
+    const JGE = new JoshGameEngine({
+        worlds: worlds
+    });
 
     const game = {
         isRunning: false, currentTitle: "Beginner",
