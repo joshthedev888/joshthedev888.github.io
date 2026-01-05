@@ -315,16 +315,17 @@
 
     document.getElementById('redeem-btn').onclick = async () => {
         const code = prompt("Code:");
-        if (code === "JOSH_DEV_2025") {
-            const title = "Dev";
+        
+        if (code === "IDEE_2025") {
+            const title = "Bedenker";
             await setDoc(doc(db, "users", auth.currentUser.uid), { title }, { merge: true });
             await setDoc(doc(db, "scores", auth.currentUser.uid), { title }, { merge: true });
             game.currentTitle = title;
             updateLeaderboard();
         }
 
-        if (code === "OMSIDEE_2025") {
-            const title = "Bedenker";
+        if (code === "RANDOMGUY111") {
+            const title = prompt("Kies je titel hier");
             await setDoc(doc(db, "users", auth.currentUser.uid), { title }, { merge: true });
             await setDoc(doc(db, "scores", auth.currentUser.uid), { title }, { merge: true });
             game.currentTitle = title;
