@@ -42,21 +42,8 @@
                 </h1>
             </div>
 
-            <div class="flex items-center space-x-3">
-                <select id="model-select" class="p-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="mini">realJosh.ai v2.0 mini (Chat)</option>
-                    <option value="pro">realJosh.ai v2.0 Pro (Beeld/Chat)</option>
-                </select>
-                <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" id="premium-toggle" class="sr-only peer">
-                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                    <span class="ms-2 text-sm font-medium text-gray-900">Premium (Test)</span>
-                </label>
-            </div>
-            </header>
-
         <div class="bg-indigo-50 p-3 sm:px-6 text-center text-sm font-medium text-indigo-700 border-b border-indigo-200 flex-shrink-0">
-            <strong>Geselecteerd Model:</strong> <span id="current-model-info">realJosh.ai v2.0 mini (Chat only)</span>
+            <strong>Model:</strong> <span id="current-model-info">realJosh.ai v2.0 mini</span>
         </div>
         <div class="flex-1 p-4 sm:p-6 flex flex-col overflow-hidden bg-white">
             <div id="chat-history-container" class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -67,7 +54,7 @@
                 <input
                     type="text"
                     id="prompt-input"
-                    placeholder="Stel je vraag of zeg 'maak een afbeelding van...' "
+                    placeholder="Stel je vraag..."
                     class="flex-1 p-4 rounded-l-xl bg-gray-50 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 border border-gray-300 border-r-0 transition duration-200"
                     autofocus
                 />
