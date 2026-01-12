@@ -323,14 +323,6 @@
             game.currentTitle = title;
             updateLeaderboard();
         }
-
-        if (code === "RANDOMGUY111") {
-            const title = prompt("Kies je titel hier");
-            await setDoc(doc(db, "users", auth.currentUser.uid), { title }, { merge: true });
-            await setDoc(doc(db, "scores", auth.currentUser.uid), { title }, { merge: true });
-            game.currentTitle = title;
-            updateLeaderboard();
-        }
     };
 </script>
 </body>
