@@ -158,7 +158,8 @@
             const currentDist = Math.abs(this.lastZ);
             if (currentDist >= this.nextLobbyZ - 40 && !this.isLobbyGenerated) {
                 this.isLobbyGenerated = true;
-                const lz = -this.nextLobbyZ;
+                const gap = 12;
+                const lz = this.lastZ - gap;
                 this.spawnPlatform(0, 0, lz, 25, 30);
                 const nextLevel = this.worldLevel < 5 ? this.worldLevel + 1 : 1;
                 this.addPortal(nextLevel, 0, 0, lz);
