@@ -30,7 +30,6 @@
 </head>
 <body class="font-sans bg-black text-white">
 
-    <!-- NAVBAR -->
     <nav class="text-white bg-gray-900 py-4 px-6 flex items-center justify-between">
         <div class="flex items-center gap-6">
             <a href="#search-section" class="font-semibold">josh1.tech</a>
@@ -42,17 +41,15 @@
         </div>
     </nav>
 
-    <!-- SEARCH HERO (TOP) -->
     <section id="search-section" class="min-h-screen flex flex-col items-center justify-center bg-black px-4">
         <div class="max-w-2xl w-full text-center space-y-8">
             <h1 class="text-5xl md:text-6xl font-black tracking-tight">
-                <span class="text-white">AI</span><span class="text-indigo-500"> Search</span>
+                <span class="text-indigo-500"> Search</span>
             </h1>
             <p class="text-gray-400 text-sm md:text-base">
-                Een simpele zoekmachine die webresultaten combineert met AI‑logica (work in progress).
+                Een zoekmachine die resultaten combineert met AI en andere dingen (word nu gemaakt).
             </p>
 
-            <!-- Search bar -->
             <div class="flex gap-2 w-full mt-4">
                 <input id="searchInput"
                        class="flex-1 p-3 rounded-xl bg-gray-900 border border-gray-700 text-white text-sm md:text-base"
@@ -63,14 +60,12 @@
                 </button>
             </div>
 
-            <!-- Example queries -->
             <div class="flex flex-wrap justify-center gap-2 mt-3 text-xs md:text-sm">
-                <button onclick="setExample('python list comprehension')" class="px-3 py-1 bg-gray-800 text-gray-300 rounded-full">python list comprehension</button>
-                <button onclick="setExample('wat is async await')" class="px-3 py-1 bg-gray-800 text-gray-300 rounded-full">wat is async await</button>
-                <button onclick="setExample('hoe maak ik een API')" class="px-3 py-1 bg-gray-800 text-gray-300 rounded-full">hoe maak ik een API</button>
+                <button onclick="setExample('wat is geometry dash')" class="px-3 py-1 bg-gray-800 text-gray-300 rounded-full">wat is geometry dash</button>
+                <button onclick="setExample('maak flappy bird voor mij (dit werkt nog niet)')" class="px-3 py-1 bg-gray-800 text-gray-300 rounded-full">maak flappy bird voor mij (dit werkt nog niet)</button>
+                <button onclick="setExample('wat is de onvoltooide tijd')" class="px-3 py-1 bg-gray-800 text-gray-300 rounded-full">wat is de onvoltooide tijd</button>
             </div>
 
-            <!-- Results -->
             <div id="searchResults" class="hidden bg-gray-900/60 border border-white/10 rounded-3xl p-6 mt-8 text-left">
                 <h3 class="text-lg font-bold mb-3">Resultaat</h3>
                 <p id="resultAnswer" class="text-gray-200 text-sm md:text-base mb-4"></p>
@@ -84,7 +79,6 @@
         </div>
     </section>
 
-    <!-- PROJECTS SECTION (UNCHANGED EXCEPT COLORS) -->
     <section id="projects-section" class="min-h-screen bg-white text-gray-900 py-24 flex flex-col items-center">
         <div class="text-center max-w-4xl px-4 mb-16">
             <h2 class="text-5xl md:text-6xl font-extrabold mb-4 text-gray-900" id="projects-title">Projecten</h2>
