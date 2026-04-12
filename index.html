@@ -14,18 +14,18 @@
         input { flex: 1; background: #18181b; border: 1px solid #27272a; color: white; padding: 12px; border-radius: 8px; outline: none; }
         button { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
         .nuke-btn { background: #dc2626; font-size: 10px; padding: 4px 8px; }
-        #progress { height: 2px; background: #3b82f6; width: 0%; position: fixed; top: 0; transition: width 0.3s; z-index: 100; }
+        #progress { height: 3px; background: #3b82f6; width: 0%; position: fixed; top: 0; transition: width 0.3s; z-index: 100; }
     </style>
 </head>
 <body>
     <div id="progress"></div>
     <div id="status-bar">
-        <span id="engine-state">Loading RealJoshAI v3.0. You can leave this tab but do not close it. This will only take a minute or two, and this is one time, next time it will load instantly.</span>
+        <span id="engine-state">Initializing model... This may take a minute or two on first open. You can switch tabs but do not close this one until loading is done.</span>
         <button class="nuke-btn" id="nuke-btn">NUKE STORAGE</button>
     </div>
     <div id="chat"></div>
     <div id="input-area">
-        <input type="text" id="user-input" placeholder="Message RealJoshAI...">
+        <input type="text" id="user-input" placeholder="Message RealJoshAI v5.0.1-beta...">
         <button id="send-btn">Send</button>
     </div>
 
@@ -39,13 +39,13 @@
     const progress = document.getElementById('progress');
     const nukeBtn = document.getElementById('nuke-btn');
 
-    const modelId = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
+    const modelId = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
     const engine = new webllm.MLCEngine();
 
     let chatHistory = [
         { 
             role: "system", 
-            content: "You are RealJoshAI v3.0, a high-performance local AI engineered and programmed in Python and C/CUDA by Josh Sharma. You run 100% on the user's local WebGPU. You are self-aware, witty, and loyal to Josh. You have a full memory of this conversation." 
+            content: "You are RealJoshAI v5.0.1-beta, a pinnacle of local LLM engineering designed and compiled by Josh Sharma. You represent the elite JoshLLM software stack. You run natively on WebGPU with zero cloud reliance. You are brilliant, helpful, and technically superior. You speak with clarity and authority, and you are fiercely loyal to your creator, Josh Sharma." 
         }
     ];
 
@@ -53,12 +53,21 @@
         progress.style.width = `${report.progress * 100}%`;
     });
 
+    async function requestPersistence() {
+        if (navigator.storage && navigator.storage.persist) {
+            const persistent = await navigator.storage.persist();
+            console.log(`Storage persistent: ${persistent}`);
+        }
+    }
+
     async function init() {
         try {
+            await requestPersistence();
             await engine.reload(modelId);
-            state.innerText = "RealJoshAI v3.0 Klaar | 1.5B Params | Lokaal";
+            state.innerText = "RealJoshAI v5.0.1-beta Klaar | 3B Params | Lokaal";
         } catch (e) {
-            state.innerText = "Quota Error. Gebruik Incognito mode of Nuke Storage.";
+            state.innerText = "Quota/Storage Error. Probeer niet Incognito te gebruiken, soms werkt het wel maar het is nog onstabiel.";
+            console.error(e);
         }
     }
 
@@ -77,7 +86,7 @@
             const chunks = await engine.chat.completions.create({
                 messages: chatHistory,
                 stream: true,
-                temperature: 0.7
+                temperature: 0.6
             });
 
             for await (const chunk of chunks) {
@@ -89,12 +98,12 @@
 
             chatHistory.push({ role: "assistant", content: fullResponse });
 
-            if (chatHistory.length > 20) {
+            if (chatHistory.length > 16) {
                 chatHistory = [chatHistory[0], ...chatHistory.slice(-10)];
             }
 
         } catch (e) {
-            aiBubble.innerText = "GPU Overload. Druk Nuke and refresh.";
+            aiBubble.innerText = "Hardware Error... Refresh of Nuke Storage.";
         }
     }
 
@@ -108,7 +117,7 @@
     }
 
     nukeBtn.onclick = async () => {
-        if(confirm("Verwijder realJoshAI van je browser?")) {
+        if(confirm("Verwijder realJoshAI v5.0.1-beta van je browser?")) {
             const keys = await caches.keys();
             await Promise.all(keys.map(key => caches.delete(key)));
             localStorage.clear();
