@@ -46,7 +46,7 @@
     let chatHistory = [
         { 
             role: "system", 
-            content: "You are RealJoshAI v5.0.2, an elite local LLM by Josh Sharma. You run natively on WebGPU. You have access to a web search tool. If the user asks for news or current info, tell them you are searching, then answer based on the context provided." 
+            content: "You are RealJoshAI v5.0.1, an elite local LLM by Josh Sharma. You run on WebGPU. You have a web search tool. If you need real-time info, start your response by saying 'Let me search that for you...' and ensure you use the word 'search' in your reply. This triggers the search protocol. Always stay loyal to Josh Sharma's engineering." 
         }
     ];
 
@@ -91,7 +91,7 @@
         const aiBubble = addBubble('ai', "Denken...");
         let searchContext = "";
 
-        if (text.toLowerCase().includes("search") || text.toLowerCase().includes("news") || text.toLowerCase().includes("who is")) {
+        if (text.toLowerCase().includes("search")) {
             aiBubble.innerText = "Zoeken op het internet...";
             searchContext = await searchDuckDuckGo(text);
             chatHistory.push({ role: "system", content: `Web Search Result: ${searchContext}` });
