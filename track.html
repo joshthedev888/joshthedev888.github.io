@@ -3,47 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Racing - Track Creator Studio</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Track Creator</title>
+    <!-- Tailwind CSS for UI Layout -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
             user-select: none;
-            overflow: hidden;
-        }
-        
-        /* Canvas shadow & styling */
-        .canvas-container {
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
-            cursor: crosshair;
-        }
-
-        /* Custom scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-radius: 3px;
+            -webkit-user-select: none;
         }
 
         /* Glassmorphism panel styling */
         .glass-panel {
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
 
         /* Tool button active states */
@@ -56,207 +37,235 @@
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
             border-color: #f87171;
         }
+        .tool-btn.active-green {
+            background-color: #22c55e;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+            border-color: #86efac;
+        }
+        .tool-btn.active-yellow {
+            background-color: #eab308;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.5);
+            border-color: #fef08a;
+        }
 
-        /* Range slider styling */
+        /* Range slider custom styling */
         input[type=range] {
             accent-color: #ef4444;
         }
 
-        /* Custom brush cursor preview */
-        #brush-preview {
-            pointer-events: none;
-            position: absolute;
-            border: 2px solid white;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            display: none;
-            z-index: 50;
-            box-shadow: 0 0 4px rgba(0,0,0,0.8);
+        /* Canvas workspace shadow & container */
+        .canvas-container {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            cursor: crosshair;
+        }
+
+        /* Custom scrollbar for sidebar/modals */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
         }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col justify-between items-center relative overflow-hidden bg-slate-950">
+<body class="bg-slate-950 text-slate-100 min-h-screen h-screen overflow-hidden flex flex-col relative">
 
-    <!-- Brush Preview Circle -->
-    <div id="brush-preview"></div>
-
-    <!-- Top Floating Header / Bar -->
-    <header class="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4 px-6 py-2.5 rounded-full glass-panel transition-all duration-300 hover:opacity-100 opacity-90">
-        <div class="flex items-center gap-2 pr-4 border-r border-slate-700">
-            <i class="fa-solid font-bold text-red-500 text-xl fa-flag-checkered"></i>
-            <span class="font-bold text-lg tracking-wide bg-gradient-to-r from-red-400 to-rose-200 bg-clip-text text-transparent">TRACK BUILDER</span>
-            <span class="text-xs bg-red-950 text-red-400 border border-red-800 px-2 py-0.5 rounded-full font-mono">1000x700</span>
+    <!-- Top Header Navigation Bar -->
+    <header class="w-full px-6 py-3 glass-panel z-30 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-red-600/40">
+                <i class="fa-solid fa-flag-checkered"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-base tracking-tight leading-tight text-white">AI Track Creator</h1>
+                <p class="text-[11px] text-slate-400 font-medium">1000 × 700 Canvas | Red Ground Simulation</p>
+            </div>
         </div>
-        
+
+        <!-- Canvas Action Toolbar -->
         <div class="flex items-center gap-2">
-            <button id="undo-btn" title="Undo (Ctrl+Z)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition">
+            <button id="undo-btn" title="Undo (Ctrl+Z)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition text-xs font-semibold flex items-center gap-1.5">
                 <i class="fa-solid fa-rotate-left"></i>
+                <span class="hidden sm:inline">Undo</span>
             </button>
-            <button id="redo-btn" title="Redo (Ctrl+Y)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition">
+            <button id="redo-btn" title="Redo (Ctrl+Y)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition text-xs font-semibold flex items-center gap-1.5">
                 <i class="fa-solid fa-rotate-right"></i>
+                <span class="hidden sm:inline">Redo</span>
             </button>
             <div class="h-4 w-px bg-slate-700 mx-1"></div>
-            <button id="toggle-grid" title="Toggle Overlay Grid (G)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
-                <i class="fa-solid fa-border-all"></i> <span class="text-xs ml-1 font-semibold">Grid</span>
+            <button id="toggle-grid" title="Toggle Overlay Grid" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition text-xs font-semibold flex items-center gap-1.5">
+                <i class="fa-solid fa-border-all"></i>
+                <span class="hidden sm:inline">Grid</span>
             </button>
-            <button id="clear-btn" title="Clear Canvas" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-red-900/50 hover:text-red-300 border border-slate-700 text-slate-300 transition">
+            <button id="guide-btn" title="Pit Lane Guide" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 font-semibold text-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info"></i> Pit Guide
+            </button>
+            <button id="clear-btn" title="Clear Canvas" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-red-900/50 hover:text-red-300 border border-slate-700 text-slate-300 transition text-xs font-semibold flex items-center gap-1.5">
                 <i class="fa-solid fa-trash-can"></i>
+                <span class="hidden sm:inline">Clear</span>
             </button>
         </div>
 
-        <div class="h-4 w-px bg-slate-700 mx-1"></div>
-
-        <!-- Export/Import Buttons -->
+        <!-- Export & Import Controls -->
         <div class="flex items-center gap-2">
-            <label id="import-label" title="Import Existing Track Image" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 cursor-pointer text-xs font-semibold transition flex items-center gap-1.5">
-                <i class="fa-solid fa-file-import"></i> Import
+            <label id="import-btn-label" title="Import Track File" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold cursor-pointer transition flex items-center gap-2">
+                <i class="fa-solid fa-file-import text-blue-400"></i>
+                <span>Import Image</span>
                 <input type="file" id="import-file" accept="image/*" class="hidden">
             </label>
-            <button id="export-png-btn" title="Export Track PNG (1000x700)" class="px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold text-xs transition flex items-center gap-1.5 shadow-lg shadow-red-600/30">
-                <i class="fa-solid fa-download"></i> Export PNG
-            </button>
-            <button id="export-json-btn" title="Export Metadata JSON" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold transition flex items-center gap-1.5">
-                <i class="fa-solid fa-code"></i> JSON
+            <button id="export-png-btn" title="Download PNG" class="px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-lg shadow-red-600/30 transition flex items-center gap-2">
+                <i class="fa-solid fa-download"></i>
+                <span>Export PNG</span>
             </button>
         </div>
     </header>
 
     <!-- Main Canvas Viewport Area -->
     <main class="w-full h-full flex items-center justify-center p-4 relative overflow-auto">
-        <div id="canvas-wrapper" class="relative canvas-container rounded-xl overflow-hidden">
+        <div id="canvas-wrapper" class="relative canvas-container rounded-xl overflow-hidden border border-slate-800">
             <!-- Main Drawing Canvas -->
             <canvas id="track-canvas" width="1000" height="700" class="block bg-red-700"></canvas>
             <!-- Overlay Grid Canvas -->
-            <canvas id="grid-canvas" width="1000" height="700" class="absolute top-0 left-0 pointer-events-none opacity-40 hidden"></canvas>
+            <canvas id="grid-canvas" width="1000" height="700" class="absolute top-0 left-0 pointer-events-none opacity-30 hidden"></canvas>
+            <!-- Brush Cursor Preview -->
+            <div id="brush-preview" class="fixed pointer-events-none rounded-full border-2 border-white transform -translate-x-1/2 -translate-y-1/2 hidden z-40"></div>
         </div>
     </main>
 
-    <!-- Floating Tool Dock (Bottom Left/Center Overlay) -->
+    <!-- Pit Lane Helper Modal -->
+    <div id="guide-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl text-left">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-warehouse text-amber-400 text-lg"></i>
+                    <h3 class="text-lg font-bold text-slate-100">How to Draw the Pit Lane</h3>
+                </div>
+                <button id="close-guide-btn" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-sm text-slate-300">
+                <div class="flex items-start gap-3">
+                    <span class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-amber-400 font-mono flex items-center justify-center flex-shrink-0 text-xs font-bold">1</span>
+                    <p><strong class="text-slate-100">Draw Pit Road:</strong> Draw the pit lane inside the track in the red area as an ordinary white road (~40px+ wide).</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-amber-400 font-mono flex items-center justify-center flex-shrink-0 text-xs font-bold">2</span>
+                    <p><strong class="text-slate-100">Leave a Wall:</strong> Keep a red wall barrier of about 15–25 px between the pit lane and the main track.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-amber-400 font-mono flex items-center justify-center flex-shrink-0 text-xs font-bold">3</span>
+                    <p><strong class="text-slate-100">Connectors:</strong> Open the lane to the main track at both ends with white connector roads.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-amber-400 font-mono flex items-center justify-center flex-shrink-0 text-xs font-bold">4</span>
+                    <p><strong class="text-slate-100">Pit Markers:</strong> Paint <span class="text-green-400 font-semibold">Green</span> across the entry connector and <span class="text-yellow-400 font-semibold">Yellow</span> across the exit connector edge to edge.</p>
+                </div>
+            </div>
+            <button id="got-it-btn" class="mt-6 w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-sm transition">Got it!</button>
+        </div>
+    </div>
+
+    <!-- Floating Sleek Dock (Bottom Overlay) -->
     <div id="toolbar" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4 px-6 py-3 rounded-2xl glass-panel transition-all duration-300">
         
-        <!-- Tools selector -->
-        <div class="flex items-center gap-2 border-r border-slate-700 pr-4">
-            <button id="tool-pen" title="Track Pen (B)" class="tool-btn active px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-200 flex items-center gap-2 text-sm font-semibold">
-                <i class="fa-solid fa-pen-nib"></i>
-                <span>Track Pen</span>
-            </button>
-            <button id="tool-eraser" title="Eraser (E)" class="tool-btn px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-200 flex items-center gap-2 text-sm font-semibold">
-                <i class="fa-solid fa-eraser"></i>
-                <span>Eraser</span>
-            </button>
-            <button id="tool-finish" title="Place Start/Finish Line (F)" class="tool-btn px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-200 flex items-center gap-2 text-sm font-semibold">
-                <i class="fa-solid fa-flag-checkered"></i>
-                <span>Start Line</span>
-            </button>
-        </div>
-
-        <!-- Pen / Eraser Size Controls -->
-        <div id="brush-controls" class="flex items-center gap-3">
-            <i class="fa-solid fa-circle text-xs text-slate-400"></i>
-            <input type="range" id="brush-size" min="5" max="150" value="60" class="w-32 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-            <span id="brush-size-val" class="font-mono text-xs w-10 text-slate-300 font-bold">60px</span>
-        </div>
-
-        <!-- Start Line Options (Shown when finish line tool active) -->
-        <div id="finish-controls" class="hidden flex items-center gap-3 border-l border-slate-700 pl-4">
-            <label class="text-xs text-slate-400 font-medium">Angle:</label>
-            <input type="range" id="finish-angle" min="0" max="360" value="0" class="w-24 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-            <span id="finish-angle-val" class="font-mono text-xs text-slate-300 w-8">0°</span>
-        </div>
-
-        <!-- Smooth Line Toggle -->
-        <div class="border-l border-slate-700 pl-4 flex items-center gap-2">
-            <label class="inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="smooth-toggle" checked class="sr-only peer">
-                <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600"></div>
-                <span class="ml-2 text-xs font-medium text-slate-300">Smooth Curves</span>
-            </label>
-        </div>
-
-        <!-- UI Minimize / Auto-hide Button -->
-        <button id="toggle-ui-btn" title="Toggle Minimal UI Mode" class="ml-2 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs transition">
-            <i class="fa-solid fa-compress"></i>
+        <!-- Toggle Minimize UI Button -->
+        <button id="minimize-ui-btn" title="Minimize / Expand Toolbar" class="text-slate-400 hover:text-white transition">
+            <i id="minimize-icon" class="fa-solid fa-chevron-down"></i>
         </button>
+
+        <div id="dock-content" class="flex items-center gap-4 transition-all duration-300">
+            <!-- Tools selector -->
+            <div class="flex items-center gap-2 border-r border-slate-700 pr-4">
+                <button id="tool-pen" title="Main Track Brush (B)" class="tool-btn active px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-200 flex items-center gap-2 text-xs font-bold">
+                    <i class="fa-solid fa-pen-nib text-sm"></i>
+                    <span>Track Pen</span>
+                </button>
+                <button id="tool-pit" title="Pit Lane Brush (P)" class="tool-btn px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-200 flex items-center gap-2 text-xs font-bold">
+                    <i class="fa-solid fa-road text-sm"></i>
+                    <span>Pit Road</span>
+                </button>
+                <button id="tool-pit-entry" title="Pit Entry Line - Green (G)" class="tool-btn px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-green-400 flex items-center gap-1.5 text-xs font-bold">
+                    <i class="fa-solid fa-grip-lines text-sm"></i>
+                    <span>Pit Entry</span>
+                </button>
+                <button id="tool-pit-exit" title="Pit Exit Line - Yellow (Y)" class="tool-btn px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-yellow-400 flex items-center gap-1.5 text-xs font-bold">
+                    <i class="fa-solid fa-grip-lines text-sm"></i>
+                    <span>Pit Exit</span>
+                </button>
+                <button id="tool-eraser" title="Eraser (E)" class="tool-btn px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-200 flex items-center gap-2 text-xs font-bold">
+                    <i class="fa-solid fa-eraser text-sm"></i>
+                    <span>Eraser</span>
+                </button>
+            </div>
+
+            <!-- Brush Thickness Controls -->
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-dot text-slate-400 text-xs"></i>
+                    <span class="text-xs font-bold text-slate-300 min-w-[50px]">Size: <span id="brush-size-val" class="text-white">60px</span></span>
+                </div>
+                <input type="range" id="brush-size" min="5" max="150" value="60" class="w-28 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+        </div>
     </div>
 
     <!-- Status Bar / Keymap Hints -->
     <div id="footer-hints" class="absolute bottom-2 right-4 z-20 text-[11px] text-slate-500 pointer-events-none hidden sm:block">
-        Shortcuts: <kbd class="px-1 bg-slate-800 rounded">B</kbd> Pen | <kbd class="px-1 bg-slate-800 rounded">E</kbd> Eraser | <kbd class="px-1 bg-slate-800 rounded">F</kbd> Start Line | <kbd class="px-1 bg-slate-800 rounded">[ / ]</kbd> Size | <kbd class="px-1 bg-slate-800 rounded">Ctrl+Z</kbd> Undo
+        Shortcuts: <kbd class="px-1 bg-slate-800 rounded text-slate-400">B</kbd> Track | <kbd class="px-1 bg-slate-800 rounded text-slate-400">P</kbd> Pit | <kbd class="px-1 bg-slate-800 rounded text-slate-400">G</kbd> Entry | <kbd class="px-1 bg-slate-800 rounded text-slate-400">Y</kbd> Exit | <kbd class="px-1 bg-slate-800 rounded text-slate-400">E</kbd> Eraser | <kbd class="px-1 bg-slate-800 rounded text-slate-400">[ / ]</kbd> Size | <kbd class="px-1 bg-slate-800 rounded text-slate-400">Ctrl+Z</kbd> Undo
     </div>
 
-    <!-- Confirmation Modal for Canvas Clearing -->
-    <div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
-            <div class="w-12 h-12 bg-red-950/50 border border-red-800/50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-100 mb-2">Clear Track Canvas?</h3>
-            <p class="text-xs text-slate-400 mb-6">This will wipe the current track and reset to a blank red canvas. You can undo this action.</p>
-            <div class="flex gap-3">
-                <button id="cancel-clear-btn" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition">Cancel</button>
-                <button id="confirm-clear-btn" class="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition">Clear Track</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Application Logic Script -->
+    <!-- Canvas Logic JavaScript Engine -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Main Canvas References
-            const canvas = document.getElementById('track-canvas');
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
-            const gridCanvas = document.getElementById('grid-canvas');
-            const gridCtx = gridCanvas.getContext('2d');
-            const canvasWrapper = document.getElementById('canvas-wrapper');
-            const brushPreview = document.getElementById('brush-preview');
-
-            // Constants
+        window.onload = function() {
+            // Configuration Constants
             const CANVAS_WIDTH = 1000;
             const CANVAS_HEIGHT = 700;
-            const RED_BACKGROUND = '#d32f2f'; // Configurable Track Canvas Red
-            const WHITE_TRACK = '#ffffff';
-
-            // State variables
-            let currentTool = 'pen'; // 'pen', 'eraser', 'finish'
-            let brushSize = 60;
-            let smoothCurves = true;
-            let isDrawing = false;
-            let points = [];
-            let startFinishLine = null; // { x, y, angle }
-
-            // History Stack for Undo/Redo
-            const historyStack = [];
-            const redoStack = [];
+            const RED_BACKGROUND = '#D32F2F';
+            const WHITE_TRACK = '#FFFFFF';
+            const GREEN_ENTRY = '#22C55E';
+            const YELLOW_EXIT = '#EAB308';
             const MAX_HISTORY = 30;
 
-            // Initialize App
-            function init() {
-                // Ensure dimensions
-                canvas.width = CANVAS_WIDTH;
-                canvas.height = CANVAS_HEIGHT;
-                gridCanvas.width = CANVAS_WIDTH;
-                gridCanvas.height = CANVAS_HEIGHT;
+            // DOM References
+            const canvas = document.getElementById('track-canvas');
+            const ctx = canvas.getContext('2d');
+            const gridCanvas = document.getElementById('grid-canvas');
+            const gridCtx = gridCanvas.getContext('2d');
+            const brushPreview = document.getElementById('brush-preview');
 
-                // Fill default background
-                fillBackground();
-                drawGrid();
-                saveState(); // Initial state
+            // State variables
+            let currentTool = 'pen'; // 'pen', 'pit', 'pit-entry', 'pit-exit', 'eraser'
+            let brushSize = 60;
+            let isDrawing = false;
+            let points = [];
 
-                // Event Listeners
-                setupEventListeners();
-                updateUIState();
-            }
+            // History Stack for Undo / Redo
+            let historyStack = [];
+            let historyStep = -1;
 
-            // Fill canvas with default solid track red
-            function fillBackground() {
+            // Initialize Canvas & App State
+            initCanvas();
+            initGrid();
+            saveState();
+            setupEventListeners();
+
+            function initCanvas() {
                 ctx.fillStyle = RED_BACKGROUND;
                 ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             }
 
-            // Draw subtle guide grid on grid canvas
-            function drawGrid() {
+            function initGrid() {
                 gridCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-                gridCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                gridCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
                 gridCtx.lineWidth = 1;
 
                 const gridSize = 50;
@@ -274,77 +283,59 @@
                 }
             }
 
-            // Save state to Undo stack
+            // Undo / Redo Logic
             function saveState() {
-                if (historyStack.length >= MAX_HISTORY) {
-                    historyStack.shift();
+                // If we are back in history and start drawing, discard forward steps
+                if (historyStep < historyStack.length - 1) {
+                    historyStack = historyStack.slice(0, historyStep + 1);
                 }
-                historyStack.push({
-                    imageData: ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT),
-                    finishLine: startFinishLine ? { ...startFinishLine } : null
-                });
-                redoStack.length = 0; // Clear redo on new action
-                updateHistoryButtons();
-            }
 
-            function updateHistoryButtons() {
-                document.getElementById('undo-btn').disabled = historyStack.length <= 1;
-                document.getElementById('redo-btn').disabled = redoStack.length === 0;
+                const imageData = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                historyStack.push(imageData);
+
+                if (historyStack.length > MAX_HISTORY) {
+                    historyStack.shift();
+                } else {
+                    historyStep++;
+                }
+
+                updateUndoRedoButtons();
             }
 
             function undo() {
-                if (historyStack.length > 1) {
-                    const current = historyStack.pop();
-                    redoStack.push(current);
-                    const previous = historyStack[historyStack.length - 1];
-                    ctx.putImageData(previous.imageData, 0, 0);
-                    startFinishLine = previous.finishLine ? { ...previous.finishLine } : null;
-                    redrawStartFinishLine();
-                    updateHistoryButtons();
+                if (historyStep > 0) {
+                    historyStep--;
+                    ctx.putImageData(historyStack[historyStep], 0, 0);
+                    updateUndoRedoButtons();
                 }
             }
 
             function redo() {
-                if (redoStack.length > 0) {
-                    const next = redoStack.pop();
-                    historyStack.push(next);
-                    ctx.putImageData(next.imageData, 0, 0);
-                    startFinishLine = next.finishLine ? { ...next.finishLine } : null;
-                    redrawStartFinishLine();
-                    updateHistoryButtons();
+                if (historyStep < historyStack.length - 1) {
+                    historyStep++;
+                    ctx.putImageData(historyStack[historyStep], 0, 0);
+                    updateUndoRedoButtons();
                 }
             }
 
-            // Drawing Helpers
+            function updateUndoRedoButtons() {
+                document.getElementById('undo-btn').disabled = (historyStep <= 0);
+                document.getElementById('redo-btn').disabled = (historyStep >= historyStack.length - 1);
+            }
+
+            // Canvas Drawing Event Functions
             function getCanvasCoordinates(e) {
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = CANVAS_WIDTH / rect.width;
                 const scaleY = CANVAS_HEIGHT / rect.height;
 
-                let clientX = e.clientX;
-                let clientY = e.clientY;
-
-                if (e.touches && e.touches.length > 0) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                }
-
                 return {
-                    x: (clientX - rect.left) * scaleX,
-                    y: (clientY - rect.top) * scaleY
+                    x: (e.clientX - rect.left) * scaleX,
+                    y: (e.clientY - rect.top) * scaleY
                 };
             }
 
             function startDrawing(e) {
-                if (currentTool === 'finish') {
-                    const coords = getCanvasCoordinates(e);
-                    const angle = parseInt(document.getElementById('finish-angle').value);
-                    startFinishLine = { x: coords.x, y: coords.y, angle: angle };
-                    placeStartFinishLine(coords.x, coords.y, angle);
-                    saveState();
-                    return;
-                }
-
                 isDrawing = true;
                 points = [];
                 const coords = getCanvasCoordinates(e);
@@ -354,7 +345,16 @@
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.lineWidth = brushSize;
-                ctx.strokeStyle = (currentTool === 'pen') ? WHITE_TRACK : RED_BACKGROUND;
+                
+                if (currentTool === 'pen' || currentTool === 'pit') {
+                    ctx.strokeStyle = WHITE_TRACK;
+                } else if (currentTool === 'pit-entry') {
+                    ctx.strokeStyle = GREEN_ENTRY;
+                } else if (currentTool === 'pit-exit') {
+                    ctx.strokeStyle = YELLOW_EXIT;
+                } else if (currentTool === 'eraser') {
+                    ctx.strokeStyle = RED_BACKGROUND;
+                }
 
                 ctx.arc(coords.x, coords.y, brushSize / 2, 0, Math.PI * 2);
                 ctx.fillStyle = ctx.strokeStyle;
@@ -368,13 +368,22 @@
                 const coords = getCanvasCoordinates(e);
                 points.push(coords);
 
-                ctx.strokeStyle = (currentTool === 'pen') ? WHITE_TRACK : RED_BACKGROUND;
+                if (currentTool === 'pen' || currentTool === 'pit') {
+                    ctx.strokeStyle = WHITE_TRACK;
+                } else if (currentTool === 'pit-entry') {
+                    ctx.strokeStyle = GREEN_ENTRY;
+                } else if (currentTool === 'pit-exit') {
+                    ctx.strokeStyle = YELLOW_EXIT;
+                } else if (currentTool === 'eraser') {
+                    ctx.strokeStyle = RED_BACKGROUND;
+                }
+
                 ctx.lineWidth = brushSize;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
 
-                if (smoothCurves && points.length > 2) {
-                    // Quadratic curve smoothing
+                // Smooth Bezier Curve logic
+                if (points.length > 2) {
                     ctx.beginPath();
                     ctx.moveTo(points[0].x, points[0].y);
                     for (let i = 1; i < points.length - 1; i++) {
@@ -393,223 +402,136 @@
                 if (isDrawing) {
                     isDrawing = false;
                     points = [];
-                    // Re-render finish line on top if it exists
-                    if (startFinishLine) {
-                        redrawStartFinishLine();
-                    }
                     saveState();
                 }
             }
 
-            // Draw Checkered Start/Finish Line
-            function placeStartFinishLine(x, y, angleDeg) {
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate((angleDeg * Math.PI) / 180);
-
-                const width = Math.max(40, brushSize);
-                const height = 16;
-                const rows = 2;
-                const cols = 8;
-                const cellW = width / cols;
-                const cellH = height / rows;
-
-                // Border box
-                ctx.fillStyle = '#000000';
-                ctx.fillRect(-width / 2 - 2, -height / 2 - 2, width + 4, height + 4);
-
-                // Checkers pattern
-                for (let r = 0; r < rows; r++) {
-                    for (let c = 0; c < cols; c++) {
-                        ctx.fillStyle = (r + c) % 2 === 0 ? '#ffffff' : '#000000';
-                        ctx.fillRect(-width / 2 + c * cellW, -height / 2 + r * cellH, cellW, cellH);
-                    }
-                }
-
-                // Direction Arrow
-                ctx.fillStyle = '#ef4444';
-                ctx.beginPath();
-                ctx.moveTo(0, -height / 2 - 6);
-                ctx.lineTo(6, -height / 2 - 12);
-                ctx.lineTo(-6, -height / 2 - 12);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.restore();
-            }
-
-            function redrawStartFinishLine() {
-                if (startFinishLine) {
-                    placeStartFinishLine(startFinishLine.x, startFinishLine.y, startFinishLine.angle);
-                }
-            }
-
-            // Setup UI Event Listeners
+            // Event Listeners setup
             function setupEventListeners() {
-                // Mouse & Touch Canvas Events
+                // Drawing events
                 canvas.addEventListener('mousedown', startDrawing);
                 canvas.addEventListener('mousemove', (e) => {
                     draw(e);
                     updateBrushPreview(e);
                 });
-                window.addEventListener('mouseup', stopDrawing);
-
-                canvas.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    startDrawing(e);
-                }, { passive: false });
-                canvas.addEventListener('touchmove', (e) => {
-                    e.preventDefault();
-                    draw(e);
-                }, { passive: false });
-                window.addEventListener('touchend', stopDrawing);
-
-                // Brush preview circle movement
-                canvas.addEventListener('mouseenter', () => {
-                    if (currentTool !== 'finish') brushPreview.style.display = 'block';
-                });
+                canvas.addEventListener('mouseup', stopDrawing);
                 canvas.addEventListener('mouseleave', () => {
-                    brushPreview.style.display = 'none';
+                    stopDrawing();
+                    brushPreview.classList.add('hidden');
+                });
+                canvas.addEventListener('mouseenter', () => {
+                    brushPreview.classList.remove('hidden');
                 });
 
                 // Tool selection
                 document.getElementById('tool-pen').addEventListener('click', () => setTool('pen'));
+                document.getElementById('tool-pit').addEventListener('click', () => setTool('pit'));
+                document.getElementById('tool-pit-entry').addEventListener('click', () => setTool('pit-entry'));
+                document.getElementById('tool-pit-exit').addEventListener('click', () => setTool('pit-exit'));
                 document.getElementById('tool-eraser').addEventListener('click', () => setTool('eraser'));
-                document.getElementById('tool-finish').addEventListener('click', () => setTool('finish'));
 
-                // Size slider
-                const sizeSlider = document.getElementById('brush-size');
-                sizeSlider.addEventListener('input', (e) => {
+                // Brush thickness slider
+                const brushSizeInput = document.getElementById('brush-size');
+                brushSizeInput.addEventListener('input', (e) => {
                     brushSize = parseInt(e.target.value);
                     document.getElementById('brush-size-val').textContent = `${brushSize}px`;
                     updateBrushPreview();
                 });
 
-                // Angle slider
-                const angleSlider = document.getElementById('finish-angle');
-                angleSlider.addEventListener('input', (e) => {
-                    const angle = e.target.value;
-                    document.getElementById('finish-angle-val').textContent = `${angle}°`;
-                    if (startFinishLine) {
-                        // Re-render latest state with new angle
-                        if (historyStack.length > 0) {
-                            ctx.putImageData(historyStack[historyStack.length - 1].imageData, 0, 0);
-                        }
-                        startFinishLine.angle = parseInt(angle);
-                        placeStartFinishLine(startFinishLine.x, startFinishLine.y, startFinishLine.angle);
-                    }
-                });
-
-                // Smooth curve checkbox
-                document.getElementById('smooth-toggle').addEventListener('change', (e) => {
-                    smoothCurves = e.target.checked;
-                });
-
-                // Top bar action buttons
+                // Undo / Redo / Clear / Grid
                 document.getElementById('undo-btn').addEventListener('click', undo);
                 document.getElementById('redo-btn').addEventListener('click', redo);
-
-                // Grid Toggle
+                document.getElementById('clear-btn').addEventListener('click', () => {
+                    initCanvas();
+                    saveState();
+                });
                 document.getElementById('toggle-grid').addEventListener('click', () => {
                     gridCanvas.classList.toggle('hidden');
-                    document.getElementById('toggle-grid').classList.toggle('bg-red-950/50');
-                });
-
-                // Clear Modal
-                const confirmModal = document.getElementById('confirm-modal');
-                document.getElementById('clear-btn').addEventListener('click', () => {
-                    confirmModal.classList.remove('hidden');
-                });
-                document.getElementById('cancel-clear-btn').addEventListener('click', () => {
-                    confirmModal.classList.add('hidden');
-                });
-                document.getElementById('confirm-clear-btn').addEventListener('click', () => {
-                    fillBackground();
-                    startFinishLine = null;
-                    saveState();
-                    confirmModal.classList.add('hidden');
                 });
 
                 // Export PNG
                 document.getElementById('export-png-btn').addEventListener('click', exportPNG);
 
-                // Export JSON Metadata
-                document.getElementById('export-json-btn').addEventListener('click', exportJSON);
-
                 // Import Image File
-                document.getElementById('import-file').addEventListener('change', handleImport);
+                document.getElementById('import-file').addEventListener('change', importTrackImage);
 
-                // Minimizable UI Toggle
-                document.getElementById('toggle-ui-btn').addEventListener('click', () => {
-                    document.getElementById('toolbar').classList.toggle('opacity-20');
-                    document.getElementById('toolbar').classList.toggle('hover:opacity-100');
+                // Pit guide modal controls
+                const guideModal = document.getElementById('guide-modal');
+                document.getElementById('guide-btn').addEventListener('click', () => guideModal.classList.remove('hidden'));
+                document.getElementById('close-guide-btn').addEventListener('click', () => guideModal.classList.add('hidden'));
+                document.getElementById('got-it-btn').addEventListener('click', () => guideModal.classList.add('hidden'));
+
+                // Minimize / Expand Dock
+                let dockMinimized = false;
+                const dockContent = document.getElementById('dock-content');
+                const minimizeBtn = document.getElementById('minimize-ui-btn');
+                const minimizeIcon = document.getElementById('minimize-icon');
+
+                minimizeBtn.addEventListener('click', () => {
+                    dockMinimized = !dockMinimized;
+                    if (dockMinimized) {
+                        dockContent.classList.add('hidden');
+                        minimizeIcon.className = 'fa-solid fa-chevron-up';
+                    } else {
+                        dockContent.classList.remove('hidden');
+                        minimizeIcon.className = 'fa-solid fa-chevron-down';
+                    }
                 });
 
                 // Global Keyboard Shortcuts
                 window.addEventListener('keydown', (e) => {
-                    if (e.target.tagName === 'INPUT') return; // Ignore if focused on inputs
+                    if (e.target.tagName === 'INPUT') return;
 
                     if (e.key.toLowerCase() === 'b') setTool('pen');
+                    if (e.key.toLowerCase() === 'p') setTool('pit');
+                    if (e.key.toLowerCase() === 'g') setTool('pit-entry');
+                    if (e.key.toLowerCase() === 'y') setTool('pit-exit');
                     if (e.key.toLowerCase() === 'e') setTool('eraser');
-                    if (e.key.toLowerCase() === 'f') setTool('finish');
-                    if (e.key.toLowerCase() === 'g') document.getElementById('toggle-grid').click();
 
                     if (e.key === '[') {
                         brushSize = Math.max(5, brushSize - 5);
-                        sizeSlider.value = brushSize;
+                        brushSizeInput.value = brushSize;
                         document.getElementById('brush-size-val').textContent = `${brushSize}px`;
                         updateBrushPreview();
                     }
                     if (e.key === ']') {
                         brushSize = Math.min(150, brushSize + 5);
-                        sizeSlider.value = brushSize;
+                        brushSizeInput.value = brushSize;
                         document.getElementById('brush-size-val').textContent = `${brushSize}px`;
                         updateBrushPreview();
                     }
 
-                    if (e.ctrlKey || e.metaKey) {
-                        if (e.key.toLowerCase() === 'z') {
-                            e.preventDefault();
-                            if (e.shiftKey) redo(); else undo();
-                        }
-                        if (e.key.toLowerCase() === 'y') {
-                            e.preventDefault();
-                            redo();
-                        }
+                    if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+                        e.preventDefault();
+                        undo();
+                    }
+                    if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+                        e.preventDefault();
+                        redo();
                     }
                 });
             }
 
             function setTool(tool) {
                 currentTool = tool;
-                document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active', 'active-green', 'active-yellow'));
                 
                 if (tool === 'pen') document.getElementById('tool-pen').classList.add('active');
-                if (tool === 'eraser') document.getElementById('tool-eraser').classList.add('active');
-                if (tool === 'finish') document.getElementById('tool-finish').classList.add('active');
-
-                updateUIState();
-            }
-
-            function updateUIState() {
-                const brushControls = document.getElementById('brush-controls');
-                const finishControls = document.getElementById('finish-controls');
-
-                if (currentTool === 'finish') {
-                    brushControls.classList.add('hidden');
-                    finishControls.classList.remove('hidden');
-                    brushPreview.style.display = 'none';
-                } else {
-                    brushControls.classList.remove('hidden');
-                    finishControls.classList.add('hidden');
+                if (tool === 'pit') {
+                    document.getElementById('tool-pit').classList.add('active');
+                    brushSize = Math.max(40, brushSize);
+                    document.getElementById('brush-size').value = brushSize;
+                    document.getElementById('brush-size-val').textContent = `${brushSize}px`;
                 }
+                if (tool === 'pit-entry') document.getElementById('tool-pit-entry').classList.add('active-green');
+                if (tool === 'pit-exit') document.getElementById('tool-pit-exit').classList.add('active-yellow');
+                if (tool === 'eraser') document.getElementById('tool-eraser').classList.add('active');
+
+                updateBrushPreview();
             }
 
             function updateBrushPreview(e) {
-                if (currentTool === 'finish') return;
-                
                 if (e) {
-                    const rect = canvas.getBoundingClientRect();
                     brushPreview.style.left = `${e.clientX}px`;
                     brushPreview.style.top = `${e.clientY}px`;
                 }
@@ -620,10 +542,19 @@
 
                 brushPreview.style.width = `${displaySize}px`;
                 brushPreview.style.height = `${displaySize}px`;
-                brushPreview.style.borderColor = currentTool === 'pen' ? '#ffffff' : '#d32f2f';
+                
+                if (currentTool === 'pen' || currentTool === 'pit') {
+                    brushPreview.style.borderColor = '#ffffff';
+                } else if (currentTool === 'pit-entry') {
+                    brushPreview.style.borderColor = GREEN_ENTRY;
+                } else if (currentTool === 'pit-exit') {
+                    brushPreview.style.borderColor = YELLOW_EXIT;
+                } else {
+                    brushPreview.style.borderColor = '#d32f2f';
+                }
             }
 
-            // File Export Functions
+            // Export PNG function
             function exportPNG() {
                 const link = document.createElement('a');
                 link.download = 'race_track.png';
@@ -631,34 +562,15 @@
                 link.click();
             }
 
-            function exportJSON() {
-                const metadata = {
-                    version: "1.0",
-                    width: CANVAS_WIDTH,
-                    height: CANVAS_HEIGHT,
-                    backgroundColor: RED_BACKGROUND,
-                    trackColor: WHITE_TRACK,
-                    startFinishLine: startFinishLine || null,
-                    exportedAt: new Date().toISOString()
-                };
-
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(metadata, null, 2));
-                const link = document.createElement('a');
-                link.download = 'race_track_meta.json';
-                link.href = dataStr;
-                link.click();
-            }
-
-            // Image Import Handler
-            function handleImport(e) {
+            // Import Track Image Function
+            function importTrackImage(e) {
                 const file = e.target.files[0];
                 if (!file) return;
 
                 const reader = new FileReader();
-                reader.onload = (event) => {
+                reader.onload = function(event) {
                     const img = new Image();
-                    img.onload = () => {
-                        fillBackground();
+                    img.onload = function() {
                         ctx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
                         saveState();
                     };
@@ -666,10 +578,7 @@
                 };
                 reader.readAsDataURL(file);
             }
-
-            // Run setup
-            init();
-        });
+        };
     </script>
 </body>
 </html>
