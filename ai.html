@@ -674,30 +674,50 @@ async function* streamReply({ messages, system, think, search, signal }) {
     systemInstruction: { parts: [{ text: system }] },
   };
   if (search) body.tools = [{ googleSearch: {} }];
-  if (think) body.generationConfig = { thinkingConfig: { thinkingLevel: 'high', includeThoughts: true } };
+
+  // Gemini 3 models think by default, so force minimal thinking when the Denk toggle is off.
+  const lowThink = (m) => m.includes('2.5') ? { thinkingBudget: 0 } : { thinkingLevel: 'minimal' };
+  const genCfg = (m) => ({
+    thinkingConfig: think ? { thinkingLevel: 'high', includeThoughts: true } : lowThink(m),
+  });
 
   // Retry on overload errors: main model twice, then the fallback model twice.
+  // Every attempt has a timeout so a hanging server still falls through to the next one.
   const attempts = [GEMINI_MODEL, GEMINI_MODEL, GEMINI_FALLBACK_MODEL, GEMINI_FALLBACK_MODEL];
   const waits = [1500, 3000, 3000];
   let res;
   for (let i = 0; i < attempts.length; i++) {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${attempts[i]}:streamGenerateContent?alt=sse`,
-      {
-        method: 'POST',
-        signal,
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
-        body: JSON.stringify(body),
-      }
-    );
-    if (res.ok) break;
-    const raw = await res.text();
-    let msg = raw;
+    const ac = new AbortController();
+    const onAbort = () => ac.abort();
+    signal?.addEventListener('abort', onAbort, { once: true });
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; ac.abort(); }, think ? 40000 : 15000);
     try {
-      msg = JSON.parse(raw).error.message;
-    } catch {}
-    const retryable = [429, 500, 502, 503, 504].includes(res.status);
-    if (!retryable || i === attempts.length - 1) throw new Error(`API ${res.status}: ${msg}`);
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${attempts[i]}:streamGenerateContent?alt=sse`,
+        {
+          method: 'POST',
+          signal: ac.signal,
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+          body: JSON.stringify({ ...body, generationConfig: genCfg(attempts[i]) }),
+        }
+      );
+    } catch (e) {
+      if (!timedOut) throw e;
+      res = null;
+    } finally {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
+    }
+    if (res?.ok) break;
+    if (i === attempts.length - 1) throw new Error(res ? `API ${res.status}` : 'Timeout');
+    let msg = '';
+    if (res) {
+      const raw = await res.text();
+      msg = raw;
+      try { msg = JSON.parse(raw).error.message; } catch {}
+      if (![429, 500, 502, 503, 504].includes(res.status)) throw new Error(`API ${res.status}: ${msg}`);
+    }
     yield { type: 'status', text: `Google is druk, opnieuw proberen (${i + 1}/${attempts.length - 1})…` };
     await sleep(waits[i], signal);
   }
@@ -710,7 +730,12 @@ async function* streamReply({ messages, system, think, search, signal }) {
   let finish = '';
 
   for (;;) {
-    const { done, value } = await reader.read();
+    // A stream can stall after headers arrive, so give each read a deadline.
+    let stallTimer;
+    const { done, value } = await Promise.race([
+      reader.read(),
+      new Promise((_, no) => { stallTimer = setTimeout(() => no(new Error('Stream vastgelopen')), 30000); }),
+    ]).finally(() => clearTimeout(stallTimer));
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split('\n');
