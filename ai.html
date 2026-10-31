@@ -609,19 +609,103 @@ async function streamReply(messages, sysPrompt, onChunk, onDone, onError, signal
   }
 }
 
+function assistantBody(m, last) {
+  return md(m.content);
+}
+
+function triggerAIResponse() {
+  const currentChat = chat();
+  if (!currentChat || busy) return;
+  busy = true;
+  $('#go').innerHTML = ic('stop', 18);
+  
+  // Voeg lege assistent-bubbel toe
+  currentChat.msgs.push({ role: 'assistant', content: '', local: false });
+  renderAll();
+
+  const msgs = currentChat.msgs.slice(0, -1);
+
+  streamReply(
+    msgs,
+    SYSTEM_PROMPT,
+    (chunk, sources) => {
+      const lastMsg = currentChat.msgs[currentChat.msgs.length - 1];
+      lastMsg.content = chunk;
+      lastMsg.src = sources;
+      renderAll();
+    },
+    (fullText, sources) => {
+      busy = false;
+      $('#go').innerHTML = ic('send', 18);
+      const lastMsg = currentChat.msgs[currentChat.msgs.length - 1];
+      lastMsg.content = fullText;
+      lastMsg.src = sources;
+      save();
+      renderAll();
+    },
+    (err) => {
+      busy = false;
+      $('#go').innerHTML = ic('send', 18);
+      const lastMsg = currentChat.msgs[currentChat.msgs.length - 1];
+      lastMsg.content = "idk bro ✌️🫩🥀💔";
+      renderAll();
+    },
+    ctrl?.signal
+  );
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  icons();
+  renderList();
+  if (!chats.length) newChat();
+  else { cur = chats[0].id; renderAll(); }
+
   const textarea = $('#in');
-  if (textarea) {
-    textarea.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        const goBtn = $('#go');
-        if (goBtn && !goBtn.disabled) {
-          goBtn.click();
-        }
-      }
-    });
-  }
+  const sendBtn = $('#go');
+
+  const handleSend = () => {
+    if (busy) {
+      if (ctrl) ctrl.abort();
+      busy = false;
+      sendBtn.innerHTML = ic('send', 18);
+      return;
+    }
+    const text = textarea.value.trim();
+    if (!text) return;
+    if (!cur) newChat();
+    const currentChat = chat();
+    currentChat.msgs.push({ role: 'user', content: text });
+    if (currentChat.title === 'Nieuwe chat') currentChat.title = text.slice(0, 32);
+    currentChat.ts = Date.now();
+    save();
+    renderAll();
+    textarea.value = '';
+    textarea.style.height = 'auto';
+    triggerAIResponse();
+  };
+
+  sendBtn.addEventListener('click', handleSend);
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+
+  textarea.addEventListener('input', () => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+  });
+
+  $('#new').addEventListener('click', newChat);
+  $('#t-search').addEventListener('click', () => {
+    mode.search = !mode.search;
+    $('#t-search').classList.toggle('on', mode.search);
+  });
+  $('#t-think').addEventListener('click', () => {
+    mode.think = !mode.think;
+    $('#t-think').classList.toggle('on', mode.think);
+  });
 });
 </script>
 </body>
