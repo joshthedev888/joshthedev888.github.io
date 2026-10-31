@@ -676,10 +676,13 @@ async function* streamReply({ messages, system, think, search, signal }) {
   if (search) body.tools = [{ googleSearch: {} }];
 
   // Gemini 3 models think by default, so force minimal thinking when the Denk toggle is off.
-  const lowThink = (m) => m.includes('2.5') ? { thinkingBudget: 0 } : { thinkingLevel: 'minimal' };
-  const genCfg = (m) => ({
+  // The lite fallback rejects 'minimal', so it gets 'low'. If any model still complains about thinking,
+  // the next try goes out without a thinkingConfig at all (skipCfg).
+  let skipCfg = false;
+  const lowThink = (m) => m.includes('2.5') ? { thinkingBudget: 0 } : { thinkingLevel: m === GEMINI_FALLBACK_MODEL ? 'low' : 'minimal' };
+  const genCfg = (m) => skipCfg ? {} : {
     thinkingConfig: think ? { thinkingLevel: 'high', includeThoughts: true } : lowThink(m),
-  });
+  };
 
   // Retry on overload errors: main model twice, then the fallback model twice.
   // Every attempt has a timeout so a hanging server still falls through to the next one.
@@ -716,6 +719,11 @@ async function* streamReply({ messages, system, think, search, signal }) {
       const raw = await res.text();
       msg = raw;
       try { msg = JSON.parse(raw).error.message; } catch {}
+      if (res.status === 400 && /thinking/i.test(msg) && !skipCfg) {
+        skipCfg = true;
+        i--;
+        continue;
+      }
       if (![429, 500, 502, 503, 504].includes(res.status)) throw new Error(`API ${res.status}: ${msg}`);
     }
     yield { type: 'status', text: `Google is druk, opnieuw proberen (${i + 1}/${attempts.length - 1})…` };
