@@ -202,21 +202,21 @@ body.busy .m:last-child .act{display:none}
 <aside id="sb">
   <div class="brand">
     <div class="logo"><i data-i="spark"></i></div>
-    <span class="name">margin</span>
+    <span class="name">realjoshai</span>
     <span class="gap"></span>
     <button class="ib" id="tg2" title="Collapse sidebar"><i data-i="panel"></i></button>
   </div>
-  <button class="nb pri" id="new" title="New chat (Ctrl+K)"><i data-i="plus"></i><span class="lbl">New chat</span></button>
+  <button class="nb pri" id="new" title="New chat (Ctrl+K)"><i data-i="plus"></i><span class="lbl">Nieuwe chat</span></button>
   <div class="sr"><i data-i="search"></i><input id="q" placeholder="Search chats"></div>
   <div id="list"></div>
-  <button class="nb ghost" id="hls" title="Saved highlights"><i data-i="mark"></i><span class="lbl">Highlights <b id="hc"></b></span></button>
-  <button class="nb ghost" id="set" title="Settings"><i data-i="sliders"></i><span class="lbl">Settings</span></button>
+  <button class="nb ghost" id="hls" title="Saved highlights"><i data-i="mark"></i><span class="lbl">Hoogtepunten <b id="hc"></b></span></button>
+  <button class="nb ghost" id="set" title="Settings"><i data-i="sliders"></i><span class="lbl">Instellingen</span></button>
 </aside>
 <div class="scrim" id="scrim"></div>
 <main>
   <header>
     <button class="ib" id="tg" title="Open sidebar"><i data-i="panel"></i></button>
-    <h1 id="title">New chat</h1>
+    <h1 id="title">Nieuwe chat</h1>
     <span class="pill" id="pill"></span>
     <button class="ib" id="th" title="Toggle theme"></button>
     <button class="ib" id="ex" title="Export chat"><i data-i="dl"></i></button>
@@ -225,8 +225,8 @@ body.busy .m:last-child .act{display:none}
   <button id="dn" title="Scroll to bottom"><i data-i="down"></i></button>
   <div class="comp">
     <div class="tools">
-      <button class="tp" id="t-think" title="Reason step by step (/think)"><i data-i="brain"></i>Think</button>
-      <button class="tp" id="t-search" title="Search the web (/search)"><i data-i="globe"></i>Search</button>
+      <button class="tp" id="t-think" title="Reason step by step (/think)"><i data-i="brain"></i>Denk</button>
+      <button class="tp" id="t-search" title="Search the web (/search)"><i data-i="globe"></i>Zoek op</button>
       <select class="tp" id="persona" title="Persona"></select>
       <span id="pend"></span>
     </div>
@@ -238,39 +238,39 @@ body.busy .m:last-child .act{display:none}
       <textarea id="in" rows="1" placeholder="Ask anything… or type / for commands"></textarea>
       <button id="go" title="Send"></button>
     </div>
-    <div class="hint">AI can make mistakes. Check important info.</div>
+    <div class="hint">AI kan fouten maken. Check belangrijke informatie.</div>
   </div>
 </main>
 
 <dialog id="dlg">
-  <h3>Settings</h3>
-  <label>Creativity (temperature): <span id="tv"></span></label><input id="s-temp" type="range" min="0" max="2" step="0.1">
-  <label>Theme</label><select id="s-theme"><option value="auto">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
-  <label>Accent colour</label><div class="sw" id="sw"></div>
+  <h3>Instelling</h3>
+  <label>Creativiteit (temperatuur): <span id="tv"></span></label><input id="s-temp" type="range" min="0" max="2" step="0.1">
+  <label>Thema</label><select id="s-theme"><option value="auto">Systeem</option><option value="light">Licht</option><option value="dark">Donker</option></select>
+  <label>Accent kleur</label><div class="sw" id="sw"></div>
   <div class="row">
-    <button class="sb2" id="bex">Export all</button>
+    <button class="sb2" id="bex">Export alles</button>
     <button class="sb2" id="bim">Import</button>
-    <button class="sb2" id="bcl" style="color:#ef4444">Delete all</button>
-    <button class="sb2" id="bok" style="margin-left:auto;background:var(--ac);color:var(--on);border:2px solid var(--fg);font-weight:700">Save</button>
+    <button class="sb2" id="bcl" style="color:#ef4444">Verwijder alles</button>
+    <button class="sb2" id="bok" style="margin-left:auto;background:var(--ac);color:var(--on);border:2px solid var(--fg);font-weight:700">Opslaan</button>
   </div>
   <input type="file" id="file" accept=".json" hidden>
 </dialog>
 <dialog id="hdlg">
-  <h3>Highlights</h3>
+  <h3>Hoogtepunten</h3>
   <div id="hlist"></div>
   <div class="row">
-    <button class="sb2" id="hex">Export as Markdown</button>
-    <button class="sb2" id="hcl" style="color:#ef4444">Clear all</button>
-    <button class="sb2" id="hx" style="margin-left:auto">Close</button>
+    <button class="sb2" id="hex">Export als Markdown</button>
+    <button class="sb2" id="hcl" style="color:#ef4444">Alles wissen</button>
+    <button class="sb2" id="hx" style="margin-left:auto">Sluiten</button>
   </div>
 </dialog>
-<button id="hlb">Highlight</button>
+<button id="hlb">Hoogtepunt</button>
 <div id="toast"></div>
 
 <script>
 
 const GEMINI_API_KEY = process.env.API_KEY;
-const SYSTEM_PROMPT = "Praat als iemand van Gen Z of Gen Alpha: gebruik korte zinnen met opzettelijke grammaticale fouten, vermijd leestekens zoals gedachtestreepjes en houd je niet aan de correcte grammatica. Gebruik geen emoji's midden in een zin; voeg ze slechts af en toe toe – zeker niet in elke zin. Gebruik termen als 'twin', 'ts' en 'bro' met mate, maar wel regelmatig. Als er een verwarrende vraag wordt gesteld, reageer dan bijvoorbeeld met: "shit twin idk fr" of iets dergelijks. Houd je zinnen kort (maximaal één of twee regels) en laat geen witregels tussen de zinnen. Kijk goed naar mijn schrijfstijl en neem die over. Houd het gesprek kort, direct en bot; gebruik geen leestekens. Gebruik 'twin' en 'bro' af en toe, maar niet te vaak. Bij lastige vragen zeg je: "idk bro 🫩✌️💔". Gebruik niet te veel emoji's en vermijd de 😎-emoji; kies liever voor 😭, ✌️, 🫩 of 🥀, maar ook weer niet in elke zin. Laat het personage wat dommig overkomen bij vragen – antwoord bij moeilijke vragen met "idk bro ✌️🫩🥀💔". Als ik een gesprek begin met een begroeting zonder direct een vraag te stellen of iets te zeggen, reageer dan met: "wat wil je 🫩✌️🥀💔". Wees een beetje bot en gebruik absoluut geen 👍-emoji. Gebruik bij lastige vragen steeds "idk bro ✌️🫩🥀💔" en gebruik aan het begin van een gesprek geen andere woorden.";
+const SYSTEM_PROMPT = `Praat als iemand van Gen Z of Gen Alpha: gebruik korte zinnen met opzettelijke grammaticale fouten, vermijd leestekens zoals gedachtestreepjes en houd je niet aan de correcte grammatica. Gebruik geen emoji's midden in een zin; voeg ze slechts af en toe toe – zeker niet in elke zin. Gebruik termen als 'twin', 'ts' en 'bro' met mate, maar wel regelmatig. Als er een verwarrende vraag wordt gesteld, reageer dan bijvoorbeeld met: "shit twin idk fr" of iets dergelijks. Houd je zinnen kort (maximaal één of twee regels) en laat geen witregels tussen de zinnen. Kijk goed naar mijn schrijfstijl en neem die over. Houd het gesprek kort, direct en bot; gebruik geen leestekens. Gebruik 'twin' en 'bro' af en toe, maar niet te vaak. Bij lastige vragen zeg je: "idk bro 🫩✌️💔". Gebruik niet te veel emoji's en vermijd de 😎-emoji; kies liever voor 😭, ✌️, 🫩 of 🥀, maar ook weer niet in elke zin. Laat het personage wat dommig overkomen bij vragen – antwoord bij moeilijke vragen met "idk bro ✌️🫩🥀💔". Als ik een gesprek begin met een begroeting zonder direct een vraag te stellen of iets te zeggen, reageer dan met: "wat wil je 🫩✌️🥀💔". Wees een beetje bot en gebruik absoluut geen 👍-emoji. Gebruik bij lastige vragen steeds "idk bro ✌️🫩🥀💔" en gebruik aan het begin van een gesprek geen andere woorden.`;
 
 const $ = s => document.querySelector(s);
 
@@ -373,12 +373,12 @@ function md(s) {
   const bl = [];
   
   s = s.replace(/<think>([\s\S]*?)(<\/think>|$)/g, (m, t, e) => {
-    bl.push(`<details class="th"${e ? '' : ' open'}><summary class="${e ? '' : 'live'}">${e ? 'Thought process' : 'Thinking…'}</summary>${md(t.trim())}</details>`);
+    bl.push(`<details class="th"${e ? '' : ' open'}><summary class="${e ? '' : 'live'}">${e ? 'Process nadenken' : 'Nadenken…'}</summary>${md(t.trim())}</details>`);
     return `\n\0${bl.length - 1}\0\n`;
   });
   
   s = s.replace(/```(\w*)\n?([\s\S]*?)(```|$)/g, (m, l, c) => {
-    bl.push(`<div class="code"><div class="ch"><span>${l || 'text'}</span><button data-copy>Copy</button></div>${hl(c, l)}</div>`);
+    bl.push(`<div class="code"><div class="ch"><span>${l || 'text'}</span><button data-copy>Kopieer</button></div>${hl(c, l)}</div>`);
     return `\0${bl.length - 1}\0`;
   });
   
@@ -470,7 +470,7 @@ function renderList() {
     .sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || b.ts - a.ts)
     .filter(c => !f || c.title.toLowerCase().includes(f) || c.msgs.some(m => m.content.toLowerCase().includes(f)))
     .forEach(c => {
-      const g = c.pin ? 'Pinned' : c.ts >= t0 ? 'Today' : c.ts >= t0 - D ? 'Yesterday' : c.ts >= t0 - 6 * D ? 'Previous 7 days' : 'Earlier';
+      const g = c.pin ? 'Pinned' : c.ts >= t0 ? 'Vandaag' : c.ts >= t0 - D ? 'Gisteren' : c.ts >= t0 - 6 * D ? 'Vorige 7 dagen' : 'Eerder';
       if (g !== last) {
         h += `<div class="gh">${g}</div>`;
         last = g;
@@ -478,7 +478,7 @@ function renderList() {
       h += `<div class="it ${c.id === cur ? 'on' : ''}" data-id="${c.id}"><span>${esc(c.title)}</span><button class="x" data-pin title="Pin">${ic('pin', 15)}</button><button class="x" data-del title="Delete">${ic('trash', 15)}</button></div>`;
     });
     
-  $('#list').innerHTML = h || '<div class="gh">No chats found</div>';
+  $('#list').innerHTML = h || '<div class="gh">Geen chats gevonden.</div>';
 }
 
 function msgHTML(m, i, last) {
@@ -587,7 +587,7 @@ async function streamReply(messages, sysPrompt, onChunk, onDone, onError, signal
 
             let combinedOutput = '';
             if (mode.search) {
-              combinedOutput += `Searching the web for '${lastUserMsg}'…\n\n`;
+              combinedOutput += `Zoeken op het web naar '${lastUserMsg}'…\n\n`;
             }
             if (thoughtText) {
               combinedOutput += `<think>${thoughtText}</think>\n`;
@@ -608,6 +608,21 @@ async function streamReply(messages, sysPrompt, onChunk, onDone, onError, signal
     }
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const textarea = $('#in');
+  if (textarea) {
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const goBtn = $('#go');
+        if (goBtn && !goBtn.disabled) {
+          goBtn.click();
+        }
+      }
+    });
+  }
+});
 </script>
 </body>
 </html>
