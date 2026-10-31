@@ -3,12 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=JetBrains+Mono:wght@400;500&display=swap">
-<title>margin</title>
+<title>realjoshai</title>
 <style>
-:root{--bg:#f3f4f6;--sb:#e8eaee;--card:#ffffff;--fg:#14161c;--mut:#666b78;--bd:#d3d7df;--hov:#14161c0e;--on:#14161c;--sh:0 8px 24px -10px rgba(20,22,28,.4);--code:#14161c}
+:root{--ac:#ffd84a;--ac2:#ffd84a;--bg:#f3f4f6;--sb:#e8eaee;--card:#ffffff;--fg:#14161c;--mut:#666b78;--bd:#d3d7df;--hov:#14161c0e;--on:#14161c;--sh:0 8px 24px -10px rgba(20,22,28,.4);--code:#14161c}
 :root[data-t=dark]{--bg:#0f1a2b;--sb:#0a121f;--card:#17263d;--fg:#eef1f6;--mut:#8f9cb4;--bd:#27374f;--hov:#ffffff12;--sh:0 8px 24px -10px rgba(0,0,0,.7);--code:#08101c}
 *{box-sizing:border-box}html,body{height:100%;margin:0}
 body{font:15px/1.65 Inter,"SF Pro Text",system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--fg);display:flex;overflow:hidden;-webkit-font-smoothing:antialiased}
@@ -117,12 +116,12 @@ details.th summary{cursor:pointer;font-weight:600;color:var(--fg)}details.th[ope
 .srcs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.m.user .srcs{justify-content:flex-end}
 .srcs a{font-size:12px;border:1px solid var(--bd);border-radius:99px;padding:3px 11px;color:var(--mut);text-decoration:none;background:var(--card)}.srcs a:hover{border-color:var(--ac);color:var(--ac)}
 @media(max-width:800px){
-  aside{position:fixed;left:0;top:0;bottom:0;width:300px!important;transform:translateX(-100%)}
-  body.open aside{transform:none;box-shadow:var(--sh)}
-  body.col .lbl,body.col #list,body.col .sr,body.col .name,body.col .logo,body.col .brand .gap{display:revert}
-  body.col .lbl{display:inline}
-  .scrim{display:block;position:fixed;inset:0;background:#0006;z-index:15;opacity:0;pointer-events:none;transition:.3s}body.open .scrim{opacity:1;pointer-events:auto}
-  #tg{display:inline-flex}.w{padding:8px 14px 24px}
+ aside{position:fixed;left:0;top:0;bottom:0;width:300px!important;transform:translateX(-100%)}
+ body.open aside{transform:none;box-shadow:var(--sh)}
+ body.col .lbl,body.col #list,body.col .sr,body.col .name,body.col .logo,body.col .brand .gap{display:revert}
+ body.col .lbl{display:inline}
+ .scrim{display:block;position:fixed;inset:0;background:#0006;z-index:15;opacity:0;pointer-events:none;transition:.3s}body.open .scrim{opacity:1;pointer-events:auto}
+ #tg{display:inline-flex}.w{padding:8px 14px 24px}
 }
 body.col #tg{display:inline-flex}
 
@@ -204,52 +203,52 @@ body.busy .m:last-child .act{display:none}
     <div class="logo"><i data-i="spark"></i></div>
     <span class="name">realjoshai</span>
     <span class="gap"></span>
-    <button class="ib" id="tg2" title="Collapse sidebar"><i data-i="panel"></i></button>
+    <button class="ib" id="tg2" title="Zijbalk inklappen"><i data-i="panel"></i></button>
   </div>
-  <button class="nb pri" id="new" title="New chat (Ctrl+K)"><i data-i="plus"></i><span class="lbl">Nieuwe chat</span></button>
-  <div class="sr"><i data-i="search"></i><input id="q" placeholder="Search chats"></div>
+  <button class="nb pri" id="new" title="Nieuwe chat (Ctrl+K)"><i data-i="plus"></i><span class="lbl">Nieuwe chat</span></button>
+  <div class="sr"><i data-i="search"></i><input id="q" placeholder="Zoek chats"></div>
   <div id="list"></div>
-  <button class="nb ghost" id="hls" title="Saved highlights"><i data-i="mark"></i><span class="lbl">Hoogtepunten <b id="hc"></b></span></button>
-  <button class="nb ghost" id="set" title="Settings"><i data-i="sliders"></i><span class="lbl">Instellingen</span></button>
+  <button class="nb ghost" id="hls" title="Opgeslagen hoogtepunten"><i data-i="mark"></i><span class="lbl">Hoogtepunten <b id="hc"></b></span></button>
+  <button class="nb ghost" id="set" title="Instellingen"><i data-i="sliders"></i><span class="lbl">Instellingen</span></button>
 </aside>
 <div class="scrim" id="scrim"></div>
 <main>
   <header>
-    <button class="ib" id="tg" title="Open sidebar"><i data-i="panel"></i></button>
+    <button class="ib" id="tg" title="Zijbalk openen"><i data-i="panel"></i></button>
     <h1 id="title">Nieuwe chat</h1>
     <span class="pill" id="pill"></span>
-    <button class="ib" id="th" title="Toggle theme"></button>
-    <button class="ib" id="ex" title="Export chat"><i data-i="dl"></i></button>
+    <button class="ib" id="th" title="Thema wisselen"></button>
+    <button class="ib" id="ex" title="Chat exporteren"><i data-i="dl"></i></button>
   </header>
   <div id="msgs"><div class="w" id="w"></div></div>
-  <button id="dn" title="Scroll to bottom"><i data-i="down"></i></button>
+  <button id="dn" title="Naar beneden"><i data-i="down"></i></button>
   <div class="comp">
     <div class="tools">
-      <button class="tp" id="t-think" title="Reason step by step (/think)"><i data-i="brain"></i>Denk</button>
-      <button class="tp" id="t-search" title="Search the web (/search)"><i data-i="globe"></i>Zoek op</button>
+      <button class="tp" id="t-think" title="Eerst nadenken (/think)"><i data-i="brain"></i>Denk</button>
+      <button class="tp" id="t-search" title="Zoeken op het web (/search)"><i data-i="globe"></i>Zoek op</button>
       <select class="tp" id="persona" title="Persona"></select>
       <span id="pend"></span>
     </div>
     <div class="box">
       <div id="sl"></div>
-      <button class="ib" id="at" title="Attach a text file"><i data-i="clip"></i></button>
-      <button class="ib" id="mic" title="Voice input"><i data-i="mic"></i></button>
+      <button class="ib" id="at" title="Bestand of afbeelding toevoegen"><i data-i="clip"></i></button>
+      <button class="ib" id="mic" title="Spraak"><i data-i="mic"></i></button>
       <input type="file" id="fl" accept="image/*,text/*,.md,.csv,.json,.js,.py,.log,.html,.css,.xml,.yml" multiple hidden>
-      <textarea id="in" rows="1" placeholder="Ask anything… or type / for commands"></textarea>
-      <button id="go" title="Send"></button>
+      <textarea id="in" rows="1" placeholder="Vraag alles… of typ / voor commando's"></textarea>
+      <button id="go" title="Versturen"></button>
     </div>
     <div class="hint">AI kan fouten maken. Check belangrijke informatie.</div>
   </div>
 </main>
 
 <dialog id="dlg">
-  <h3>Instelling</h3>
+  <h3>Instellingen</h3>
   <label>Creativiteit (temperatuur): <span id="tv"></span></label><input id="s-temp" type="range" min="0" max="2" step="0.1">
   <label>Thema</label><select id="s-theme"><option value="auto">Systeem</option><option value="light">Licht</option><option value="dark">Donker</option></select>
-  <label>Accent kleur</label><div class="sw" id="sw"></div>
+  <label>Accentkleur</label><div class="sw" id="sw"></div>
   <div class="row">
-    <button class="sb2" id="bex">Export alles</button>
-    <button class="sb2" id="bim">Import</button>
+    <button class="sb2" id="bex">Exporteer alles</button>
+    <button class="sb2" id="bim">Importeer</button>
     <button class="sb2" id="bcl" style="color:#ef4444">Verwijder alles</button>
     <button class="sb2" id="bok" style="margin-left:auto;background:var(--ac);color:var(--on);border:2px solid var(--fg);font-weight:700">Opslaan</button>
   </div>
@@ -259,7 +258,7 @@ body.busy .m:last-child .act{display:none}
   <h3>Hoogtepunten</h3>
   <div id="hlist"></div>
   <div class="row">
-    <button class="sb2" id="hex">Export als Markdown</button>
+    <button class="sb2" id="hex">Exporteer als Markdown</button>
     <button class="sb2" id="hcl" style="color:#ef4444">Alles wissen</button>
     <button class="sb2" id="hx" style="margin-left:auto">Sluiten</button>
   </div>
@@ -268,19 +267,19 @@ body.busy .m:last-child .act{display:none}
 <div id="toast"></div>
 
 <script>
-
+// margin - single-file chat UI
+// Sections: markdown, chats & rendering, sending & streaming, API layer, slash commands,
+// syntax highlighting, highlights, UI wiring. To plug in your own backend, edit the
+// "API LAYER" section (streamReply) - nothing else needs to change.
+// ---------------------------------------------------------------------------
+// CONFIG
+// ---------------------------------------------------------------------------
 const GEMINI_API_KEY = "api_key_placeholder";
+const GEMINI_MODEL = 'gemini-2.5-flash';
 const SYSTEM_PROMPT = `Praat als iemand van Gen Z of Gen Alpha: gebruik korte zinnen met opzettelijke grammaticale fouten, vermijd leestekens zoals gedachtestreepjes en houd je niet aan de correcte grammatica. Gebruik geen emoji's midden in een zin; voeg ze slechts af en toe toe – zeker niet in elke zin. Gebruik termen als 'twin', 'ts' en 'bro' met mate, maar wel regelmatig. Als er een verwarrende vraag wordt gesteld, reageer dan bijvoorbeeld met: "shit twin idk fr" of iets dergelijks. Houd je zinnen kort (maximaal één of twee regels) en laat geen witregels tussen de zinnen. Kijk goed naar mijn schrijfstijl en neem die over. Houd het gesprek kort, direct en bot; gebruik geen leestekens. Gebruik 'twin' en 'bro' af en toe, maar niet te vaak. Bij lastige vragen zeg je: "idk bro 🫩✌️💔". Gebruik niet te veel emoji's en vermijd de 😎-emoji; kies liever voor 😭, ✌️, 🫩 of 🥀, maar ook weer niet in elke zin. Laat het personage wat dommig overkomen bij vragen – antwoord bij moeilijke vragen met "idk bro ✌️🫩🥀💔". Als ik een gesprek begin met een begroeting zonder direct een vraag te stellen of iets te zeggen, reageer dan met: "wat wil je 🫩✌️🥀💔". Wees een beetje bot en gebruik absoluut geen 👍-emoji. Gebruik bij lastige vragen steeds "idk bro ✌️🫩🥀💔" en gebruik aan het begin van een gesprek geen andere woorden.`;
 
 const $ = s => document.querySelector(s);
-
-const esc = s => s.replace(/[&<>"]/g, c => ({
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;'
-}[c]));
-
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ld = (k, d) => {
   try {
     return JSON.parse(localStorage.getItem(k)) || d;
@@ -288,7 +287,7 @@ const ld = (k, d) => {
     return d;
   }
 };
-
+// Line icons (24x24 SVG path data)
 const P = {
   mark: '<path d="M9 11l-5 5v4h4l5-5M9 11l6-6 4 4-6 6M9 11l4 4"/>',
   vol: '<path d="M11 5L6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
@@ -317,87 +316,58 @@ const P = {
   mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
   pot: '<path d="M5 11h14v6a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3zM3 11h18M9 7c0-2 2-2 2-4M14 7c0-2 2-2 2-4"/>',
 };
-
 const ic = (n, s = 18) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg>`;
-
 const icons = () => document.querySelectorAll('i[data-i]').forEach(e => e.innerHTML = ic(e.dataset.i, e.closest('.logo') ? 16 : 18));
-
-const AC = [
-  ['#ffd84a', '#ffd84a'],
-  ['#ff9ec4', '#ff9ec4'],
-  ['#8be9b4', '#8be9b4'],
-  ['#85c8ff', '#85c8ff'],
-  ['#ffab6b', '#ffab6b']
-];
-
-let S = Object.assign({
-  temp: 0.7,
-  theme: 'auto',
-  ac: 0,
-  col: false,
-  persona: 'Assistant'
-}, ld('cfg', {}));
-
-let chats = ld('chats', []),
-    cur = null,
-    ctrl = null,
-    busy = false,
-    mode = { think: false, search: false },
-    pend = [];
-
+const AC = [['#ffd84a', '#ffd84a'], ['#ff9ec4', '#ff9ec4'], ['#8be9b4', '#8be9b4'], ['#85c8ff', '#85c8ff'], ['#ffab6b', '#ffab6b']];
+let S = Object.assign({ temp: 0.7, theme: 'auto', ac: 0, col: false, persona: 'Standaard' }, ld('cfg', {}));
+let chats = ld('chats', []), cur = null, ctrl = null, busy = false, mode = { think: false, search: false }, pend = [];
 const save = () => {
   try {
     localStorage.setItem('chats', JSON.stringify(chats));
     localStorage.setItem('cfg', JSON.stringify(S));
-  } catch {}
+  } catch { }
 };
-
 const chat = () => chats.find(c => c.id === cur);
-
 const toast = t => {
   const e = $('#toast');
   e.textContent = t;
   e.classList.add('on');
   setTimeout(() => e.classList.remove('on'), 1600);
 };
+// Demo mode while no real key is set. Deliberately avoids repeating the placeholder text,
+// so a build step that swaps the placeholder everywhere can't break this check.
+const demo = () => !GEMINI_API_KEY || GEMINI_API_KEY.startsWith('api_key_');
+// ===========================================================================
+// MARKDOWN
+// ===========================================================================
 
 function inl(t) {
-  return t
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-    .replace(/(^|\W)\*(?!\s)(.+?)\*/g, '$1<i>$2</i>')
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  return t.replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|\W)\*(?!\s)(.+?)\*/g, '$1<i>$2</i>').replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
 
 function md(s) {
   const bl = [];
-  
   s = s.replace(/<think>([\s\S]*?)(<\/think>|$)/g, (m, t, e) => {
-    bl.push(`<details class="th"${e ? '' : ' open'}><summary class="${e ? '' : 'live'}">${e ? 'Process nadenken' : 'Nadenken…'}</summary>${md(t.trim())}</details>`);
+    bl.push(`<details class="th"${e ? '' : ' open'}><summary class="${e ? '' : 'live'}">${e ? 'Denkproces' : 'Nadenken…'}</summary>${md(t.trim())}</details>`);
     return `\n\0${bl.length - 1}\0\n`;
   });
-  
   s = s.replace(/```(\w*)\n?([\s\S]*?)(```|$)/g, (m, l, c) => {
     bl.push(`<div class="code"><div class="ch"><span>${l || 'text'}</span><button data-copy>Kopieer</button></div>${hl(c, l)}</div>`);
     return `\0${bl.length - 1}\0`;
   });
-  
   s = s.replace(/^(\|.+\|[ \t]*\n)(\|[ \t:|-]+\|[ \t]*\n)((?:\|.*\|[ \t]*(?:\n|$))*)/gm, (m, h, _, b) => {
     const row = (r, t) => '<tr>' + r.trim().slice(1, -1).split('|').map(c => `<${t}>${inl(esc(c.trim()))}</${t}>`).join('') + '</tr>';
     bl.push(`<div class="tw"><table>${row(h, 'th')}${b.trim() ? b.trim().split('\n').map(r => row(r, 'td')).join('') : ''}</table></div>`);
     return `\n\0${bl.length - 1}\0\n`;
   });
-  
   const out = [];
   let list = null;
-  
   const close = () => {
     if (list) {
       out.push(`</${list}>`);
       list = null;
     }
   };
-  
   const open = t => {
     if (list !== t) {
       close();
@@ -405,7 +375,6 @@ function md(s) {
       list = t;
     }
   };
-  
   for (const raw of esc(s).split('\n')) {
     let m;
     if (/^\0\d+\0$/.test(raw)) {
@@ -426,17 +395,19 @@ function md(s) {
     } else if (m = raw.match(/^&gt;\s?(.*)/)) {
       close();
       out.push(`<blockquote>${inl(m[1])}</blockquote>`);
-    } else if (!raw.trim()) {
+    } else if (!raw.trim())
       close();
-    } else {
+    else {
       close();
       out.push(`<p>${inl(raw)}</p>`);
     }
   }
-  
   close();
   return out.join('').replace(/\0(\d+)\0/g, (_, i) => bl[i]);
 }
+// ===========================================================================
+// CHATS & RENDERING
+// ===========================================================================
 
 function newChat() {
   const c = chat();
@@ -444,7 +415,7 @@ function newChat() {
     $('#in').focus();
     return;
   }
-  const n = { id: Date.now().toString(36), title: 'New chat', msgs: [], ts: Date.now() };
+  const n = { id: Date.now().toString(36), title: 'Nieuwe chat', msgs: [], ts: Date.now() };
   chats.unshift(n);
   cur = n.id;
   save();
@@ -460,253 +431,831 @@ function newChatForce() {
 }
 
 function renderList() {
-  const f = $('#q').value.toLowerCase(),
-        t0 = new Date().setHours(0, 0, 0, 0),
-        D = 864e5;
-  let last = '',
-      h = '';
-      
-  [...chats]
-    .sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || b.ts - a.ts)
-    .filter(c => !f || c.title.toLowerCase().includes(f) || c.msgs.some(m => m.content.toLowerCase().includes(f)))
-    .forEach(c => {
-      const g = c.pin ? 'Pinned' : c.ts >= t0 ? 'Vandaag' : c.ts >= t0 - D ? 'Gisteren' : c.ts >= t0 - 6 * D ? 'Vorige 7 dagen' : 'Eerder';
-      if (g !== last) {
-        h += `<div class="gh">${g}</div>`;
-        last = g;
-      }
-      h += `<div class="it ${c.id === cur ? 'on' : ''}" data-id="${c.id}"><span>${esc(c.title)}</span><button class="x" data-pin title="Pin">${ic('pin', 15)}</button><button class="x" data-del title="Delete">${ic('trash', 15)}</button></div>`;
-    });
-    
-  $('#list').innerHTML = h || '<div class="gh">Geen chats gevonden.</div>';
+  const f = $('#q').value.toLowerCase(), t0 = new Date().setHours(0, 0, 0, 0), D = 864e5;
+  let last = '', h = '';
+  [...chats].sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || b.ts - a.ts).filter(c => !f || c.title.toLowerCase().includes(f) || c.msgs.some(m => m.content.toLowerCase().includes(f))).forEach(c => {
+    const g = c.pin ? 'Vastgepind' : c.ts >= t0 ? 'Vandaag' : c.ts >= t0 - D ? 'Gisteren' : c.ts >= t0 - 6 * D ? 'Vorige 7 dagen' : 'Eerder';
+    if (g !== last) {
+      h += `<div class="gh">${g}</div>`;
+      last = g;
+    }
+    h += `<div class="it ${c.id === cur ? 'on' : ''}" data-id="${c.id}"><span>${esc(c.title)}</span><button class="x" data-pin title="Vastzetten">${ic('pin', 15)}</button><button class="x" data-del title="Verwijderen">${ic('trash', 15)}</button></div>`;
+  });
+  $('#list').innerHTML = h || '<div class="gh">Geen chats gevonden</div>';
 }
 
 function msgHTML(m, i, last) {
   const u = m.role === 'user';
   return `<div class="m ${m.role}" data-i="${i}">${u ? '' : `<div class="av">${ic('spark', 16)}</div>`}<div class="bd">${m.src?.length ? `<div class="srcs">${m.src.map((x, k) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${k + 1} · ${esc(x.title)}</a>`).join('')}</div>` : ''}${m.att?.length ? `<div class="srcs">${m.att.map(f => f.img ? `<img class="thumb big" src="${f.img}">` : `<span class="tp">${esc(f.name)}</span>`).join('')}</div>` : ''}<div class="bub">${u ? esc(m.content) : assistantBody(m, last)}</div>
-  <div class="act"><button data-a="copy">${ic('copy', 14)}Copy</button>${u ? '' : `<button data-a="speak">${ic('vol', 14)}Listen</button>`}${u ? `<button data-a="edit">${ic('edit', 14)}Edit</button>` : ''}${!u && last && !m.local ? `<button data-a="regen">${ic('redo', 14)}Regenerate</button>` : ''}</div></div></div>`;
+  <div class="act"><button data-a="copy">${ic('copy', 14)}Kopieer</button>${u ? '' : `<button data-a="speak">${ic('vol', 14)}Voorlezen</button>`}${u ? `<button data-a="edit">${ic('edit', 14)}Bewerk</button>` : ''}${!u && last && !m.local ? `<button data-a="regen">${ic('redo', 14)}Opnieuw</button>` : ''}</div></div></div>`;
 }
 
-async function streamReply(messages, sysPrompt, onChunk, onDone, onError, signal) {
-  const base = 'https://generativelanguage.googleapis.com/v1beta';
-  const model = 'gemini-2.5-flash';
-  const key = GEMINI_API_KEY;
-  
-  const url = `${base}/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(key)}`;
-  
-  const contents = messages.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }]
-  }));
+function renderMsgs() {
+  const c = chat(), w = $('#w');
+  if (!c.msgs.length) {
+    const h = new Date().getHours(), g = h < 5 ? 'Hallo, nachtuil' : h < 12 ? 'Goedemorgen' : h < 18 ? 'Goedemiddag' : 'Goedenavond';
+    const S1 = [['map', 'Plan een trip', 'Help me een rustig weekendje weg van 3 dagen plannen'], ['book', 'Leer iets', 'Leg uit hoe zwarte gaten werken in simpele woorden'], ['mail', 'Schrijf een mail', 'Schrijf een nette mail om mijn baas om een vrije dag te vragen'], ['pot', 'Kook vanavond', 'Geef me 5 makkelijke dinerideeën met kip en rijst']];
+    w.innerHTML = `<div class="hero"><h2><span>${g}.<br>Hoe kan ik je helpen vandaag?</span></h2><p>${demo() ? 'Demomodus · zet je API-sleutel in GEMINI_API_KEY om echt te chatten' : 'Vraag me alles · typ / voor commando\'s'}</p><div class="chips">${S1.map(s => `<button class="chip" data-p="${esc(s[2])}"><b>${s[1]}</b><span>${s[2]}</span></button>`).join('')}</div></div>`;
+  } else
+    w.innerHTML = c.msgs.map((m, i) => msgHTML(m, i, i === c.msgs.length - 1)).join('');
+}
 
-  const body = {
-    contents: contents,
-    generationConfig: {
-      temperature: S.temp
-    }
+function renderAll() {
+  const c = chat();
+  $('#title').textContent = c.title;
+  document.title = c.title + ' · realjoshai';
+  $('#pill').textContent = demo() ? 'Demomodus' : GEMINI_MODEL;
+  renderList();
+  renderMsgs();
+  renderPend();
+  scroll(true);
+}
+
+function scroll(f) {
+  const m = $('#msgs');
+  if (f || m.scrollHeight - m.scrollTop - m.clientHeight < 160) m.scrollTop = m.scrollHeight;
+}
+// ===========================================================================
+// SENDING & STREAMING
+// ===========================================================================
+
+async function send(text, opts = {}) {
+  text = text.trim();
+  if ((!text && !pend.length) || busy) return;
+  if (!opts.raw && text[0] === '/' && runCmd(text)) return;
+
+  const c = chat();
+  const u = { role: 'user', content: text, att: pend.length ? pend : undefined };
+  const a = {
+    role: 'assistant',
+    content: '',
+    think: opts.think || mode.think || undefined,
+    search: opts.search || mode.search || undefined,
+  };
+  pend = [];
+  c.msgs.push(u, a);
+  c.ts = Date.now();
+  if (c.title === 'Nieuwe chat' || c.title === 'New chat') c.title = (text || u.att[0].name).slice(0, 42);
+
+  busy = true;
+  ctrl = new AbortController();
+  $('#in').value = '';
+  fit();
+  hideSl();
+  renderAll();
+  await stream(c);
+}
+
+const firstStatus = (a) => (a.search ? 'Zoeken op het web…' : a.think ? 'Nadenken…' : 'Genereren…');
+
+function assistantBody(m, last) {
+  if (m.content) return md(m.content);
+  if (last && (busy || m.status)) {
+    return `<span class="status"><span class="eq"><i></i><i></i><i></i></span><span class="stx">${m.status || firstStatus(m)}</span><span class="el"></span></span>`;
+  }
+  return '<span class="stopped">Gestopt.</span>';
+}
+
+function setStatus(a, text) {
+  a.status = text;
+  const el = document.querySelector('.m:last-child .status .stx');
+  if (el) el.textContent = text;
+}
+
+async function stream(c) {
+  const a = c.msgs[c.msgs.length - 1];
+  busy = true;
+  ctrl = ctrl || new AbortController();
+  setBusy(true);
+  setStatus(a, firstStatus(a));
+  if (!document.querySelector('.m:last-child .status')) renderAll();
+  scroll(true);
+
+  const bubble = $('#w').lastElementChild.querySelector('.bub');
+  const started = Date.now();
+  const timer = setInterval(() => {
+    const el = document.querySelector('.status .el');
+    if (!el) return;
+    const secs = Math.floor((Date.now() - started) / 1000);
+    el.textContent = secs >= 2 ? secs + 's' : '';
+  }, 500);
+  const paint = () => {
+    bubble.innerHTML = md(a.content) + '<span class="cur"></span>';
+    scroll();
   };
 
-  const effectiveSysPrompt = SYSTEM_PROMPT;
-  if (effectiveSysPrompt) {
-    body.systemInstruction = { parts: [{ text: effectiveSysPrompt }] };
-  }
-
-  const toolsList = [];
-  if (mode.search) {
-    toolsList.push({ googleSearch: {} });
-  }
-  if (toolsList.length > 0) {
-    body.tools = toolsList;
-  }
-
-  if (mode.think) {
-    body.generationConfig.thinkingConfig = {
-      thinkingBudget: 2048
-    };
-  }
-
-  // Show "Searching the web for '{}'" status if search is active
-  const lastUserMsg = messages.filter(m => m.role === 'user').pop()?.content || '';
-  if (mode.search) {
-    onChunk(`Zoeken op het web naar '${lastUserMsg}'…\n\n`, []);
-  }
-
   try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal
+    const source = demo()
+      ? demoReply({ think: a.think, prompt: c.msgs[c.msgs.length - 2].content, signal: ctrl.signal })
+      : streamReply({ messages: apiMsgs(c), system: sysP(), think: a.think, search: a.search, signal: ctrl.signal });
+
+    for await (const chunk of source) {
+      if (chunk.type === 'sources') {
+        a.src = chunk.sources;
+        continue;
+      }
+      if (chunk.type === 'status') {
+        setStatus(a, chunk.text);
+        continue;
+      }
+      if (chunk.type === 'reasoning') {
+        if (!a.rin) {
+          a.content += '<think>';
+          a.rin = 1;
+        }
+      } else if (a.rin) {
+        a.content += '</think>';
+        a.rin = 0;
+      }
+      a.content += chunk.text;
+      paint();
+    }
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      console.error(e);
+      const detail = String(e.message || e).replace(/\s+/g, ' ').slice(0, 300);
+      a.content += (a.content ? '\n\n' : '') + 'idk bro ✌️🫩🥀💔\n\n> ' + detail;
+    }
+  }
+
+  clearInterval(timer);
+  if (a.rin) {
+    a.content += '</think>';
+    a.rin = 0;
+  }
+  delete a.status;
+  busy = false;
+  ctrl = null;
+  save();
+  renderAll();
+}
+
+function setBusy(b) {
+  const g = $('#go');
+  document.body.classList.toggle('busy', b);
+  g.innerHTML = ic(b ? 'stop' : 'send', 20);
+  g.title = b ? 'Stop (Esc)' : 'Versturen';
+  g.disabled = !b && !$('#in').value.trim() && !pend.length;
+}
+const stop = () => ctrl && ctrl.abort();
+// ===========================================================================
+// SLASH COMMANDS, ATTACHMENTS, VOICE
+// ===========================================================================
+const PER = {
+  Standaard: '',
+  Tutor: 'Gedraag je als een geduldige bijlesleraar: leg stap voor stap uit en check of ik het snap.',
+  Schrijver: 'Gedraag je als een creatieve schrijfpartner met levendig, verzorgd taalgebruik.',
+  Kok: 'Gedraag je als een vriendelijke kok: geef praktische recepten en alternatieven.',
+  Vriend: 'Praat als een warme, grappige vriend. Houd het informeel.',
+  Beknopt: 'Wees extreem beknopt. Gebruik zo min mogelijk woorden.',
+};
+const strip = (t) => t.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
+const sysP = () => [SYSTEM_PROMPT, PER[S.persona]].filter(Boolean).join('\n\n');
+
+/** Chat history in a provider-neutral shape: [{ role, content, images?: [dataURL] }] */
+const apiMsgs = (c) =>
+  c.msgs
+    .slice(0, -1)
+    .filter((m) => !m.local)
+    .map((m) => {
+      if (m.role !== 'user') return { role: m.role, content: strip(m.content) };
+      const at = m.att || [];
+      const files = at.filter((f) => f.text).map((f) => `\n\n[Bijlage: ${f.name}]\n${f.text}`).join('');
+      return { role: 'user', content: m.content + files, images: at.filter((f) => f.img).map((f) => f.img) };
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`API Error (${res.status}): ${errText}`);
+// ===========================================================================
+// API LAYER  -  Gemini. Replace this section to use another provider.
+// ===========================================================================
+
+/**
+ * Streams a reply from Gemini (streamGenerateContent over SSE).
+ *
+ * Yields:
+ *   { type: 'text', text }          answer tokens
+ *   { type: 'reasoning', text }     thought summaries (shown in the "Denkproces" panel)
+ *   { type: 'sources', sources }    [{ title, url }] from Google Search grounding
+ *   { type: 'status', text }        optional status line shown while waiting
+ */
+async function* streamReply({ messages, system, think, search, signal }) {
+  // Gemini wants alternating user/model turns with non-empty parts.
+  const contents = [];
+  for (const m of messages) {
+    const parts = [];
+    if (m.content) parts.push({ text: m.content });
+    for (const img of m.images || []) {
+      const hit = img.match(/^data:(.+?);base64,(.+)$/);
+      if (hit) parts.push({ inlineData: { mimeType: hit[1], data: hit[2] } });
     }
+    if (!parts.length) continue;
+    const role = m.role === 'assistant' ? 'model' : 'user';
+    const prev = contents[contents.length - 1];
+    if (prev && prev.role === role) prev.parts.push(...parts);
+    else contents.push({ role, parts });
+  }
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let fullText = '';
-    let thoughtText = '';
-    let sources = [];
+  const body = {
+    contents,
+    systemInstruction: { parts: [{ text: system }] },
+    generationConfig: { temperature: +S.temp },
+  };
+  if (search) body.tools = [{ googleSearch: {} }];
+  if (think) body.generationConfig.thinkingConfig = { thinkingBudget: 2048, includeThoughts: true };
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse`,
+    {
+      method: 'POST',
+      signal,
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const raw = await res.text();
+    let msg = raw;
+    try {
+      msg = JSON.parse(raw).error.message;
+    } catch {}
+    throw new Error(`API ${res.status}: ${msg}`);
+  }
 
-      for (const line of lines) {
-        if (line.startsWith('data:')) {
-          const jsonStr = line.replace(/^data:\s*/, '').trim();
-          if (!jsonStr) continue;
-          try {
-            const data = JSON.parse(jsonStr);
-            const candidate = data.candidates?.[0];
-            
-            const groundingMetadata = candidate?.groundingMetadata;
-            if (groundingMetadata && groundingMetadata.groundingChunks) {
-              sources = groundingMetadata.groundingChunks
-                .filter(chunk => chunk.web)
-                .map(chunk => ({
-                  title: chunk.web.title || 'Source',
-                  url: chunk.web.uri
-                }));
-            }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  const seen = new Map();
+  let buffer = '';
+  let got = false;
+  let finish = '';
 
-            const parts = candidate?.content?.parts || [];
-            for (const part of parts) {
-              if (part.thought && part.text) {
-                thoughtText += part.text;
-              } else if (part.text) {
-                fullText += part.text;
-              }
-            }
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
 
-            let combinedOutput = '';
-            if (mode.search) {
-              combinedOutput += `Zoeken op het web naar '${lastUserMsg}'…\n\n`;
-            }
-            if (thoughtText) {
-              combinedOutput += `<think>${thoughtText}</think>\n`;
-            }
-            combinedOutput += fullText;
+    for (const line of lines) {
+      if (!line.startsWith('data:')) continue;
+      let data;
+      try {
+        data = JSON.parse(line.slice(5).trim());
+      } catch {
+        continue;
+      }
+      if (data.promptFeedback?.blockReason) throw new Error('Geblokkeerd: ' + data.promptFeedback.blockReason);
 
-            onChunk(combinedOutput, sources);
-          } catch (e) {}
+      const cand = data.candidates?.[0];
+      if (cand?.finishReason) finish = cand.finishReason;
+
+      for (const part of cand?.content?.parts || []) {
+        if (!part.text) continue;
+        got = true;
+        yield { type: part.thought ? 'reasoning' : 'text', text: part.text };
+      }
+
+      const chunks = cand?.groundingMetadata?.groundingChunks;
+      if (chunks) {
+        const before = seen.size;
+        for (const ch of chunks) if (ch.web?.uri) seen.set(ch.web.uri, ch.web.title || 'Bron');
+        if (seen.size !== before) {
+          yield { type: 'sources', sources: [...seen].map(([url, title]) => ({ title, url })) };
         }
       }
     }
-    onDone(fullText, sources);
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      onDone(fullText || '', []);
-    } else {
-      onError(err);
+  }
+  if (!got) throw new Error('Geen antwoord ontvangen' + (finish ? ` (${finish})` : ''));
+}
+
+/** Offline demo used while GEMINI_API_KEY is still the placeholder. Same contract as streamReply. */
+async function* demoReply({ think, prompt, signal }) {
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const words = (t) => t.split(/(?<=\s)/);
+  await wait(1400);
+  if (think) {
+    for (const w of words('Dit is demomodus, ik laat alleen zien hoe het denkpaneel eruitziet.')) {
+      if (signal.aborted) return;
+      yield { type: 'reasoning', text: w };
+      await wait(40);
     }
+    await wait(300);
+  }
+  const reply =
+    'Je zit in **demomodus** omdat er nog geen API-sleutel is ingesteld.\n\n' +
+    'Zet je sleutel in `GEMINI_API_KEY` bovenaan het script en herlaad de pagina.\n\n' +
+    '> Jij zei: ' + prompt;
+  for (const w of words(reply)) {
+    if (signal.aborted) return;
+    yield { type: 'text', text: w };
+    await wait(22);
   }
 }
 
-function assistantBody(m, last) {
-  return md(m.content);
+// ===========================================================================
+// MODES, COMMANDS, TOOLS
+// ===========================================================================
+const pills = () => {
+  $('#t-think').classList.toggle('on', mode.think);
+  $('#t-search').classList.toggle('on', mode.search);
+};
+const tog = k => {
+  mode[k] = !mode[k];
+  pills();
+  toast((k === 'think' ? 'Nadenken' : 'Zoeken') + (mode[k] ? ' aan' : ' uit'));
+};
+
+function persona() {
+  if (!(S.persona in PER)) S.persona = 'Standaard';
+  $('#persona').innerHTML = Object.keys(PER).map(k => `<option ${k === S.persona ? 'selected' : ''}>${k}</option>`).join('');
 }
-
-function triggerAIResponse() {
-  const currentChat = chat();
-  if (!currentChat || busy) return;
-  busy = true;
-  $('#go').innerHTML = ic('stop', 18);
-  
-  // Voeg lege assistent-bubbel toe
-  currentChat.msgs.push({ role: 'assistant', content: '', local: false });
+$('#persona').onchange = e => {
+  S.persona = e.target.value;
+  save();
+};
+$('#t-think').onclick = () => tog('think');
+$('#t-search').onclick = () => tog('search');
+const note = t => {
+  chat().msgs.push({ role: 'assistant', content: t, local: true });
+  save();
   renderAll();
-
-  const msgs = currentChat.msgs.slice(0, -1);
-
-  streamReply(
-    msgs,
-    SYSTEM_PROMPT,
-    (chunk, sources) => {
-      const lastMsg = currentChat.msgs[currentChat.msgs.length - 1];
-      lastMsg.content = chunk;
-      lastMsg.src = sources;
-      renderAll();
-    },
-    (fullText, sources) => {
-      busy = false;
-      $('#go').innerHTML = ic('send', 18);
-      const lastMsg = currentChat.msgs[currentChat.msgs.length - 1];
-      lastMsg.content = fullText;
-      lastMsg.src = sources;
+};
+const CMDS = [
+  { n: 'think', d: 'Eerst nadenken (aan/uit, of /think vraag)', a: 'vraag', f: (x) => (x ? send(x, { think: true, raw: 1 }) : tog('think')) },
+  { n: 'search', d: 'Zoeken op het web met Google (aan/uit, of /search vraag)', a: 'vraag', f: (x) => (x ? send(x, { search: true, raw: 1 }) : tog('search')) },
+  { n: 'new', d: 'Nieuwe chat', f: () => newChat() },
+  {
+    n: 'clear', d: 'Wis dit gesprek', f: () => {
+      chat().msgs = [];
       save();
       renderAll();
     },
-    (err) => {
-      busy = false;
-      $('#go').innerHTML = ic('send', 18);
-      const lastMsg = currentChat.msgs[currentChat.msgs.length - 1];
-      lastMsg.content = "idk bro ✌️🫩🥀💔";
-      renderAll();
+  },
+  {
+    n: 'regen', d: 'Laatste antwoord opnieuw genereren', f: () => {
+      const c = chat(), l = c.msgs[c.msgs.length - 1];
+      if (l?.role === 'assistant' && !l.local && !busy) {
+        l.content = '';
+        renderAll();
+        stream(c);
+      }
     },
-    ctrl?.signal
-  );
+  },
+  { n: 'summarize', d: 'Vat het gesprek samen', f: () => send('Vat ons gesprek tot nu toe samen in een paar punten.', { raw: 1 }) },
+  { n: 'shorter', d: 'Maak het laatste antwoord korter', f: () => send('Maak je laatste antwoord veel korter.', { raw: 1 }) },
+  { n: 'eli5', d: 'Leg uit alsof ik 5 ben', a: 'onderwerp', f: (x) => send('Leg uit alsof ik 5 jaar ben: ' + (x || 'je laatste antwoord'), { raw: 1 }) },
+  { n: 'translate', d: 'Vertaal het laatste antwoord', a: 'taal', f: (x) => send('Vertaal je laatste antwoord naar het ' + (x || 'Engels') + '.', { raw: 1 }) },
+  {
+    n: 'persona', d: 'Persona wisselen: ' + Object.keys(PER).join(', '), a: 'naam', f: (x) => {
+      const k = Object.keys(PER).find((p) => p.toLowerCase() === x.toLowerCase());
+      if (k) {
+        S.persona = k;
+        save();
+        persona();
+        toast('Persona: ' + k);
+      } else {
+        toast('Kies uit: ' + Object.keys(PER).join(', '));
+      }
+    },
+  },
+  {
+    n: 'temp', d: 'Creativiteit instellen (0–2)', a: '0-2', f: (x) => {
+      const v = parseFloat(x);
+      if (v >= 0 && v <= 2) {
+        S.temp = v;
+        save();
+        toast('Temperatuur ' + v);
+      } else {
+        toast('Temperatuur is ' + S.temp);
+      }
+    },
+  },
+  { n: 'theme', d: 'Licht/donker wisselen', f: () => $('#th').click() },
+  { n: 'export', d: 'Chat exporteren als Markdown', f: () => $('#ex').click() },
+  { n: 'highlights', d: 'Opgeslagen hoogtepunten openen', f: () => openHl() },
+  {
+    n: 'help', d: 'Alle commando\'s tonen', f: () =>
+      note('**Commando\'s**\n\n' + CMDS.map((c) => `- \`/${c.n}${c.a ? ' <' + c.a + '>' : ''}\` — ${c.d}`).join('\n') + '\n\nTip: druk op **Tab** of **Enter** om een commando aan te vullen.'),
+  },
+];
+
+function runCmd(t) {
+  const m = t.match(/^\/(\w+)\s*([\s\S]*)/), c = m && CMDS.find(x => x.n === m[1].toLowerCase());
+  if (!c) return false;
+  $('#in').value = '';
+  fit();
+  hideSl();
+  c.f(m[2].trim());
+  return true;
+}
+let sli = 0, slv = [];
+
+function hideSl() {
+  $('#sl').style.display = 'none';
+  slv = [];
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  icons();
-  renderList();
-  if (!chats.length) newChat();
-  else { cur = chats[0].id; renderAll(); }
+function showSl() {
+  const v = $('#in').value;
+  if (!/^\/\w*$/.test(v)) {
+    hideSl();
+    return;
+  }
+  slv = CMDS.filter(c => c.n.startsWith(v.slice(1).toLowerCase()));
+  if (!slv.length) return hideSl();
+  sli = Math.min(sli, slv.length - 1);
+  const e = $('#sl');
+  e.style.display = 'block';
+  e.innerHTML = slv.map((c, i) => `<button class="sl-i ${i === sli ? 'on' : ''}" data-n="${c.n}"><b>/${c.n}</b><small>${esc(c.d)}</small></button>`).join('');
+}
 
-  const textarea = $('#in');
-  const sendBtn = $('#go');
+function pickSl(n) {
+  const c = CMDS.find(x => x.n === n);
+  if (c.a) {
+    $('#in').value = '/' + n + ' ';
+    hideSl();
+    $('#in').focus();
+    fit();
+  } else
+    send('/' + n);
+}
+$('#sl').onmousedown = e => {
+  e.preventDefault();
+  const b = e.target.closest('.sl-i');
+  if (b) pickSl(b.dataset.n);
+};
+const shrink = f => new Promise((ok, no) => {
+  const i = new Image();
+  i.onload = () => {
+    const k = Math.min(1, 900 / Math.max(i.width, i.height)), c = document.createElement('canvas');
+    c.width = i.width * k;
+    c.height = i.height * k;
+    c.getContext('2d').drawImage(i, 0, 0, c.width, c.height);
+    ok(c.toDataURL('image/jpeg', .75));
+  };
+  i.onerror = no;
+  i.src = URL.createObjectURL(f);
+});
 
-  const handleSend = () => {
-    if (busy) {
-      if (ctrl) ctrl.abort();
-      busy = false;
-      sendBtn.innerHTML = ic('send', 18);
+async function addFiles(fs) {
+  for (const f of fs) {
+    try {
+      if (f.type.startsWith('image/'))
+        pend.push({ name: f.name, img: await shrink(f) });
+      else if (f.size > 2e6) toast(f.name + ' is te groot');
+      else
+        pend.push({ name: f.name, text: (await f.text()).slice(0, 30000) });
+    } catch {
+      toast('Kan niet lezen: ' + f.name);
+    }
+  }
+  renderPend();
+}
+
+function renderPend() {
+  $('#pend').innerHTML = pend.map((f, i) => `<span class="tp">${f.img ? `<img class="thumb" src="${f.img}">` : ic('clip', 13)}${esc(f.name)} <button data-x="${i}">✕</button></span>`).join('');
+  setBusy(busy);
+}
+$('#pend').onclick = e => {
+  const i = e.target.dataset.x;
+  if (i != null) {
+    pend.splice(+i, 1);
+    renderPend();
+  }
+};
+$('#at').onclick = () => $('#fl').click();
+$('#fl').onchange = e => {
+  addFiles(e.target.files);
+  e.target.value = '';
+};
+document.body.ondragover = e => e.preventDefault();
+document.body.ondrop = e => {
+  e.preventDefault();
+  addFiles(e.dataTransfer.files);
+};
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;
+if (!SR) $('#mic').style.display = 'none';
+$('#mic').onclick = () => {
+  if (rec) {
+    rec.stop();
+    return;
+  }
+  rec = new SR();
+  rec.interimResults = true;
+  rec.lang = navigator.language;
+  const base = $('#in').value;
+  rec.onresult = e => {
+    $('#in').value = (base + ' ' + [...e.results].map(r => r[0].transcript).join('')).trim();
+    fit();
+  };
+  rec.onend = () => {
+    rec = null;
+    $('#mic').style.color = '';
+  };
+  rec.start();
+  $('#mic').style.color = 'var(--ac)';
+};
+// ===========================================================================
+// SYNTAX HIGHLIGHTING
+// ===========================================================================
+const KW = /\b(function|const|let|var|return|if|else|for|while|class|import|from|export|def|in|of|new|async|await|try|catch|throw|true|false|null|None|True|False|self|this|public|private|static|void|int|string|fn|func|use|pub|struct|enum|SELECT|FROM|WHERE)\b/g;
+
+function hl(c, l) {
+  const py = /^(py|python|sh|bash|shell|yaml|yml|rb|ruby|toml)$/i.test(l || '');
+  const re = py ? /(#[^\n]*)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')/g : /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)/g;
+  let o = '', i = 0, m;
+  const plain = t => esc(t).replace(KW, '<span class="tk">$1</span>').replace(/\b(\d+\.?\d*)\b/g, '<span class="tn">$1</span>');
+  while (m = re.exec(c)) {
+    o += plain(c.slice(i, m.index)) + `<span class="${m[1] ? 'tc' : 'ts'}">${esc(m[0])}</span>`;
+    i = m.index + m[0].length;
+  }
+  return `<pre><code>${o + plain(c.slice(i))}</code></pre>`;
+}
+// ===========================================================================
+// HIGHLIGHTS (select text in a reply to keep it)
+// ===========================================================================
+let HL = ld('hl', []);
+const saveHL = () => {
+  try {
+    localStorage.setItem('hl', JSON.stringify(HL));
+  } catch { }
+};
+const hlb = $('#hlb');
+let hsel = '';
+const hlCount = () => $('#hc').textContent = HL.length || '';
+document.addEventListener('mouseup', e => {
+  if (e.target === hlb) return;
+  setTimeout(() => {
+    const g = getSelection(), t = g.toString().trim(), n = g.anchorNode, el = n && (n.nodeType === 1 ? n : n.parentElement)?.closest('.m.assistant .bub');
+    if (t.length > 3 && el) {
+      hsel = t;
+      const r = g.getRangeAt(0).getBoundingClientRect();
+      hlb.style.left = Math.max(8, Math.min(innerWidth - 120, r.left + r.width / 2 - 45)) + 'px';
+      hlb.style.top = Math.max(8, r.top - 46) + 'px';
+      hlb.style.display = 'block';
+    } else
+      hlb.style.display = 'none';
+  }, 10);
+});
+hlb.onmousedown = e => e.preventDefault();
+hlb.onclick = () => {
+  HL.unshift({ id: Date.now(), text: hsel, chat: chat().title });
+  saveHL();
+  hlb.style.display = 'none';
+  getSelection().removeAllRanges();
+  hlCount();
+  toast('Hoogtepunt opgeslagen');
+};
+
+function openHl() {
+  $('#hlist').innerHTML = HL.length ? HL.map(h => `<div class="hli"><mark>${esc(h.text)}</mark><small>uit “${esc(h.chat)}”</small><button data-hc="${h.id}">Kopieer</button><button data-hd="${h.id}">Verwijder</button></div>`).join('') : '<p style="color:var(--mut)">Nog niks. Selecteer tekst in een antwoord en druk op Hoogtepunt om het hier te bewaren.</p>';
+  if (!$('#hdlg').open) $('#hdlg').showModal();
+}
+$('#hls').onclick = openHl;
+$('#hx').onclick = () => $('#hdlg').close();
+$('#hdlg').onclick = e => {
+  const t = e.target;
+  if (t === $('#hdlg')) t.close();
+  if (t.dataset.hc) {
+    navigator.clipboard.writeText(HL.find(h => h.id == t.dataset.hc).text);
+    toast('Gekopieerd');
+  }
+  if (t.dataset.hd) {
+    HL = HL.filter(h => h.id != t.dataset.hd);
+    saveHL();
+    hlCount();
+    openHl();
+  }
+};
+$('#hex').onclick = () => dl('highlights.md', HL.map(h => `> ${h.text.replace(/\n/g, '\n> ')}\n\n*${h.chat}*`).join('\n\n---\n\n'), 'text/markdown');
+$('#hcl').onclick = () => {
+  if (confirm('Alle hoogtepunten verwijderen?')) {
+    HL = [];
+    saveHL();
+    hlCount();
+    openHl();
+  }
+};
+hlCount();
+// ===========================================================================
+// UI WIRING & STARTUP
+// ===========================================================================
+const fit = () => {
+  const t = $('#in');
+  t.style.height = 'auto';
+  t.style.height = Math.min(t.scrollHeight, 200) + 'px';
+  setBusy(busy);
+};
+$('#in').oninput = () => {
+  fit();
+  showSl();
+};
+$('#in').onkeydown = e => {
+  if ($('#sl').style.display === 'block' && slv.length) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      sli = (sli + (e.key === 'ArrowDown' ? 1 : -1) + slv.length) % slv.length;
+      showSl();
       return;
     }
-    const text = textarea.value.trim();
-    if (!text) return;
-    if (!cur) newChat();
-    const currentChat = chat();
-    currentChat.msgs.push({ role: 'user', content: text });
-    if (currentChat.title === 'Nieuwe chat') currentChat.title = text.slice(0, 32);
-    currentChat.ts = Date.now();
+    if (e.key === 'Tab' || e.key === 'Enter') {
+      e.preventDefault();
+      pickSl(slv[sli].n);
+      return;
+    }
+    if (e.key === 'Escape') {
+      hideSl();
+      return;
+    }
+  }
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+    e.preventDefault();
+    send(e.target.value);
+  }
+};
+$('#go').onclick = () => busy ? stop() : send($('#in').value);
+$('#new').onclick = newChat;
+$('#q').oninput = renderList;
+const side = () => {
+  innerWidth <= 800 ? document.body.classList.toggle('open') : (S.col = !S.col, document.body.classList.toggle('col', S.col), save());
+};
+$('#tg').onclick = side;
+$('#tg2').onclick = side;
+$('#scrim').onclick = () => document.body.classList.remove('open');
+$('#list').onclick = e => {
+  const it = e.target.closest('.it');
+  if (!it) return;
+  const id = it.dataset.id;
+  if (e.target.closest('[data-pin]')) {
+    const c = chats.find(x => x.id === id);
+    c.pin = !c.pin;
+    save();
+    renderList();
+    return;
+  }
+  if (e.target.closest('[data-del]')) {
+    chats = chats.filter(x => x.id !== id);
+    if (cur === id) cur = chats[0]?.id;
+    if (!cur) return newChatForce();
     save();
     renderAll();
-    textarea.value = '';
-    textarea.style.height = 'auto';
-    triggerAIResponse();
-  };
+    return;
+  }
+  cur = id;
+  renderAll();
+  document.body.classList.remove('open');
+};
+$('#list').ondblclick = e => {
+  const it = e.target.closest('.it');
+  if (!it) return;
+  const c = chats.find(x => x.id === it.dataset.id), t = prompt('Chat hernoemen', c.title);
+  if (t) {
+    c.title = t;
+    save();
+    renderAll();
+  }
+};
+$('#w').onclick = e => {
+  const t = e.target, c = chat(), ch = t.closest('.chip');
+  if (ch) return send(ch.dataset.p);
+  if (t.dataset.copy !== undefined) {
+    navigator.clipboard.writeText(t.closest('.code').querySelector('code').textContent);
+    t.textContent = 'Gekopieerd!';
+    setTimeout(() => t.textContent = 'Kopieer', 1200);
+    return;
+  }
+  const b = t.closest('[data-a]');
+  if (!b) return;
+  const a = b.dataset.a, i = +b.closest('.m').dataset.i;
+  if (a === 'copy') {
+    navigator.clipboard.writeText(c.msgs[i].content);
+    toast('Gekopieerd naar klembord');
+  }
+  if (a === 'speak') {
+    speechSynthesis.speaking ? speechSynthesis.cancel() : speechSynthesis.speak(new SpeechSynthesisUtterance(strip(c.msgs[i].content)));
+  }
+  if (a === 'edit' && !busy) {
+    pend = c.msgs[i].att || [];
+    $('#in').value = c.msgs[i].content;
+    c.msgs.length = i;
+    save();
+    renderAll();
+    fit();
+    $('#in').focus();
+  }
+  if (a === 'regen' && !busy) {
+    c.msgs[i].content = '';
+    renderAll();
+    stream(c);
+  }
+};
+$('#msgs').onscroll = () => {
+  const m = $('#msgs');
+  $('#dn').classList.toggle('on', m.scrollHeight - m.scrollTop - m.clientHeight > 240);
+};
+$('#dn').onclick = () => $('#msgs').scrollTo({ top: 1e9, behavior: 'smooth' });
 
-  sendBtn.addEventListener('click', handleSend);
-  textarea.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  });
+function theme() {
+  const t = S.theme === 'auto' ? (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light') : S.theme;
+  document.documentElement.dataset.t = t;
+  $('#th').innerHTML = ic(t === 'dark' ? 'sun' : 'moon');
+  const [a, b] = AC[S.ac] || AC[0], s = document.documentElement.style;
+  s.setProperty('--ac', a);
+  s.setProperty('--ac2', b);
+}
+$('#th').onclick = () => {
+  S.theme = document.documentElement.dataset.t === 'dark' ? 'light' : 'dark';
+  theme();
+  save();
+};
+const dl = (n, t, m) => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([t], { type: m }));
+  a.download = n;
+  a.click();
+};
+$('#ex').onclick = () => dl(chat().title + '.md', chat().msgs.map(m => `**${m.role === 'user' ? 'Jij' : 'Assistent'}:**\n\n${m.content}`).join('\n\n---\n\n'), 'text/markdown');
+const D = $('#dlg');
+let tmpAc = 0;
 
-  textarea.addEventListener('input', () => {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-  });
-
-  $('#new').addEventListener('click', newChat);
-  $('#t-search').addEventListener('click', () => {
-    mode.search = !mode.search;
-    $('#t-search').classList.toggle('on', mode.search);
-  });
-  $('#t-think').addEventListener('click', () => {
-    mode.think = !mode.think;
-    $('#t-think').classList.toggle('on', mode.think);
-  });
+function sw() {
+  $('#sw').innerHTML = AC.map((c, i) => `<button data-k="${i}" class="${i === tmpAc ? 'on' : ''}" style="background:${c[0]}"></button>`).join('');
+}
+$('#sw').onclick = e => {
+  const k = e.target.dataset.k;
+  if (k != null) {
+    tmpAc = +k;
+    sw();
+  }
+};
+$('#set').onclick = () => {
+  $('#s-temp').value = S.temp;
+  $('#tv').textContent = S.temp;
+  $('#s-theme').value = S.theme;
+  tmpAc = S.ac;
+  sw();
+  D.showModal();
+};
+$('#s-temp').oninput = e => $('#tv').textContent = e.target.value;
+$('#bok').onclick = () => {
+  S = { ...S, temp: +$('#s-temp').value, theme: $('#s-theme').value, ac: tmpAc };
+  save();
+  theme();
+  D.close();
+  renderAll();
+  toast('Instellingen opgeslagen');
+};
+D.onclick = e => {
+  if (e.target === D) D.close();
+};
+$('#bex').onclick = () => dl('chats.json', JSON.stringify(chats, null, 2), 'application/json');
+$('#bim').onclick = () => $('#file').click();
+$('#file').onchange = async (e) => {
+  try {
+    const j = JSON.parse(await e.target.files[0].text());
+    if (!Array.isArray(j)) throw 0;
+    chats = [...j, ...chats];
+    cur = chats[0].id;
+    save();
+    renderAll();
+    D.close();
+    toast('Geïmporteerd');
+  } catch {
+    toast('Ongeldig bestand');
+  }
+};
+$('#bcl').onclick = () => {
+  if (confirm('ALLE chats verwijderen?')) {
+    newChatForce();
+    D.close();
+  }
+};
+addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    newChat();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+    e.preventDefault();
+    side();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+    e.preventDefault();
+    $('#q').focus();
+  }
+  if (e.key === 'Escape' && busy) stop();
 });
+matchMedia('(prefers-color-scheme:dark)').onchange = theme;
+icons();
+theme();
+pills();
+persona();
+document.body.classList.toggle('col', !!S.col && innerWidth > 800);
+if (!chats.length) newChat();
+else {
+  cur = chats[0].id;
+  renderAll();
+}
+
 </script>
 </body>
 </html>
