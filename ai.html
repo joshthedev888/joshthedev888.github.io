@@ -726,7 +726,7 @@ async function* streamReply({ messages, system, think, search, signal }) {
       }
       if (![429, 500, 502, 503, 504].includes(res.status)) throw new Error(`API ${res.status}: ${msg}`);
     }
-    yield { type: 'status', text: `Google is druk, opnieuw proberen (${i + 1}/${attempts.length - 1})…` };
+    yield { type: 'status', text: `wifi is een beetje dom nu🥀 (${i + 1}/${attempts.length - 1})…` };
     await sleep(waits[i], signal);
   }
 
