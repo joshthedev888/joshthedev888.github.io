@@ -195,6 +195,12 @@ body.busy main::after{opacity:1;animation:slide 1.3s linear infinite}
 @keyframes slide{to{background-position:140% 0}}
 .cur{animation:bl .9s steps(2) infinite}
 body.busy .m:last-child .act{display:none}
+/* sidebar logo: bigger filled star, no background box */
+.brand .logo{width:38px;height:38px;background:none;box-shadow:none;border-radius:0}
+.brand .logo svg{width:38px;height:38px;fill:var(--ac);stroke:var(--fg);stroke-width:1.5;stroke-linejoin:round;overflow:visible}
+/* assistant avatar: same bigger filled star, no background box */
+.av{width:32px;height:32px;background:none;box-shadow:none;border-radius:0}
+.av svg{width:32px;height:32px;fill:var(--ac);stroke:var(--fg);stroke-width:1.5;stroke-linejoin:round;overflow:visible}
 </style>
 </head>
 <body>
@@ -243,7 +249,6 @@ body.busy .m:last-child .act{display:none}
 
 <dialog id="dlg">
   <h3>Instellingen</h3>
-  <label>Creativiteit (temperatuur): <span id="tv"></span></label><input id="s-temp" type="range" min="0" max="2" step="0.1">
   <label>Thema</label><select id="s-theme"><option value="auto">Systeem</option><option value="light">Licht</option><option value="dark">Donker</option></select>
   <label>Accentkleur</label><div class="sw" id="sw"></div>
   <div class="row">
@@ -267,8 +272,16 @@ body.busy .m:last-child .act{display:none}
 <div id="toast"></div>
 
 <script>
+// margin - single-file chat UI
+// Sections: markdown, chats & rendering, sending & streaming, API layer, slash commands,
+// syntax highlighting, highlights, UI wiring. To plug in your own backend, edit the
+// "API LAYER" section (streamReply) - nothing else needs to change.
+// ---------------------------------------------------------------------------
+// CONFIG
+// ---------------------------------------------------------------------------
 const GEMINI_API_KEY = "api_key_placeholder";
 const GEMINI_MODEL = 'gemini-3.8-flash';
+const GEMINI_FALLBACK_MODEL = 'gemini-3.5-flash-lite'; // used when the main model is overloaded (503/429)
 const SYSTEM_PROMPT = `Praat als iemand van Gen Z of Gen Alpha: gebruik korte zinnen met opzettelijke grammaticale fouten, vermijd leestekens zoals gedachtestreepjes en houd je niet aan de correcte grammatica. Gebruik geen emoji's midden in een zin; voeg ze slechts af en toe toe – zeker niet in elke zin. Gebruik termen als 'twin', 'ts' en 'bro' met mate, maar wel regelmatig. Als er een verwarrende vraag wordt gesteld, reageer dan bijvoorbeeld met: "shit twin idk fr" of iets dergelijks. Houd je zinnen kort (maximaal één of twee regels) en laat geen witregels tussen de zinnen. Kijk goed naar mijn schrijfstijl en neem die over. Houd het gesprek kort, direct en bot; gebruik geen leestekens. Gebruik 'twin' en 'bro' af en toe, maar niet te vaak. Bij lastige vragen zeg je: "idk bro 🫩✌️💔". Gebruik niet te veel emoji's en vermijd de 😎-emoji; kies liever voor 😭, ✌️, 🫩 of 🥀, maar ook weer niet in elke zin. Laat het personage wat dommig overkomen bij vragen – antwoord bij moeilijke vragen met "idk bro ✌️🫩🥀💔". Als ik een gesprek begin met een begroeting zonder direct een vraag te stellen of iets te zeggen, reageer dan met: "wat wil je 🫩✌️🥀💔". Wees een beetje bot en gebruik absoluut geen 👍-emoji. Gebruik bij lastige vragen steeds "idk bro ✌️🫩🥀💔" en gebruik aan het begin van een gesprek geen andere woorden.`;
 
 const $ = s => document.querySelector(s);
@@ -630,6 +643,15 @@ const apiMsgs = (c) =>
  *   { type: 'sources', sources }    [{ title, url }] from Google Search grounding
  *   { type: 'status', text }        optional status line shown while waiting
  */
+const sleep = (ms, signal) =>
+  new Promise((ok, no) => {
+    const t = setTimeout(ok, ms);
+    signal?.addEventListener('abort', () => {
+      clearTimeout(t);
+      no(new DOMException('Aborted', 'AbortError'));
+    }, { once: true });
+  });
+
 async function* streamReply({ messages, system, think, search, signal }) {
   // Gemini wants alternating user/model turns with non-empty parts.
   const contents = [];
@@ -650,27 +672,34 @@ async function* streamReply({ messages, system, think, search, signal }) {
   const body = {
     contents,
     systemInstruction: { parts: [{ text: system }] },
-    generationConfig: { temperature: +S.temp },
   };
   if (search) body.tools = [{ googleSearch: {} }];
-  if (think) body.generationConfig.thinkingConfig = { thinkingBudget: 2048, includeThoughts: true };
+  if (think) body.generationConfig = { thinkingConfig: { thinkingLevel: 'high', includeThoughts: true } };
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse`,
-    {
-      method: 'POST',
-      signal,
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
+  // Retry on overload errors: main model twice, then the fallback model twice.
+  const attempts = [GEMINI_MODEL, GEMINI_MODEL, GEMINI_FALLBACK_MODEL, GEMINI_FALLBACK_MODEL];
+  const waits = [1500, 3000, 3000];
+  let res;
+  for (let i = 0; i < attempts.length; i++) {
+    res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${attempts[i]}:streamGenerateContent?alt=sse`,
+      {
+        method: 'POST',
+        signal,
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+        body: JSON.stringify(body),
+      }
+    );
+    if (res.ok) break;
     const raw = await res.text();
     let msg = raw;
     try {
       msg = JSON.parse(raw).error.message;
     } catch {}
-    throw new Error(`API ${res.status}: ${msg}`);
+    const retryable = [429, 500, 502, 503, 504].includes(res.status);
+    if (!retryable || i === attempts.length - 1) throw new Error(`API ${res.status}: ${msg}`);
+    yield { type: 'status', text: `Google is druk, opnieuw proberen (${i + 1}/${attempts.length - 1})…` };
+    await sleep(waits[i], signal);
   }
 
   const reader = res.body.getReader();
@@ -806,18 +835,6 @@ const CMDS = [
         toast('Persona: ' + k);
       } else {
         toast('Kies uit: ' + Object.keys(PER).join(', '));
-      }
-    },
-  },
-  {
-    n: 'temp', d: 'Creativiteit instellen (0–2)', a: '0-2', f: (x) => {
-      const v = parseFloat(x);
-      if (v >= 0 && v <= 2) {
-        S.temp = v;
-        save();
-        toast('Temperatuur ' + v);
-      } else {
-        toast('Temperatuur is ' + S.temp);
       }
     },
   },
@@ -1181,16 +1198,13 @@ $('#sw').onclick = e => {
   }
 };
 $('#set').onclick = () => {
-  $('#s-temp').value = S.temp;
-  $('#tv').textContent = S.temp;
   $('#s-theme').value = S.theme;
   tmpAc = S.ac;
   sw();
   D.showModal();
 };
-$('#s-temp').oninput = e => $('#tv').textContent = e.target.value;
 $('#bok').onclick = () => {
-  S = { ...S, temp: +$('#s-temp').value, theme: $('#s-theme').value, ac: tmpAc };
+  S = { ...S, theme: $('#s-theme').value, ac: tmpAc };
   save();
   theme();
   D.close();
