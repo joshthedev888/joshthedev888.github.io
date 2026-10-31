@@ -35,6 +35,9 @@ jobs:
         with:
           source: ./
           destination: ./_site
+        env:
+          API_KEY: ${{ secrets.AI_API_KEY }}
+          
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
