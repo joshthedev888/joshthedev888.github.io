@@ -169,7 +169,7 @@ dialog{border:2px solid var(--fg);border-radius:14px;box-shadow:8px 8px 0 var(--
 #dn{border-radius:10px;backdrop-filter:none}#toast{border-radius:8px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-.brand .name{font-weight:800;letter-spacing:-.03em;color:var(--on);padding:0 4px;background:linear-gradient(var(--ac),var(--ac)) 0 88%/100% .42em no-repeat}
+.brand .name{font-weight:800;letter-spacing:-.03em;color:var(--fg);padding:0 4px;background:linear-gradient(var(--ac),var(--ac)) 0 88%/100% .42em no-repeat}
 .hero h2 span{background:linear-gradient(var(--ac),var(--ac)) 0 92%/0% .34em no-repeat;animation:swipe .9s .2s cubic-bezier(.6,0,.2,1) forwards;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 @keyframes swipe{to{background-size:100% .34em}}
 .tc{color:#7c859a;font-style:italic}.ts{color:var(--ac)}.tk{color:#85c8ff}.tn{color:#8be9b4}
@@ -267,15 +267,8 @@ body.busy .m:last-child .act{display:none}
 <div id="toast"></div>
 
 <script>
-// margin - single-file chat UI
-// Sections: markdown, chats & rendering, sending & streaming, API layer, slash commands,
-// syntax highlighting, highlights, UI wiring. To plug in your own backend, edit the
-// "API LAYER" section (streamReply) - nothing else needs to change.
-// ---------------------------------------------------------------------------
-// CONFIG
-// ---------------------------------------------------------------------------
 const GEMINI_API_KEY = "api_key_placeholder";
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MODEL = 'gemini-3.8-flash';
 const SYSTEM_PROMPT = `Praat als iemand van Gen Z of Gen Alpha: gebruik korte zinnen met opzettelijke grammaticale fouten, vermijd leestekens zoals gedachtestreepjes en houd je niet aan de correcte grammatica. Gebruik geen emoji's midden in een zin; voeg ze slechts af en toe toe – zeker niet in elke zin. Gebruik termen als 'twin', 'ts' en 'bro' met mate, maar wel regelmatig. Als er een verwarrende vraag wordt gesteld, reageer dan bijvoorbeeld met: "shit twin idk fr" of iets dergelijks. Houd je zinnen kort (maximaal één of twee regels) en laat geen witregels tussen de zinnen. Kijk goed naar mijn schrijfstijl en neem die over. Houd het gesprek kort, direct en bot; gebruik geen leestekens. Gebruik 'twin' en 'bro' af en toe, maar niet te vaak. Bij lastige vragen zeg je: "idk bro 🫩✌️💔". Gebruik niet te veel emoji's en vermijd de 😎-emoji; kies liever voor 😭, ✌️, 🫩 of 🥀, maar ook weer niet in elke zin. Laat het personage wat dommig overkomen bij vragen – antwoord bij moeilijke vragen met "idk bro ✌️🫩🥀💔". Als ik een gesprek begin met een begroeting zonder direct een vraag te stellen of iets te zeggen, reageer dan met: "wat wil je 🫩✌️🥀💔". Wees een beetje bot en gebruik absoluut geen 👍-emoji. Gebruik bij lastige vragen steeds "idk bro ✌️🫩🥀💔" en gebruik aan het begin van een gesprek geen andere woorden.`;
 
 const $ = s => document.querySelector(s);
